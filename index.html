@@ -1,0 +1,1870 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plantilla Markdown</title>
+<style>
+/* ==========================================================================
+   PALETA
+   ========================================================================== */
+:root{
+  --fondo:#ffffff;
+  --papel:#ffffff;
+  --texto:#1b1f24;
+  --tenue:#5c6773;
+  --borde:#e2e6ea;
+  --borde-fuerte:#c9d1d9;
+  --acento:#1f6feb;
+  --acento-suave:#e8f0fe;
+  --codigo-fondo:#f6f8fa;
+  --codigo-texto:#24292f;
+  --cita-fondo:#f7f9fb;
+  --marca:#fff2a8;
+  --sombra:0 1px 3px rgba(16,24,40,.08), 0 8px 24px rgba(16,24,40,.06);
+  --ancho:46rem;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --n:#1f6feb; --n-f:#e8f0fe;
+  --c:#1a7f37; --c-f:#e6f6ea;
+  --i:#8250df; --i-f:#f3ecfd;
+  --a:#bf8700; --a-f:#fff8e1;
+  --p:#cf222e; --p-f:#ffebe9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-tema="claro"]){
+    --fondo:#0d1117; --papel:#12171f; --texto:#e6edf3; --tenue:#9aa7b4;
+    --borde:#242c37; --borde-fuerte:#39424e; --acento:#6ea8fe; --acento-suave:#16243c;
+    --codigo-fondo:#161b22; --codigo-texto:#e6edf3; --cita-fondo:#151b23; --marca:#6b5b00;
+    --sombra:0 1px 3px rgba(0,0,0,.5);
+    --n-f:#12243c; --c-f:#0f2417; --i-f:#1d1630; --a-f:#2a2109; --p-f:#2d1416;
+    --n:#6ea8fe; --c:#5fd07a; --i:#c297ff; --a:#e3b341; --p:#ff7b72;
+  }
+}
+:root[data-tema="oscuro"]{
+  --fondo:#0d1117; --papel:#12171f; --texto:#e6edf3; --tenue:#9aa7b4;
+  --borde:#242c37; --borde-fuerte:#39424e; --acento:#6ea8fe; --acento-suave:#16243c;
+  --codigo-fondo:#161b22; --codigo-texto:#e6edf3; --cita-fondo:#151b23; --marca:#6b5b00;
+  --sombra:0 1px 3px rgba(0,0,0,.5);
+  --n-f:#12243c; --c-f:#0f2417; --i-f:#1d1630; --a-f:#2a2109; --p-f:#2d1416;
+  --n:#6ea8fe; --c:#5fd07a; --i:#c297ff; --a:#e3b341; --p:#ff7b72;
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--fondo); color:var(--texto);
+  font-family:var(--serif); font-size:18px; line-height:1.7;
+  -webkit-text-size-adjust:100%; text-rendering:optimizeLegibility;
+}
+#panel{display:block}
+body.editando #panel{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); height:100vh}
+body.editando #ladoEditor{border-right:1px solid var(--borde); background:var(--papel); min-height:0}
+body.editando .documento{overflow:auto; height:100vh; margin:0; padding:2.5rem 3rem 6rem; max-width:none}
+#ed{
+  width:100%; height:100%; border:0; resize:none; outline:none; padding:2.5rem 1.5rem 6rem 2rem;
+  font-family:var(--mono); font-size:14px; line-height:1.65; tab-size:2;
+  background:var(--papel); color:var(--texto);
+}
+
+/* ==========================================================================
+   BARRA DE HERRAMIENTAS
+   ========================================================================== */
+.barra{
+  position:fixed; top:.7rem; right:.7rem; z-index:50; display:flex; gap:.3rem;
+  background:var(--papel); border:1px solid var(--borde); border-radius:.7rem;
+  padding:.3rem; box-shadow:var(--sombra); font-family:var(--sans);
+}
+.barra button{
+  font:inherit; font-size:12.5px; line-height:1; cursor:pointer; color:var(--texto);
+  background:transparent; border:0; border-radius:.5rem; padding:.5rem .6rem; white-space:nowrap;
+}
+.barra button:hover{background:var(--acento-suave); color:var(--acento)}
+.barra button:active{transform:translateY(1px)}
+@media (max-width:640px){ .barra{left:.7rem; right:.7rem; justify-content:space-between} }
+
+/* ==========================================================================
+   DOCUMENTO
+   ========================================================================== */
+.documento{max-width:var(--ancho); margin:0 auto; padding:4.5rem 1.5rem 7rem}
+.documento > *:first-child{margin-top:0}
+
+h1,h2,h3,h4,h5,h6{
+  font-family:var(--sans); font-weight:650; line-height:1.25;
+  margin:2.4em 0 .7em; letter-spacing:-.011em; scroll-margin-top:1.5rem;
+}
+h1{font-size:2.1em; margin-top:0; letter-spacing:-.021em}
+h2{font-size:1.55em; padding-bottom:.3em; border-bottom:1px solid var(--borde)}
+h3{font-size:1.25em}
+h4{font-size:1.06em}
+h5{font-size:1em; color:var(--tenue)}
+h6{font-size:.9em; color:var(--tenue); text-transform:uppercase; letter-spacing:.06em}
+h1+h2,h2+h3,h3+h4{margin-top:1.4em}
+
+.anclaje{
+  float:right; margin-left:.5rem; color:var(--borde-fuerte); text-decoration:none;
+  opacity:0; transition:opacity .15s; font-weight:400;
+}
+h1:hover .anclaje,h2:hover .anclaje,h3:hover .anclaje,
+h4:hover .anclaje,h5:hover .anclaje,h6:hover .anclaje{opacity:1}
+.anclaje:hover{color:var(--acento)}
+
+p{margin:0 0 1.15em}
+a{color:var(--acento); text-underline-offset:.18em; text-decoration-thickness:from-font}
+a:hover{text-decoration-thickness:2px}
+
+strong{font-weight:700}
+em{font-style:italic}
+del{color:var(--tenue)}
+mark{background:var(--marca); color:inherit; padding:.05em .2em; border-radius:.2em}
+sup,sub{font-size:.75em; line-height:0}
+abbr[title]{text-decoration:underline dotted; cursor:help}
+small{font-size:.85em; color:var(--tenue)}
+kbd{
+  font-family:var(--sans); font-size:.8em; padding:.15em .45em; border-radius:.35em;
+  border:1px solid var(--borde-fuerte); border-bottom-width:2px;
+  background:var(--codigo-fondo); color:var(--texto); white-space:nowrap;
+}
+
+/* listas */
+ul,ol{margin:0 0 1.15em; padding-left:1.6em}
+li{margin:.28em 0}
+li>ul,li>ol{margin:.3em 0}
+li>p{margin:0 0 .6em}
+ul.lista-tareas{list-style:none; padding-left:.2em}
+ul.lista-tareas li.tarea{padding-left:0}
+ul.lista-tareas input[type=checkbox]{
+  width:1em; height:1em; margin-right:.45em; vertical-align:-.1em; accent-color:var(--acento);
+}
+
+/* citas */
+blockquote{
+  margin:0 0 1.15em; padding:.1em 0 .1em 1.2em;
+  border-left:.25em solid var(--borde-fuerte); color:var(--tenue);
+}
+blockquote > *:last-child{margin-bottom:0}
+
+/* avisos estilo GitHub */
+.alerta{
+  margin:0 0 1.2em; padding:.85em 1.1em; border-left:.25em solid var(--n);
+  background:var(--n-f); border-radius:0 .5em .5em 0;
+}
+.alerta > *:last-child{margin-bottom:0}
+.alerta-titulo{font-family:var(--sans); font-weight:650; font-size:.92em; color:var(--n); margin:0 0 .4em}
+.alerta.consejo{border-color:var(--c); background:var(--c-f)} .alerta.consejo .alerta-titulo{color:var(--c)}
+.alerta.importante{border-color:var(--i); background:var(--i-f)} .alerta.importante .alerta-titulo{color:var(--i)}
+.alerta.aviso{border-color:var(--a); background:var(--a-f)} .alerta.aviso .alerta-titulo{color:var(--a)}
+.alerta.precaucion{border-color:var(--p); background:var(--p-f)} .alerta.precaucion .alerta-titulo{color:var(--p)}
+
+/* código */
+code{
+  font-family:var(--mono); font-size:.86em;
+  background:var(--codigo-fondo); color:var(--codigo-texto);
+  padding:.15em .38em; border-radius:.35em; border:1px solid var(--borde);
+}
+pre{
+  position:relative; margin:0 0 1.3em; padding:1em 1.1em; overflow-x:auto;
+  background:var(--codigo-fondo); border:1px solid var(--borde); border-radius:.6em;
+}
+pre code{
+  background:none; border:0; padding:0; font-size:.82em; line-height:1.6;
+  color:var(--codigo-texto); white-space:pre; display:block;
+}
+pre[data-lenguaje]::after{
+  content:attr(data-lenguaje); position:absolute; top:.35em; right:.6em;
+  font-family:var(--sans); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--tenue); pointer-events:none;
+}
+.copiar{
+  position:absolute; top:.4em; right:.5em; opacity:0; transition:opacity .15s;
+  font-family:var(--sans); font-size:11px; cursor:pointer; color:var(--tenue);
+  background:var(--papel); border:1px solid var(--borde); border-radius:.4em; padding:.25em .5em;
+}
+pre:hover .copiar{opacity:1}
+.copiar:hover{color:var(--acento); border-color:var(--acento)}
+pre:hover[data-lenguaje]::after{opacity:0}
+
+/* tablas */
+.tabla-envoltorio{overflow-x:auto; margin:0 0 1.3em}
+table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.88em}
+th,td{border:1px solid var(--borde); padding:.5em .75em; text-align:left; vertical-align:top}
+thead th{background:var(--codigo-fondo); font-weight:650}
+tbody tr:nth-child(even){background:color-mix(in srgb, var(--codigo-fondo) 55%, transparent)}
+table code{font-size:.92em}
+
+/* imágenes y figuras */
+img{max-width:100%; height:auto; border-radius:.4em}
+figure{margin:0 0 1.4em; text-align:center}
+figcaption{font-family:var(--sans); font-size:.82em; color:var(--tenue); margin-top:.5em}
+
+/* reglas */
+hr{border:0; border-top:1px solid var(--borde); margin:2.4em 0}
+
+/* listas de definiciones */
+dl{margin:0 0 1.2em}
+dt{font-weight:650; font-family:var(--sans); font-size:.95em; margin-top:.9em}
+dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
+
+/* índice automático */
+.indice{
+  font-family:var(--sans); font-size:.9em; background:var(--papel);
+  border:1px solid var(--borde); border-radius:.7em; padding:1em 1.3em; margin:0 0 2em;
+}
+.indice-titulo{font-weight:650; margin:0 0 .5em; font-size:.95em}
+.indice ul{list-style:none; margin:0; padding:0; columns:2; column-gap:2rem}
+.indice li{margin:.15em 0; break-inside:avoid}
+.indice li a{text-decoration:none; color:var(--texto)}
+.indice li a:hover{color:var(--acento); text-decoration:underline}
+.indice .n1{font-weight:650}
+.indice .n3{padding-left:1em; font-size:.94em; color:var(--tenue)}
+.indice .n4,.indice .n5,.indice .n6{padding-left:2em; font-size:.9em; color:var(--tenue)}
+@media (max-width:640px){ .indice ul{columns:1} }
+
+/* portada generada desde el front matter */
+.portada{margin:0 0 3rem; padding:0 0 1.5rem; border-bottom:2px solid var(--borde)}
+.portada-titulo{font-size:2.4em; margin:0 0 .2em; line-height:1.15}
+.portada-subtitulo{font-size:1.15em; color:var(--tenue); font-family:var(--sans); margin:0 0 .9em}
+.portada-datos{font-family:var(--sans); font-size:.85em; color:var(--tenue); margin:0}
+.portada-datos span+span::before{content:" · "}
+
+/* notas al pie */
+.notas-al-pie{margin-top:3.5rem; font-size:.88em; color:var(--tenue)}
+.notas-al-pie ol{padding-left:1.4em}
+.notas-al-pie li{margin:.4em 0}
+.notas-al-pie li:target{background:var(--acento-suave); border-radius:.3em}
+.nota-ref a{text-decoration:none; padding:0 .15em}
+.volver{text-decoration:none; margin-left:.35em}
+
+/* bloque de ejemplo de la guía */
+.demo{
+  position:relative; margin:0 0 1.6em; padding:1.9em 1.2em 1em;
+  border:1px dashed var(--borde-fuerte); border-radius:.6em; background:var(--papel);
+}
+.demo::before{
+  content:"Se ve así"; position:absolute; top:.5em; left:1.2em;
+  font-family:var(--sans); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--tenue);
+}
+.demo > *:last-child{margin-bottom:0}
+.demo pre{margin-bottom:1em}
+
+/* utilidades */
+.salto-pagina{break-after:page; page-break-after:always; height:0}
+.centrado{text-align:center}
+.dos-columnas{columns:2; column-gap:2.5rem}
+@media (max-width:640px){ .dos-columnas{columns:1} }
+
+/* ==========================================================================
+   IMPRESIÓN
+   ========================================================================== */
+@page{ margin:2cm 1.9cm; }
+@media print{
+  :root{
+    --fondo:#fff; --papel:#fff; --texto:#000; --tenue:#444; --borde:#bbb; --borde-fuerte:#888;
+    --acento:#000; --acento-suave:#fff; --codigo-fondo:#f4f4f4; --codigo-texto:#000;
+    --marca:#ffef9f; --sombra:none;
+  }
+  html,body{background:#fff !important; color:#000 !important; font-size:11.5pt}
+  .no-print,.barra,#ladoEditor,.copiar,.anclaje{display:none !important}
+  body.editando #panel{display:block}
+  body.editando .documento{height:auto; overflow:visible; padding:0; margin:0 auto; max-width:none}
+  .documento{max-width:none; padding:0; margin:0}
+  a{color:#000 !important; text-decoration:underline}
+  h1,h2,h3,h4,h5,h6{break-after:avoid; page-break-after:avoid}
+  p,li,blockquote{orphans:3; widows:3}
+  pre,table,figure,.demo,.alerta,blockquote{break-inside:avoid; page-break-inside:avoid}
+  pre{white-space:pre-wrap; word-wrap:break-word}
+  pre code{white-space:pre-wrap}
+  tr,img{break-inside:avoid; page-break-inside:avoid}
+  thead{display:table-header-group}
+  .indice{border:1px solid #bbb}
+  .notas-al-pie{break-before:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="barra no-print" id="barra">
+  <button type="button" id="btnEditar" title="Escribir aquí mismo (Ctrl+E)">&#9998; Editar</button>
+  <button type="button" id="btnMd" title="Descargar el texto Markdown (.md)">&#10515; .md</button>
+  <button type="button" id="btnHtml" title="Guardar una copia de esta página con tu texto">&#10515; .html</button>
+  <button type="button" id="btnImprimir" title="Imprimir o guardar como PDF (Ctrl+P)">&#128424; Imprimir</button>
+  <button type="button" id="btnTema" title="Claro / oscuro">&#9686; Tema</button>
+</div>
+
+<div id="panel">
+  <div id="ladoEditor" class="no-print" hidden><textarea id="ed" spellcheck="false" placeholder="Escribe aquí en Markdown..."></textarea></div>
+  <article id="doc" class="documento"></article>
+</div>
+
+<noscript><p style="max-width:40rem;margin:4rem auto;padding:0 1.5rem">Esta plantilla necesita JavaScript activado en el navegador para convertir el Markdown en HTML. El texto del documento está intacto dentro del archivo.</p></noscript>
+
+<!-- ==========================================================================
+     &#9998;  TU DOCUMENTO EMPIEZA AQUÍ.
+     Escribe Markdown normal entre esta línea y la marca de FIN de más abajo.
+     Reglas: escribe siempre pegado al margen izquierdo (sin sangría) y no
+     escribas nunca la etiqueta de cierre de script sin barra invertida.
+     ========================================================================== -->
+<script type="text/markdown" id="fuente">
+---
+titulo: Guía y plantilla completa de Markdown
+subtitulo: Escribe en el Bloc de notas, mira e imprime en el navegador
+autor: Tu nombre
+fecha: 21 de agosto de 2026
+---
+
+Esta página es a la vez **una plantilla vacía** y **un catálogo de toda la sintaxis** de Markdown. Duplica el archivo, borra este contenido y escribe lo tuyo. Mientras aprendes, deja este original a mano para copiar la sintaxis que necesites.
+
+> [!TIP]
+> Escribe en el Bloc de notas, guarda con <kbd>Ctrl</kbd>+<kbd>S</kbd> y vuelve al navegador: con <kbd>F5</kbd> ves el resultado. Si prefieres no salir del navegador, pulsa **&#9998; Editar** arriba a la derecha.
+
+[TOC]
+
+## 1. Cómo usar esta plantilla
+
+### Duplicar y escribir
+
+1. Copia y pega este archivo, y ponle el nombre de tu documento: `informe-agosto.html`.
+2. Ábrelo con el Bloc de notas (clic derecho → *Abrir con*) y con el navegador a la vez.
+3. Busca la línea que dice `TU DOCUMENTO EMPIEZA AQUÍ` y borra todo lo que hay entre esa marca y la de `FIN DEL DOCUMENTO`.
+4. Escribe tu texto en Markdown, guarda y actualiza el navegador.
+
+### Imprimir o guardar en PDF
+
+Pulsa **&#128424; Imprimir** (o <kbd>Ctrl</kbd>+<kbd>P</kbd>). La barra de botones, el editor y los enlaces de anclaje desaparecen solos: solo se imprime el documento. En el destino de impresión elige *Guardar como PDF* para obtener un PDF.
+
+### Las cuatro reglas de oro
+
+- **Pega el texto al margen izquierdo.** Cuatro espacios al principio de una línea convierten el texto en un bloque de código.
+- **Deja una línea en blanco** entre párrafos, listas, tablas y títulos. Es lo que separa un bloque de otro.
+- **No escribas la etiqueta de cierre de script tal cual** dentro de tu texto: cortaría el archivo. Si necesitas mencionarla, escríbela con barra invertida: `<\/script>`.
+- **Guarda el archivo en UTF-8** para que los acentos y las eñes se vean bien. El Bloc de notas de Windows lo hace por defecto; si te salen símbolos raros, usa *Archivo → Guardar como → Codificación: UTF-8*.
+
+## 2. Metadatos del documento (front matter)
+
+Las primeras líneas del archivo, entre dos líneas de tres guiones, describen el documento. No son obligatorias, pero si las pones se dibuja una portada y el título aparece en la pestaña del navegador y en la cabecera del PDF.
+
+````yaml
+---
+titulo: Guía y plantilla completa de Markdown
+subtitulo: Escribe en el Bloc de notas, mira e imprime en el navegador
+autor: Tu nombre
+fecha: 21 de agosto de 2026
+---
+````
+
+Se admiten `titulo`, `subtitulo`, `autor` y `fecha` (también en inglés: `title`, `subtitle`, `author`, `date`). La portada de arriba está generada con ese bloque.
+
+## 3. Encabezados
+
+### Estilo almohadilla
+
+Una a seis almohadillas y un espacio. Es el estilo que conviene usar siempre.
+
+````md
+# Título del documento
+## Sección
+### Apartado
+#### Subapartado
+##### Nivel cinco
+###### Nivel seis
+````
+
+### Estilo subrayado
+
+Solo existe para dos niveles. Se subraya el texto con signos igual o con guiones.
+
+````md
+Título de nivel 1
+=================
+
+Título de nivel 2
+-----------------
+````
+
+> [!WARNING]
+> Una línea de guiones justo debajo de un párrafo lo convierte en título de nivel 2 en vez de dibujar una raya. Si lo que quieres es una raya divisoria, deja una línea en blanco antes.
+
+### Identificador propio
+
+Por defecto cada título recibe un identificador para poder enlazarlo. Puedes fijarlo tú entre llaves al final:
+
+````md
+## Presupuesto anual {#presupuesto}
+````
+
+Después enlazas con `[ver presupuesto](#presupuesto)`.
+
+### Índice automático
+
+Escribe `[TOC]` en una línea sola y se genera el índice con todos los títulos del documento, cada uno enlazado a su sección. El índice del principio de esta página es exactamente eso.
+
+## 4. Párrafos y saltos de línea
+
+Un párrafo es texto seguido; para empezar otro se deja **una línea en blanco**. Pulsar Intro una sola vez no basta: esas dos líneas se unen en un mismo párrafo.
+
+Para forzar un salto dentro del mismo párrafo hay tres formas: terminar la línea con **dos espacios**, terminarla con una **barra invertida**, o escribir `<br>`.
+
+````md
+Primera línea con dos espacios al final.  
+Segunda línea del mismo párrafo.
+
+Primera línea con barra invertida.\
+Segunda línea.
+
+Primera línea con etiqueta.<br>
+Segunda línea.
+````
+
+<div class="demo">
+
+Primera línea con dos espacios al final.  
+Segunda línea del mismo párrafo.
+
+</div>
+
+Para separar bloques con aire de más, una línea con `&nbsp;` (un espacio duro) funciona como párrafo vacío.
+
+## 5. Énfasis y estilos de texto
+
+| Escribes | Se ve |
+| --- | --- |
+| `*cursiva*` o `_cursiva_` | *cursiva* |
+| `**negrita**` o `__negrita__` | **negrita** |
+| `***negrita y cursiva***` | ***negrita y cursiva*** |
+| `~~tachado~~` | ~~tachado~~ |
+| `==resaltado==` | ==resaltado== |
+| `` `código` `` | `código` |
+| `H~2~O` (subíndice) | H~2~O |
+| `x^2^` (superíndice) | x^2^ |
+| `<kbd>Ctrl</kbd>` | <kbd>Ctrl</kbd> |
+| `<small>letra pequeña</small>` | <small>letra pequeña</small> |
+| `<u>subrayado</u>` | <u>subrayado</u> |
+
+Se pueden combinar sin problema: ``**texto _mezclado_ con `código`**`` se ve como **texto _mezclado_ con `código`**.
+
+> [!NOTE]
+> El guión bajo dentro de una palabra no marca cursiva, para no romper nombres como `mi_variable_larga`. Si necesitas cursiva a mitad de palabra, usa asteriscos.
+
+## 6. Listas
+
+### Lista sin orden
+
+Guión, asterisco o signo más; los tres valen, pero conviene no mezclarlos dentro del mismo documento.
+
+````md
+- Primer punto
+- Segundo punto
+- Tercer punto
+````
+
+<div class="demo">
+
+- Primer punto
+- Segundo punto
+- Tercer punto
+
+</div>
+
+### Lista numerada
+
+````md
+1. Preparar el material
+2. Redactar el borrador
+3. Revisar y publicar
+````
+
+<div class="demo">
+
+1. Preparar el material
+2. Redactar el borrador
+3. Revisar y publicar
+
+</div>
+
+Los números que escribes no importan: el navegador renumera solo. Sí importa **el primero**, que fija dónde empieza la cuenta.
+
+````md
+5. Este punto es el número cinco
+1. y este sale como el seis
+1. y este como el siete
+````
+
+<div class="demo">
+
+5. Este punto es el número cinco
+1. y este sale como el seis
+1. y este como el siete
+
+</div>
+
+### Listas anidadas
+
+Se anidan con **dos o cuatro espacios** de sangría respecto al punto padre.
+
+````md
+- Frutas
+  - Cítricos
+    - Naranja
+    - Limón
+  - Tropicales
+- Verduras
+  1. Hoja verde
+  2. Raíz
+````
+
+<div class="demo">
+
+- Frutas
+  - Cítricos
+    - Naranja
+    - Limón
+  - Tropicales
+- Verduras
+  1. Hoja verde
+  2. Raíz
+
+</div>
+
+### Lista de tareas
+
+````md
+- [x] Comprar el dominio
+- [x] Montar la plantilla
+- [ ] Escribir el primer documento
+- [ ] Imprimirlo
+````
+
+<div class="demo">
+
+- [x] Comprar el dominio
+- [x] Montar la plantilla
+- [ ] Escribir el primer documento
+- [ ] Imprimirlo
+
+</div>
+
+### Listas apretadas y listas sueltas
+
+Sin líneas en blanco entre puntos, la lista sale **apretada**. Con una línea en blanco entre ellos, sale **suelta** y cada punto se separa como un párrafo.
+
+<div class="demo">
+
+- Apretada, una línea
+- Apretada, otra línea
+
+</div>
+
+<div class="demo">
+
+- Suelta, con aire alrededor
+
+- Suelta, segundo punto
+
+</div>
+
+### Un punto con varios párrafos
+
+Para meter más de un párrafo, una cita o un bloque de código dentro de un mismo punto, se sangra el contenido a la altura del texto del punto.
+
+````md
+1. Primer paso del proceso.
+
+   Este párrafo sigue perteneciendo al paso uno porque está sangrado.
+
+   ```
+   comando --de --ejemplo
+   ```
+
+2. Segundo paso.
+````
+
+<div class="demo">
+
+1. Primer paso del proceso.
+
+   Este párrafo sigue perteneciendo al paso uno porque está sangrado.
+
+   ```
+   comando --de --ejemplo
+   ```
+
+2. Segundo paso.
+
+</div>
+
+## 7. Citas y avisos
+
+### Cita normal
+
+````md
+> El buen diseño es tan poco diseño como sea posible.
+>
+> — Dieter Rams
+````
+
+<div class="demo">
+
+> El buen diseño es tan poco diseño como sea posible.
+>
+> — Dieter Rams
+
+</div>
+
+### Citas anidadas y con contenido
+
+````md
+> Nivel uno de la cita.
+>
+> > Nivel dos, citando a otro.
+>
+> - También caben listas
+> - y `código`
+````
+
+<div class="demo">
+
+> Nivel uno de la cita.
+>
+> > Nivel dos, citando a otro.
+>
+> - También caben listas
+> - y `código`
+
+</div>
+
+### Avisos de colores
+
+Una cita que empieza por una etiqueta entre corchetes con admiración se convierte en un recuadro de color. Sirven `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` y `[!CAUTION]` (o en español `[!NOTA]`, `[!CONSEJO]`, `[!IMPORTANTE]`, `[!AVISO]` y `[!PRECAUCION]`).
+
+````md
+> [!NOTE]
+> Información útil que conviene tener presente.
+
+> [!TIP]
+> Un atajo o una recomendación.
+
+> [!IMPORTANT]
+> Algo imprescindible para que el resto funcione.
+
+> [!WARNING]
+> Cuidado: esto puede dar problemas.
+
+> [!CAUTION]
+> Riesgo real de perder datos o romper algo.
+````
+
+<div class="demo">
+
+> [!NOTE]
+> Información útil que conviene tener presente.
+
+> [!TIP]
+> Un atajo o una recomendación.
+
+> [!IMPORTANT]
+> Algo imprescindible para que el resto funcione.
+
+> [!WARNING]
+> Cuidado: esto puede dar problemas.
+
+> [!CAUTION]
+> Riesgo real de perder datos o romper algo.
+
+</div>
+
+## 8. Código
+
+### Código dentro de una frase
+
+Se envuelve entre acentos graves: `` `npm install` `` se ve como `npm install`.
+
+Si el propio código lleva un acento grave, se usan dos por fuera: ``` `` `así` `` ``` da `` `así` ``.
+
+### Bloques de código
+
+Tres acentos graves antes y después. Si escribes el nombre del lenguaje detrás de los primeros, aparece la etiqueta en la esquina.
+
+````md
+```js
+function saludar(nombre) {
+  return `Hola, ${nombre}`;
+}
+```
+````
+
+<div class="demo">
+
+```js
+function saludar(nombre) {
+  return `Hola, ${nombre}`;
+}
+```
+
+</div>
+
+Nombres habituales: `js`, `ts`, `html`, `css`, `json`, `python`, `bash`, `sql`, `yaml`, `md`, `diff`, `text`.
+
+### Bloques con virgulillas
+
+Tres virgulillas hacen lo mismo. Sirven para mostrar bloques que contienen acentos graves.
+
+````md
+~~~
+Aquí dentro pueden ir ``` sin cerrar el bloque.
+~~~
+````
+
+### Un bloque dentro de otro
+
+Para enseñar un bloque de tres acentos, el bloque de fuera lleva cuatro. Es lo que hace esta guía en cada ejemplo.
+
+### Bloque por sangría
+
+Cuatro espacios al principio de la línea también crean un bloque de código, aunque es la forma antigua y da sustos cuando uno sangra sin querer.
+
+<div class="demo">
+
+    esto es código por llevar cuatro espacios
+    segunda línea
+
+</div>
+
+### Marcar diferencias
+
+````md
+```diff
+- const color = "rojo";
++ const color = "azul";
+  const tamano = 12;
+```
+````
+
+<div class="demo">
+
+```diff
+- const color = "rojo";
++ const color = "azul";
+  const tamano = 12;
+```
+
+</div>
+
+## 9. Enlaces
+
+| Escribes | Se ve |
+| --- | --- |
+| `[texto del enlace](https://ejemplo.com)` | [texto del enlace](https://ejemplo.com) |
+| `[con título](https://ejemplo.com "sale al pasar el ratón")` | [con título](https://ejemplo.com "sale al pasar el ratón") |
+| `<https://ejemplo.com>` | <https://ejemplo.com> |
+| `<correo@ejemplo.com>` | <correo@ejemplo.com> |
+| `[a otra sección](#11-tablas)` | [a otra sección](#11-tablas) |
+| `[a un archivo](./informe.pdf)` | [a un archivo](./informe.pdf) |
+| `[con **negrita** dentro](https://ejemplo.com)` | [con **negrita** dentro](https://ejemplo.com) |
+
+Una dirección suelta como https://www.ejemplo.com también se convierte en enlace sola.
+
+### Enlaces por referencia
+
+Cuando la misma dirección se repite, o cuando es tan larga que estorba, se pone una etiqueta corta en el texto y la dirección al final del documento.
+
+````md
+Consulta la [documentación oficial][doc] y el [repositorio][repo].
+También vale la forma corta: [doc].
+
+[doc]: https://ejemplo.com/documentacion "Documentación"
+[repo]: https://ejemplo.com/repositorio
+````
+
+<div class="demo">
+
+Consulta la [documentación oficial][doc] y el [repositorio][repo]. También vale la forma corta: [doc].
+
+</div>
+
+[doc]: https://ejemplo.com/documentacion "Documentación"
+[repo]: https://ejemplo.com/repositorio
+
+Las líneas de definición se pueden colocar donde quieras: no se imprimen.
+
+### Enlaces internos
+
+Cada título tiene un identificador que se forma pasando el texto a minúsculas, quitando acentos y símbolos y cambiando los espacios por guiones. «## 11. Tablas» se convierte en `#11-tablas`. Pasa el ratón por encima de cualquier título de esta página y aparece una almohadilla a la derecha: es su enlace.
+
+## 10. Imágenes y figuras
+
+La sintaxis es la del enlace con una admiración delante. El texto entre corchetes es la descripción alternativa: se lee en voz alta para quien no ve la imagen y aparece si el archivo falta.
+
+````md
+![Descripción de la imagen](fotos/portada.jpg)
+![Con título](fotos/portada.jpg "Sale al pasar el ratón")
+[![Imagen que enlaza](fotos/boton.png)](https://ejemplo.com)
+````
+
+<div class="demo">
+
+![Un rectángulo de ejemplo](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MjAiIGhlaWdodD0iMjYwIiB2aWV3Qm94PSIwIDAgNTIwIDI2MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMWY2ZmViIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODI1MGRmIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjUyMCIgaGVpZ2h0PSIyNjAiIHJ4PSIxNCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjkwIiByPSI0MiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjIyIi8+PHJlY3QgeD0iNjAiIHk9IjE2MCIgd2lkdGg9IjQwMCIgaGVpZ2h0PSIxNCIgcng9IjciIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4zNSIvPjxyZWN0IHg9IjYwIiB5PSIxODgiIHdpZHRoPSIyNTAiIGhlaWdodD0iMTQiIHJ4PSI3IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMjIiLz48dGV4dCB4PSIyMDAiIHk9IjEwMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjZmZmZmZmIj5JbWFnZW4gZGUgZWplbXBsbzwvdGV4dD48L3N2Zz4= "Imagen de ejemplo incrustada en el archivo")
+
+</div>
+
+Las rutas son relativas al archivo HTML: si tus imágenes están en una carpeta `fotos` junto al documento, escribe `fotos/lo-que-sea.jpg`. También sirve una dirección de internet completa, pero entonces la imagen no se verá sin conexión.
+
+### Controlar el tamaño
+
+Markdown no tiene sintaxis para el tamaño; se usa HTML directamente:
+
+````md
+<img src="fotos/portada.jpg" alt="Portada" width="320">
+````
+
+### Imagen con pie
+
+````md
+<figure>
+  <img src="fotos/portada.jpg" alt="Portada" width="320">
+  <figcaption>Figura 1. Texto del pie de la imagen.</figcaption>
+</figure>
+````
+
+<div class="demo">
+
+<figure>
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MjAiIGhlaWdodD0iMjYwIiB2aWV3Qm94PSIwIDAgNTIwIDI2MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMWY2ZmViIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODI1MGRmIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjUyMCIgaGVpZ2h0PSIyNjAiIHJ4PSIxNCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjkwIiByPSI0MiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjIyIi8+PHJlY3QgeD0iNjAiIHk9IjE2MCIgd2lkdGg9IjQwMCIgaGVpZ2h0PSIxNCIgcng9IjciIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4zNSIvPjxyZWN0IHg9IjYwIiB5PSIxODgiIHdpZHRoPSIyNTAiIGhlaWdodD0iMTQiIHJ4PSI3IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMjIiLz48dGV4dCB4PSIyMDAiIHk9IjEwMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjZmZmZmZmIj5JbWFnZW4gZGUgZWplbXBsbzwvdGV4dD48L3N2Zz4=" alt="Rectángulo de ejemplo" width="260">
+<figcaption>Figura 1. Texto del pie de la imagen.</figcaption>
+</figure>
+
+</div>
+
+## 11. Tablas
+
+Las barras verticales separan las columnas y la segunda línea marca dónde acaba la cabecera. No hace falta que las barras queden alineadas en el archivo: el navegador lo cuadra solo.
+
+````md
+| Producto | Cantidad | Precio |
+| --- | --- | --- |
+| Café | 2 | 8,50 € |
+| Té | 1 | 4,20 € |
+````
+
+<div class="demo">
+
+| Producto | Cantidad | Precio |
+| --- | --- | --- |
+| Café | 2 | 8,50 € |
+| Té | 1 | 4,20 € |
+
+</div>
+
+### Alineación de columnas
+
+Los dos puntos en la línea de guiones deciden la alineación: a la izquierda, centrada o a la derecha.
+
+````md
+| Izquierda | Centrada | Derecha |
+| :--- | :---: | ---: |
+| Texto | Texto | 1.250,00 |
+| Más texto | Más texto | 87,50 |
+````
+
+<div class="demo">
+
+| Izquierda | Centrada | Derecha |
+| :--- | :---: | ---: |
+| Texto | Texto | 1.250,00 |
+| Más texto | Más texto | 87,50 |
+
+</div>
+
+### Detalles útiles
+
+- Dentro de las celdas funciona el formato normal: **negrita**, `código`, [enlaces](#11-tablas).
+- Una celda vacía se deja sin nada entre las barras.
+- Para escribir una barra vertical dentro de una celda, se escapa: `\|`.
+- No se pueden partir celdas en varias líneas ni juntar celdas. Si necesitas eso, usa una tabla en HTML.
+
+<div class="demo">
+
+| Concepto | Detalle |
+| --- | --- |
+| Con formato | **negrita**, *cursiva* y `código` |
+| Celda vacía | |
+| Con barra | `a \| b` se ve como a \| b |
+
+</div>
+
+## 12. Líneas divisorias
+
+Tres o más guiones, asteriscos o guiones bajos en una línea sola, siempre con una línea en blanco por encima.
+
+````md
+---
+***
+___
+````
+
+<div class="demo">
+
+---
+
+</div>
+
+## 13. Notas al pie
+
+Se marca el punto con un corchete y un acento circunflejo, y en cualquier otro sitio del documento se escribe el texto de la nota. Se numeran solas por orden de aparición y se colocan todas juntas al final de la página.
+
+````md
+Esto necesita una aclaración[^1] y esto otra[^fuente].
+
+[^1]: El texto de la primera nota.
+[^fuente]: Se puede usar una palabra como etiqueta en vez de un número.
+````
+
+<div class="demo">
+
+Esto necesita una aclaración[^1] y esto otra[^fuente].
+
+</div>
+
+Baja al final de esta página: ahí están las dos notas, con una flecha para volver al punto exacto donde estabas.
+
+[^1]: El texto de la primera nota. Puede llevar **formato** y [enlaces](#13-notas-al-pie).
+[^fuente]: Se puede usar una palabra como etiqueta en vez de un número; el número se calcula solo.
+
+## 14. Listas de definiciones
+
+Un término en una línea y su definición debajo, empezando por dos puntos y un espacio. Un término puede tener varias definiciones.
+
+````md
+Markdown
+: Lenguaje de marcas ligero para escribir con formato en texto plano.
+
+HTML
+: El idioma que entiende el navegador.
+: Se puede mezclar con Markdown.
+````
+
+<div class="demo">
+
+Markdown
+: Lenguaje de marcas ligero para escribir con formato en texto plano.
+
+HTML
+: El idioma que entiende el navegador.
+: Se puede mezclar con Markdown.
+
+</div>
+
+## 15. Abreviaturas
+
+Se declara una vez en cualquier parte del documento y a partir de ahí, cada vez que la palabra aparezca, sale subrayada con puntitos y con su explicación al pasar el ratón.
+
+````md
+*[HTML]: Lenguaje de marcado para páginas web
+*[PDF]: Formato de documento portátil
+
+Este archivo es HTML y se puede imprimir en PDF.
+````
+
+<div class="demo">
+
+Este archivo es HTML y se puede imprimir en PDF. Pasa el ratón por encima de las siglas.
+
+</div>
+
+*[HTML]: Lenguaje de marcado para páginas web
+*[PDF]: Formato de documento portátil
+
+## 16. Emojis
+
+Se pueden pegar tal cual (🚀) o escribir su nombre entre dos puntos.
+
+| Escribes | Se ve | | Escribes | Se ve |
+| --- | :---: | --- | --- | :---: |
+| `:white_check_mark:` | :white_check_mark: | | `:warning:` | :warning: |
+| `:x:` | :x: | | `:bulb:` | :bulb: |
+| `:rocket:` | :rocket: | | `:fire:` | :fire: |
+| `:star:` | :star: | | `:tada:` | :tada: |
+| `:pushpin:` | :pushpin: | | `:memo:` | :memo: |
+| `:bug:` | :bug: | | `:zap:` | :zap: |
+| `:books:` | :books: | | `:mag:` | :mag: |
+| `:thumbsup:` | :thumbsup: | | `:eyes:` | :eyes: |
+| `:lock:` | :lock: | | `:gear:` | :gear: |
+| `:calendar:` | :calendar: | | `:chart:` | :chart: |
+
+Si el nombre no está en la lista, el texto se queda tal cual, así que no se rompe nada.
+
+## 17. HTML dentro de Markdown
+
+Todo lo que Markdown no cubre se resuelve escribiendo HTML directamente. La única regla es dejar una línea en blanco antes y después del bloque.
+
+### Detalles plegables
+
+````md
+<details>
+<summary>Pulsa para desplegar</summary>
+
+Aquí dentro se sigue escribiendo **Markdown normal**, siempre que haya
+una línea en blanco después de la etiqueta de resumen.
+
+</details>
+````
+
+<div class="demo">
+
+<details>
+<summary>Pulsa para desplegar</summary>
+
+Aquí dentro se sigue escribiendo **Markdown normal**, siempre que haya una línea en blanco después de la etiqueta de resumen.
+
+</details>
+
+</div>
+
+### Etiquetas útiles
+
+| Escribes | Se ve |
+| --- | --- |
+| `<kbd>Ctrl</kbd> + <kbd>P</kbd>` | <kbd>Ctrl</kbd> + <kbd>P</kbd> |
+| `<mark>resaltado</mark>` | <mark>resaltado</mark> |
+| `<abbr title="Por ejemplo">p. ej.</abbr>` | <abbr title="Por ejemplo">p. ej.</abbr> |
+| `<sup>arriba</sup>` y `<sub>abajo</sub>` | <sup>arriba</sup> y <sub>abajo</sub> |
+| `<u>subrayado</u>` | <u>subrayado</u> |
+| `<span style="color:#cf222e">en rojo</span>` | <span style="color:#cf222e">en rojo</span> |
+| `<br>` | un salto de línea |
+
+### Centrar y repartir en columnas
+
+Esta plantilla trae tres clases preparadas: `centrado`, `dos-columnas` y `salto-pagina`.
+
+````md
+<p class="centrado">Este párrafo va centrado.</p>
+
+<div class="dos-columnas">
+
+Texto largo que se reparte en dos columnas al imprimir...
+
+</div>
+````
+
+<div class="demo">
+
+<p class="centrado">Este párrafo va centrado.</p>
+
+</div>
+
+## 18. Escapar caracteres
+
+Delante de un carácter con significado especial se pone una barra invertida y el carácter se escribe tal cual, sin transformarse.
+
+````md
+\*esto no va en cursiva\*
+\# esto no es un título
+2 \* 3 \= 6
+````
+
+<div class="demo">
+
+\*esto no va en cursiva\*  
+\# esto no es un título
+
+</div>
+
+Se pueden escapar: `\ ` `` ` `` `*` `_` `{ }` `[ ]` `( )` `#` `+` `-` `.` `!` `|` `~` `^` `=` `<` `>` `$` `:` `/` `"` `'`
+
+También funcionan las entidades de HTML: `&copy;` da &copy;, `&nbsp;` da un espacio que no se parte, `&mdash;` da &mdash; y `&hellip;` da &hellip;
+
+## 19. Comentarios ocultos
+
+Un comentario de HTML no se ve en la página ni se imprime, pero queda escrito en el archivo. Sirve para notas al margen, recordatorios o para apagar un trozo sin borrarlo.
+
+````md
+<!-- Recordar actualizar las cifras antes de imprimir -->
+````
+
+<!-- Este comentario existe en el archivo pero no se ve en la página. -->
+
+## 20. Preparar la impresión
+
+- **Forzar un cambio de página:** `<div class="salto-pagina"></div>` en una línea sola.
+- **Márgenes del papel:** se cambian en la hoja de estilo, en la regla `@page`, arriba del archivo.
+- Los títulos nunca se quedan solos al final de una página, y las tablas, imágenes y bloques de código no se parten por la mitad: eso ya está resuelto en la hoja de estilo.
+- Para que salga el fondo gris de los bloques de código en el PDF, marca la casilla *Gráficos de fondo* en las opciones de impresión del navegador.
+
+## 21. Lo que no se ve sin programas extra
+
+Estas dos sintaxis existen en otros editores de Markdown, pero necesitan una librería aparte y esta plantilla no la lleva para poder funcionar sin conexión. Se muestran como bloques de código, sin dibujarse:
+
+````md
+```mermaid
+graph TD;
+  A[Inicio] --> B{¿Todo bien?};
+  B -->|Sí| C[Publicar];
+  B -->|No| D[Corregir];
+```
+````
+
+````md
+La fórmula $E = mc^2$ y el bloque:
+
+$$
+\int_0^\infty e^{-x} dx = 1
+$$
+````
+
+## 22. Chuleta rápida
+
+| Para... | Se escribe |
+| --- | --- |
+| Título de nivel 2 | `## Texto` |
+| Negrita | `**texto**` |
+| Cursiva | `*texto*` |
+| Tachado | `~~texto~~` |
+| Resaltado | `==texto==` |
+| Código en línea | `` `texto` `` |
+| Bloque de código | tres acentos graves arriba y abajo |
+| Lista | `- punto` |
+| Lista numerada | `1. punto` |
+| Tarea | `- [ ] pendiente` |
+| Cita | `> texto` |
+| Aviso de color | `> [!WARNING]` |
+| Enlace | `[texto](direccion)` |
+| Imagen | `![descripción](archivo.jpg)` |
+| Tabla | `\| a \| b \|` y debajo `\| --- \| --- \|` |
+| Raya divisoria | `---` con una línea en blanco encima |
+| Nota al pie | `texto[^1]` y `[^1]: la nota` |
+| Salto de línea | dos espacios al final de la línea |
+| Índice automático | `[TOC]` |
+| Comentario invisible | `<!-- texto -->` |
+| Cambio de página | `<div class="salto-pagina"></div>` |
+
+---
+
+## Empieza aquí
+
+Borra desde el primer título de esta página hasta esta línea y escribe lo tuyo. Si te quedas con la duda de cómo se escribía algo, abre el archivo original: sigue estando entero.
+
+</script>
+<!-- ==========================================================================
+     &#9998;  FIN DEL DOCUMENTO. De aquí para abajo está el motor: no hace falta
+     tocar nada, pero puedes leerlo, es JavaScript normal y corriente.
+     ========================================================================== -->
+<script>
+/* ==========================================================================
+   MOTOR MARKDOWN -> HTML
+   Sin librerias externas y sin internet: todo ocurre dentro de este archivo.
+   ========================================================================== */
+(function(){
+"use strict";
+
+var RE_ITEM = /^( {0,8})([-+*]|\d{1,9}[.)])([ \t]+|$)(.*)$/;
+var RE_HTML = /^ {0,3}<(\/?)(details|summary|div|section|article|aside|header|footer|nav|figure|figcaption|table|thead|tbody|tfoot|tr|td|th|caption|colgroup|col|dl|dt|dd|p|blockquote|pre|hr|iframe|video|audio|canvas|svg|form|fieldset|legend|center|main|address|ul|ol|li|style|script|h[1-6])(\s|\/?>)/i;
+var RE_VALLA = /^( {0,3})(`{3,}|~{3,})[ \t]*([^\s`~]*)[ \t]*(.*)$/;
+var RE_CIERRE = /^ {0,3}(`{3,}|~{3,})[ \t]*$/;
+var RE_HR = /^ {0,3}([-*_])[ \t]*(?:\1[ \t]*){2,}$/;
+var RE_ATX = /^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$/;
+var RE_TOC = /^ {0,3}\[\[?TOC\]\]?[ \t]*$/i;
+var RE_SEP_TABLA = /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
+var RE_DIACRITICOS = new RegExp("[\\u0300-\\u036f]", "g");
+
+var VS = "️";
+var EMOJI = {
+  smile:"\u{1F604}", smiley:"\u{1F603}", grin:"\u{1F601}", wink:"\u{1F609}", joy:"\u{1F602}",
+  cry:"\u{1F622}", thinking:"\u{1F914}", heart:"❤" + VS, thumbsup:"\u{1F44D}", "+1":"\u{1F44D}",
+  thumbsdown:"\u{1F44E}", "-1":"\u{1F44E}", rocket:"\u{1F680}", fire:"\u{1F525}", star:"⭐",
+  warning:"⚠" + VS, bulb:"\u{1F4A1}", books:"\u{1F4DA}", book:"\u{1F4D6}", pencil:"✏" + VS,
+  memo:"\u{1F4DD}", computer:"\u{1F4BB}", bug:"\u{1F41B}", zap:"⚡", tada:"\u{1F389}",
+  white_check_mark:"✅", heavy_check_mark:"✔" + VS, x:"❌", question:"❓",
+  exclamation:"❗", eyes:"\u{1F440}", clap:"\u{1F44F}", pray:"\u{1F64F}", coffee:"☕",
+  clock:"\u{1F550}", calendar:"\u{1F4C5}", pushpin:"\u{1F4CC}", paperclip:"\u{1F4CE}", mag:"\u{1F50D}",
+  lock:"\u{1F512}", key:"\u{1F511}", gear:"⚙" + VS, wrench:"\u{1F527}", hammer:"\u{1F528}",
+  "package":"\u{1F4E6}", globe:"\u{1F310}", phone:"\u{1F4DE}", email:"\u{1F4E7}", folder:"\u{1F4C1}",
+  file:"\u{1F4C4}", chart:"\u{1F4CA}", money:"\u{1F4B0}", gift:"\u{1F381}", bell:"\u{1F514}",
+  flag:"\u{1F6A9}", sparkles:"✨", boom:"\u{1F4A5}", "100":"\u{1F4AF}", ok_hand:"\u{1F44C}",
+  muscle:"\u{1F4AA}", sun:"☀" + VS, moon:"\u{1F319}", snow:"❄" + VS, cat:"\u{1F431}",
+  dog:"\u{1F436}", house:"\u{1F3E0}", car:"\u{1F697}", airplane:"✈" + VS, art:"\u{1F3A8}",
+  camera:"\u{1F4F7}", music:"\u{1F3B5}", construction:"\u{1F6A7}", sos:"\u{1F198}"
+};
+
+var I_NOTA = "ℹ" + VS, I_CONSEJO = "\u{1F4A1}", I_IMP = "❗",
+    I_AVISO = "⚠" + VS, I_PREC = "\u{1F6D1}";
+var ALERTAS = {
+  NOTE:{c:"nota", t:"Nota", i:I_NOTA},
+  NOTA:{c:"nota", t:"Nota", i:I_NOTA},
+  TIP:{c:"consejo", t:"Consejo", i:I_CONSEJO},
+  CONSEJO:{c:"consejo", t:"Consejo", i:I_CONSEJO},
+  IMPORTANT:{c:"importante", t:"Importante", i:I_IMP},
+  IMPORTANTE:{c:"importante", t:"Importante", i:I_IMP},
+  WARNING:{c:"aviso", t:"Aviso", i:I_AVISO},
+  AVISO:{c:"aviso", t:"Aviso", i:I_AVISO},
+  ADVERTENCIA:{c:"aviso", t:"Advertencia", i:I_AVISO},
+  CAUTION:{c:"precaucion", t:"Precaución", i:I_PREC},
+  PRECAUCION:{c:"precaucion", t:"Precaución", i:I_PREC},
+  "PRECAUCIÓN":{c:"precaucion", t:"Precaución", i:I_PREC}
+};
+
+/* -------------------------------------------------------------------------- */
+function mdAHtml(fuente){
+  var Z = String.fromCharCode(0);        // marca interna, invisible
+  var RE_MARCA = new RegExp(Z + "(\\d+)" + Z, "g");
+  var RE_TROZOS = new RegExp("(" + Z + "\\d+" + Z + "|<[^<>]*>)");
+
+  var G = [];            // fragmentos ya resueltos, a salvo de las demas reglas
+  var refs = {};         // definiciones de enlace
+  var notas = {};        // notas al pie
+  var ordenNotas = [];
+  var abrev = [];
+  var toc = [];
+  var ids = {};
+  var meta = {};
+  var hayTOC = false;
+
+  function g(html){ G.push(html); return Z + (G.length - 1) + Z; }
+  function abrirTodo(s){
+    var antes, vueltas = 0;
+    do{
+      antes = s;
+      s = s.replace(RE_MARCA, function(m, i){ return G[+i] !== undefined ? G[+i] : m; });
+      vueltas++;
+    } while(s !== antes && vueltas < 30);
+    return s;
+  }
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function escAtr(s){ return esc(s).replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+  function escRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+  function hacerId(t){
+    var s = String(t).replace(/<[^>]*>/g, "").replace(/[`*_~\[\]()]/g, "").toLowerCase();
+    try{ s = s.normalize("NFD").replace(RE_DIACRITICOS, ""); }catch(e){}
+    s = s.replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").replace(/-+/g, "-");
+    if(!s) s = "seccion";
+    if(ids[s] === undefined){ ids[s] = 0; return s; }
+    ids[s]++;
+    return s + "-" + ids[s];
+  }
+
+  /* ---------- nivel de linea ---------- */
+  function ancla(href, titulo, texto){
+    var externo = /^(https?:)?\/\//i.test(href) || /^www\./i.test(href);
+    return '<a href="' + escAtr(href) + '"' +
+           (titulo ? ' title="' + escAtr(titulo) + '"' : "") +
+           (externo ? ' target="_blank" rel="noopener"' : "") + ">" + enLinea(texto) + "</a>";
+  }
+
+  function enLinea(t){
+    if(t === undefined || t === null) return "";
+    t = String(t);
+
+    /* saltos de linea forzados */
+    t = t.replace(/ {2,}\n/g, function(){ return g("<br>") + "\n"; });
+    t = t.replace(/\\\n/g,   function(){ return g("<br>") + "\n"; });
+
+    /* codigo dentro de la frase */
+    t = t.replace(/(`+)([\s\S]+?)\1(?!`)/g, function(m, tk, c){
+      if(/^ [\s\S]* $/.test(c) && c.trim() !== "") c = c.slice(1, -1);
+      return g("<code>" + esc(c) + "</code>");
+    });
+
+    /* caracteres escapados con barra invertida */
+    t = t.replace(/\\([\\`*_{}\[\]()<>#+\-.!|~^=$:@\/"'])/g, function(m, c){ return g(esc(c)); });
+
+    /* autoenlaces */
+    t = t.replace(/<((?:https?|ftp|mailto):[^>\s]+)>/gi, function(m, u){
+      return g('<a href="' + escAtr(u) + '" target="_blank" rel="noopener">' + esc(u.replace(/^mailto:/i, "")) + "</a>");
+    });
+    t = t.replace(/<([^\s<>@]+@[^\s<>@]+\.[a-z]{2,})>/gi, function(m, e){
+      return g('<a href="mailto:' + escAtr(e) + '">' + esc(e) + "</a>");
+    });
+
+    /* HTML escrito a mano: se respeta tal cual */
+    t = t.replace(/<!--[\s\S]*?-->/g, function(m){ return g(m); });
+    t = t.replace(/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^<>]*)?\/?>/g, function(m){ return g(m); });
+
+    /* lo que quede de & < > se escapa */
+    t = t.replace(/&(?![a-zA-Z#][a-zA-Z0-9]{1,10};)/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    /* notas al pie */
+    t = t.replace(/\[\^([^\]\s]+)\]/g, function(m, id){
+      if(!notas[id]) return m;
+      if(!notas[id].num){ notas[id].num = ordenNotas.length + 1; ordenNotas.push(id); }
+      return g('<sup class="nota-ref" id="notaref-' + escAtr(id) + '"><a href="#nota-' + escAtr(id) + '">' + notas[id].num + "</a></sup>");
+    });
+
+    /* imagenes */
+    t = t.replace(/!\[([^\]]*)\]\(\s*<?([^)\s>]*)>?(?:\s+["']([^"']*)["'])?\s*\)/g, function(m, alt, src, tit){
+      return g('<img src="' + escAtr(src) + '" alt="' + escAtr(alt) + '"' + (tit ? ' title="' + escAtr(tit) + '"' : "") + ">");
+    });
+    t = t.replace(/!\[([^\]]*)\]\[([^\]]*)\]/g, function(m, alt, id){
+      var r = refs[(id || alt).toLowerCase()];
+      if(!r) return m;
+      return g('<img src="' + escAtr(r.href) + '" alt="' + escAtr(alt) + '"' + (r.titulo ? ' title="' + escAtr(r.titulo) + '"' : "") + ">");
+    });
+
+    /* enlaces: directos, por referencia y por referencia corta */
+    t = t.replace(/\[((?:[^\[\]]|\[[^\]]*\])*)\]\(\s*<?([^)\s>]*)>?(?:\s+["']([^"']*)["'])?\s*\)/g, function(m, txt, href, tit){
+      return g(ancla(href, tit, txt));
+    });
+    t = t.replace(/\[((?:[^\[\]]|\[[^\]]*\])*)\]\[([^\]]*)\]/g, function(m, txt, id){
+      var r = refs[(id || txt).toLowerCase()];
+      return r ? g(ancla(r.href, r.titulo, txt)) : m;
+    });
+    t = t.replace(/\[([^\[\]]+)\](?!\()/g, function(m, txt){
+      var r = refs[txt.toLowerCase()];
+      return r ? g(ancla(r.href, r.titulo, txt)) : m;
+    });
+
+    /* direcciones escritas sueltas */
+    t = t.replace(/(^|[\s(])((?:https?:\/\/|www\.)[^\s<>()"']+[^\s<>()"'.,;:!?])/g, function(m, pre, u){
+      return pre + g('<a href="' + escAtr(/^www\./i.test(u) ? "https://" + u : u) + '" target="_blank" rel="noopener">' + esc(u) + "</a>");
+    });
+
+    /* enfasis y adornos */
+    t = t.replace(/(\*\*\*|___)(?=\S)([\s\S]*?\S)\1/g, "<strong><em>$2</em></strong>");
+    t = t.replace(/(\*\*|__)(?=\S)([\s\S]*?\S)\1/g, "<strong>$2</strong>");
+    t = t.replace(/\*(?=\S)([\s\S]*?\S)\*/g, "<em>$1</em>");
+    t = t.replace(/(^|[^\wÀ-ɏ])_(?=\S)([\s\S]*?\S)_(?![\wÀ-ɏ])/g, "$1<em>$2</em>");
+    t = t.replace(/~~(?=\S)([\s\S]*?\S)~~/g, "<del>$1</del>");
+    t = t.replace(/==(?=\S)([\s\S]*?\S)==/g, "<mark>$1</mark>");
+    t = t.replace(/\^([^\s^]+)\^/g, "<sup>$1</sup>");
+    t = t.replace(/~([^\s~]+)~/g, "<sub>$1</sub>");
+
+    /* emojis por nombre */
+    t = t.replace(/:([a-z0-9_+-]{1,30}):/gi, function(m, n){
+      var e = EMOJI[n.toLowerCase()];
+      return e ? e : m;
+    });
+
+    /* abreviaturas */
+    if(abrev.length){
+      t = t.split(RE_TROZOS).map(function(trozo, i){
+        if(i % 2 === 1 || !trozo) return trozo;
+        abrev.forEach(function(a){
+          trozo = trozo.replace(new RegExp("(^|[^\\w])(" + escRe(a.k) + ")(?![\\w])", "g"), function(mm, p, w){
+            return p + '<abbr title="' + escAtr(a.v) + '">' + w + "</abbr>";
+          });
+        });
+        return trozo;
+      }).join("");
+    }
+    return t;
+  }
+
+  /* ---------- ayudas de bloque ---------- */
+  function esInicioBloque(l){
+    return RE_VALLA.test(l) || RE_ATX.test(l) || RE_HR.test(l) ||
+           /^ {0,3}>/.test(l) || RE_ITEM.test(l) || RE_HTML.test(l) ||
+           /^ {0,3}<!--/.test(l) || RE_TOC.test(l);
+  }
+  function esTabla(ls, i){
+    return ls[i].indexOf("|") >= 0 && i + 1 < ls.length &&
+           ls[i + 1].indexOf("-") >= 0 && RE_SEP_TABLA.test(ls[i + 1]);
+  }
+  function celdas(l){
+    var s = l.trim().replace(/^\|/, "").replace(/\|$/, "");
+    var out = [], cur = "";
+    for(var k = 0; k < s.length; k++){
+      if(s[k] === "\\" && s[k + 1] === "|"){ cur += "|"; k++; continue; }
+      if(s[k] === "|"){ out.push(cur); cur = ""; continue; }
+      cur += s[k];
+    }
+    out.push(cur);
+    return out.map(function(x){ return x.trim(); });
+  }
+  function quitarP(html){ return html.replace(/^<p>([\s\S]*?)<\/p>\s*/, "$1"); }
+
+  /* ---------- listas ---------- */
+  function lista(ls, i){
+    var prim = ls[i].match(RE_ITEM);
+    var ordenada = /\d/.test(prim[2]);
+    var inicio = ordenada ? parseInt(prim[2], 10) : 1;
+    var sangriaBase = prim[1].length;
+    var items = [], suelta = false, hayTareas = false;
+
+    while(i < ls.length){
+      var mm = ls[i].match(RE_ITEM);
+      if(!mm) break;
+      if(mm[1].length < sangriaBase || mm[1].length > sangriaBase + 3) break;
+      if(/\d/.test(mm[2]) !== ordenada) break;
+      if(RE_HR.test(ls[i])) break;
+
+      var sangriaCont = mm[1].length + mm[2].length + (mm[3] ? mm[3].length : 1);
+      var reCont = new RegExp("^ {" + sangriaCont + ",}");
+      var cuerpo = [mm[4]];
+      i++;
+
+      while(i < ls.length){
+        var l2 = ls[i];
+        if(l2.trim() === ""){
+          var j = i;
+          while(j < ls.length && ls[j].trim() === "") j++;
+          if(j < ls.length && reCont.test(ls[j])){
+            for(var k = i; k < j; k++) cuerpo.push("");
+            suelta = true;
+            i = j;
+            continue;
+          }
+          var sig = j < ls.length ? ls[j].match(RE_ITEM) : null;
+          if(sig && sig[1].length >= sangriaBase && sig[1].length <= sangriaBase + 3) suelta = true;
+          i = j;
+          break;
+        }
+        if(reCont.test(l2)){ cuerpo.push(l2.slice(sangriaCont)); i++; continue; }
+        var m3 = l2.match(RE_ITEM);
+        if(m3 && m3[1].length >= sangriaBase) break;
+        if(esInicioBloque(l2)) break;
+        cuerpo.push(l2);                 /* continuacion perezosa */
+        i++;
+      }
+      items.push(cuerpo);
+    }
+
+    var html = items.map(function(c){
+      var texto = c.join("\n");
+      var marca = "";
+      var tarea = texto.match(/^\[([ xX])\][ \t]+([\s\S]*)$/);
+      if(tarea){
+        hayTareas = true;
+        marca = '<input type="checkbox" disabled' + (/[xX]/.test(tarea[1]) ? " checked" : "") + "> ";
+        texto = tarea[2];
+      }
+      var dentro = bloques(texto.split("\n"));
+      if(!suelta) dentro = quitarP(dentro);
+      return "<li" + (tarea ? ' class="tarea"' : "") + ">" + marca + dentro + "</li>";
+    }).join("\n");
+
+    var etq = ordenada ? "ol" : "ul";
+    var atr = (ordenada && inicio !== 1 ? ' start="' + inicio + '"' : "") +
+              (hayTareas ? ' class="lista-tareas"' : "");
+    return { html: "<" + etq + atr + ">\n" + html + "\n</" + etq + ">", i: i };
+  }
+
+  /* ---------- bloques ---------- */
+  function bloques(ls){
+    var out = [], i = 0, m;
+
+    while(i < ls.length){
+      var L = ls[i];
+
+      if(!L.trim()){ i++; continue; }
+
+      /* indice automatico */
+      if(RE_TOC.test(L)){ out.push(Z + "TOC" + Z); hayTOC = true; i++; continue; }
+
+      /* bloque de codigo con vallas */
+      m = L.match(RE_VALLA);
+      if(m && (m[2].length >= 3)){
+        var sangria = m[1].length, valla = m[2], leng = m[3] || "";
+        var reSangria = new RegExp("^ {0," + sangria + "}");
+        var buf = [];
+        i++;
+        while(i < ls.length){
+          var c = ls[i].match(RE_CIERRE);
+          if(c && c[1].charAt(0) === valla.charAt(0) && c[1].length >= valla.length){ i++; break; }
+          buf.push(ls[i].replace(reSangria, ""));
+          i++;
+        }
+        out.push("<pre" + (leng ? ' data-lenguaje="' + escAtr(leng) + '"' : "") + "><code" +
+                 (leng ? ' class="lenguaje-' + escAtr(leng) + '"' : "") + ">" +
+                 esc(buf.join("\n")) + "</code></pre>");
+        continue;
+      }
+
+      /* titulos con almohadilla */
+      m = L.match(RE_ATX);
+      if(m){
+        var niv = m[1].length, txt = (m[2] || "").trim(), id = "";
+        var mid = txt.match(/[ \t]*\{#([^}]+)\}$/);
+        if(mid){ id = mid[1]; txt = txt.slice(0, mid.index); }
+        var htxt = enLinea(txt);
+        if(!id) id = hacerId(txt);
+        toc.push({ n: niv, id: id, t: htxt });
+        out.push("<h" + niv + ' id="' + escAtr(id) + '">' + htxt +
+                 '<a class="anclaje no-print" href="#' + escAtr(id) + '" aria-label="Enlace a esta sección">#</a></h' + niv + ">");
+        i++;
+        continue;
+      }
+
+      /* raya divisoria */
+      if(RE_HR.test(L)){ out.push("<hr>"); i++; continue; }
+
+      /* HTML escrito a mano */
+      if(RE_HTML.test(L) || /^ {0,3}<!--/.test(L)){
+        var crudo = [];
+        while(i < ls.length && ls[i].trim() !== ""){ crudo.push(ls[i]); i++; }
+        out.push(crudo.join("\n"));
+        continue;
+      }
+
+      /* citas y avisos */
+      if(/^ {0,3}>/.test(L)){
+        var q = [];
+        while(i < ls.length){
+          if(/^ {0,3}>/.test(ls[i])){ q.push(ls[i].replace(/^ {0,3}>[ \t]?/, "")); i++; }
+          else if(ls[i].trim() !== "" && q.length && !esInicioBloque(ls[i])){ q.push(ls[i]); i++; }
+          else break;
+        }
+        var al = q.length ? q[0].match(/^\[!([A-Za-zÁÉÍÓÚÑáéíóúñ]+)\][ \t]*(.*)$/) : null;
+        var def = al ? ALERTAS[al[1].toUpperCase()] : null;
+        if(def){
+          q[0] = al[2] || "";
+          if(!q[0].trim()) q.shift();
+          out.push('<div class="alerta ' + def.c + '"><p class="alerta-titulo">' + def.i + " " + def.t + "</p>" + bloques(q) + "</div>");
+        }else{
+          out.push("<blockquote>" + bloques(q) + "</blockquote>");
+        }
+        continue;
+      }
+
+      /* tablas */
+      if(esTabla(ls, i)){
+        var enc = celdas(ls[i]);
+        var alin = celdas(ls[i + 1]).map(function(c){
+          var iz = c.charAt(0) === ":", de = c.charAt(c.length - 1) === ":";
+          return iz && de ? "center" : de ? "right" : iz ? "left" : "";
+        });
+        i += 2;
+        var filas = [];
+        while(i < ls.length && ls[i].trim() !== "" && ls[i].indexOf("|") >= 0 && !esInicioBloque(ls[i])){
+          filas.push(celdas(ls[i]));
+          i++;
+        }
+        var est = function(k){ return alin[k] ? ' style="text-align:' + alin[k] + '"' : ""; };
+        var t = '<div class="tabla-envoltorio"><table>\n<thead><tr>';
+        enc.forEach(function(c, k){ t += "<th" + est(k) + ">" + enLinea(c) + "</th>"; });
+        t += "</tr></thead>\n<tbody>";
+        filas.forEach(function(f){
+          t += "<tr>";
+          for(var k = 0; k < enc.length; k++) t += "<td" + est(k) + ">" + enLinea(f[k] === undefined ? "" : f[k]) + "</td>";
+          t += "</tr>";
+        });
+        out.push(t + "</tbody></table></div>");
+        continue;
+      }
+
+      /* listas */
+      if(RE_ITEM.test(L)){
+        var r = lista(ls, i);
+        out.push(r.html);
+        i = r.i;
+        continue;
+      }
+
+      /* listas de definiciones */
+      if(i + 1 < ls.length && /^ {0,3}:[ \t]+\S/.test(ls[i + 1]) && !/^ {0,3}:[ \t]/.test(L)){
+        var dl = [];
+        while(i < ls.length){
+          if(ls[i].trim() === ""){
+            if(i + 1 < ls.length && ls[i + 1].trim() !== "" &&
+               (/^ {0,3}:[ \t]+/.test(ls[i + 1]) || (i + 2 < ls.length && /^ {0,3}:[ \t]+/.test(ls[i + 2])))){ i++; continue; }
+            break;
+          }
+          if(/^ {0,3}:[ \t]+/.test(ls[i])){
+            dl.push("<dd>" + enLinea(ls[i].replace(/^ {0,3}:[ \t]+/, "")) + "</dd>");
+            i++;
+          }else if(i + 1 < ls.length && /^ {0,3}:[ \t]+/.test(ls[i + 1])){
+            dl.push("<dt>" + enLinea(ls[i].trim()) + "</dt>");
+            i++;
+          }else break;
+        }
+        out.push("<dl>\n" + dl.join("\n") + "\n</dl>");
+        continue;
+      }
+
+      /* codigo por sangria de cuatro espacios */
+      if(/^ {4}/.test(L)){
+        var cb = [];
+        while(i < ls.length){
+          if(ls[i].trim() === ""){
+            if(i + 1 < ls.length && /^ {4}/.test(ls[i + 1])){ cb.push(""); i++; continue; }
+            break;
+          }
+          if(!/^ {4}/.test(ls[i])) break;
+          cb.push(ls[i].slice(4));
+          i++;
+        }
+        out.push("<pre><code>" + esc(cb.join("\n")) + "</code></pre>");
+        continue;
+      }
+
+      /* parrafo, con titulos subrayados */
+      var p = [];
+      while(i < ls.length && ls[i].trim() !== ""){
+        if(p.length && /^ {0,3}=+[ \t]*$/.test(ls[i])){ p.subrayado = 1; i++; break; }
+        if(p.length && /^ {0,3}-+[ \t]*$/.test(ls[i])){ p.subrayado = 2; i++; break; }
+        if(p.length && (esInicioBloque(ls[i]) || esTabla(ls, i))) break;
+        p.push(ls[i]);
+        i++;
+      }
+      if(!p.length){ i++; continue; }
+      if(p.subrayado){
+        var st = p.join(" ").trim();
+        var sid = hacerId(st), sht = enLinea(st);
+        toc.push({ n: p.subrayado, id: sid, t: sht });
+        out.push("<h" + p.subrayado + ' id="' + escAtr(sid) + '">' + sht +
+                 '<a class="anclaje no-print" href="#' + escAtr(sid) + '">#</a></h' + p.subrayado + ">");
+      }else{
+        out.push("<p>" + enLinea(p.join("\n")) + "</p>");
+      }
+    }
+    return out.join("\n");
+  }
+
+  /* ---------- puesta en marcha ---------- */
+  var src = String(fuente == null ? "" : fuente).replace(/\r\n?/g, "\n").replace(/\t/g, "    ").replace(/^\n+/, "");
+
+  /* metadatos del principio */
+  var fm = src.match(/^---[ \t]*\n([\s\S]*?)\n---[ \t]*(?:\n|$)/);
+  if(fm){
+    fm[1].split("\n").forEach(function(l){
+      var mm = l.match(/^([A-Za-z0-9_-]+)[ \t]*:[ \t]*(.*)$/);
+      if(mm) meta[mm[1].toLowerCase()] = mm[2].replace(/^["']|["']$/g, "").trim();
+    });
+    src = src.slice(fm[0].length);
+  }
+
+  /* definiciones sueltas: enlaces, notas y abreviaturas */
+  var lineas = src.split("\n"), limpio = [], enValla = null;
+  for(var q1 = 0; q1 < lineas.length; q1++){
+    var LN = lineas[q1], mv = LN.match(/^ {0,3}(`{3,}|~{3,})/);
+    if(enValla){
+      limpio.push(LN);
+      if(mv && mv[1].charAt(0) === enValla.charAt(0) && mv[1].length >= enValla.length) enValla = null;
+      continue;
+    }
+    if(mv){ enValla = mv[1]; limpio.push(LN); continue; }
+
+    var ma = LN.match(/^\*\[([^\]]+)\]:[ \t]*(.+)$/);
+    if(ma){ abrev.push({ k: ma[1], v: ma[2].trim() }); continue; }
+
+    var mn = LN.match(/^ {0,3}\[\^([^\]\s]+)\]:[ \t]*(.*)$/);
+    if(mn){
+      var cuerpoN = [mn[2]];
+      while(q1 + 1 < lineas.length &&
+            (/^ {4}/.test(lineas[q1 + 1]) ||
+             (lineas[q1 + 1].trim() === "" && /^ {4}/.test(lineas[q1 + 2] || "")))){
+        q1++;
+        cuerpoN.push(lineas[q1].replace(/^ {4}/, ""));
+      }
+      notas[mn[1]] = { md: cuerpoN.join("\n"), num: 0 };
+      continue;
+    }
+
+    var mr = LN.match(/^ {0,3}\[([^\]^][^\]]*)\]:[ \t]*<?([^\s>]+)>?(?:[ \t]+["'(]([^"')]*)["')])?[ \t]*$/);
+    if(mr){ refs[mr[1].toLowerCase()] = { href: mr[2], titulo: mr[3] || "" }; continue; }
+
+    limpio.push(LN);
+  }
+
+  var cuerpo = bloques(limpio);
+
+  /* indice */
+  if(hayTOC){
+    var idx = '<nav class="indice no-romper"><p class="indice-titulo">Índice</p><ul>' +
+      toc.map(function(h){ return '<li class="n' + h.n + '"><a href="#' + escAtr(h.id) + '">' + h.t + "</a></li>"; }).join("") +
+      "</ul></nav>";
+    cuerpo = cuerpo.split(Z + "TOC" + Z).join(idx);
+  }
+
+  /* notas al pie */
+  if(ordenNotas.length){
+    var pie = '<section class="notas-al-pie"><hr><ol>';
+    ordenNotas.forEach(function(id){
+      pie += '<li id="nota-' + escAtr(id) + '">' + quitarP(bloques(notas[id].md.split("\n"))) +
+             ' <a class="volver" href="#notaref-' + escAtr(id) + '" title="Volver al texto">&#8617;</a></li>';
+    });
+    cuerpo += pie + "</ol></section>";
+  }
+
+  return { html: abrirTodo(cuerpo), meta: meta, toc: toc };
+}
+
+/* ==========================================================================
+   INTERFAZ: pintar, editar, descargar, imprimir, tema
+   ========================================================================== */
+var $ = function(s){ return document.querySelector(s); };
+var elFuente = $("#fuente");
+var elDoc = $("#doc");
+var elEd = $("#ed");
+var fuenteActual = elFuente ? elFuente.textContent : "";
+
+function escAtrUI(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function portada(meta){
+  var t  = meta.titulo || meta.title || "";
+  var st = meta.subtitulo || meta.subtitle || "";
+  var au = meta.autor || meta.author || "";
+  var fe = meta.fecha || meta.date || "";
+  if(!t && !st && !au && !fe) return "";
+  var h = '<header class="portada">';
+  if(t)  h += '<h1 class="portada-titulo">' + escAtrUI(t) + "</h1>";
+  if(st) h += '<p class="portada-subtitulo">' + escAtrUI(st) + "</p>";
+  if(au || fe){
+    h += '<p class="portada-datos">' +
+         (au ? "<span>" + escAtrUI(au) + "</span>" : "") +
+         (fe ? "<span>" + escAtrUI(fe) + "</span>" : "") + "</p>";
+  }
+  return h + "</header>";
+}
+
+function botonesCopiar(){
+  var pres = elDoc.querySelectorAll("pre");
+  Array.prototype.forEach.call(pres, function(pre){
+    if(pre.querySelector(".copiar")) return;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "copiar no-print";
+    b.textContent = "copiar";
+    b.addEventListener("click", function(){
+      var txt = pre.querySelector("code") ? pre.querySelector("code").textContent : pre.textContent;
+      copiar(txt);
+      b.textContent = "copiado";
+      setTimeout(function(){ b.textContent = "copiar"; }, 1200);
+    });
+    pre.appendChild(b);
+  });
+}
+
+function copiar(txt){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt)["catch"](function(){ copiarViejo(txt); });
+  }else{
+    copiarViejo(txt);
+  }
+}
+function copiarViejo(txt){
+  var a = document.createElement("textarea");
+  a.value = txt;
+  a.style.position = "fixed";
+  a.style.opacity = "0";
+  document.body.appendChild(a);
+  a.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(a);
+}
+
+function pintar(md){
+  var r;
+  try{
+    r = mdAHtml(md);
+  }catch(e){
+    elDoc.innerHTML = '<div class="alerta precaucion"><p class="alerta-titulo">Error al convertir el texto</p><p>' +
+                      escAtrUI(e && e.message ? e.message : e) + "</p></div>";
+    return;
+  }
+  elDoc.innerHTML = portada(r.meta) + r.html;
+  var t = r.meta.titulo || r.meta.title;
+  document.title = t ? t : "Documento Markdown";
+  botonesCopiar();
+}
+
+function descargar(nombre, texto, tipo){
+  var b = new Blob([texto], { type: tipo + ";charset=utf-8" });
+  var u = URL.createObjectURL(b);
+  var a = document.createElement("a");
+  a.href = u;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+}
+
+function nombreArchivo(){
+  var t = document.title.replace(/[\\\/:*?"<>|]+/g, "").trim();
+  return (t || "documento").toLowerCase().replace(/\s+/g, "-").slice(0, 60);
+}
+
+/* --- editar en el navegador --- */
+var abierto = false, temporizador = null;
+function alternarEditor(){
+  abierto = !abierto;
+  document.body.classList.toggle("editando", abierto);
+  $("#ladoEditor").hidden = !abierto;
+  $("#btnEditar").innerHTML = abierto ? "&#10007; Cerrar" : "&#9998; Editar";
+  if(abierto){
+    elEd.value = fuenteActual;
+    elEd.focus();
+  }
+}
+if(elEd){
+  elEd.addEventListener("input", function(){
+    fuenteActual = elEd.value;
+    clearTimeout(temporizador);
+    temporizador = setTimeout(function(){ pintar(fuenteActual); }, 180);
+  });
+  elEd.addEventListener("keydown", function(e){
+    if(e.key === "Tab"){
+      e.preventDefault();
+      var s = elEd.selectionStart, f = elEd.selectionEnd;
+      elEd.value = elEd.value.slice(0, s) + "  " + elEd.value.slice(f);
+      elEd.selectionStart = elEd.selectionEnd = s + 2;
+    }
+  });
+}
+
+/* --- tema --- */
+var CLAVE = "plantilla-md-tema";
+function ponerTema(t){
+  if(t) document.documentElement.setAttribute("data-tema", t);
+  else document.documentElement.removeAttribute("data-tema");
+}
+try{
+  var guardado = localStorage.getItem(CLAVE);
+  if(guardado) ponerTema(guardado);
+}catch(e){}
+function alternarTema(){
+  var actual = document.documentElement.getAttribute("data-tema");
+  var oscuroAhora = actual ? actual === "oscuro"
+    : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  var nuevo = oscuroAhora ? "claro" : "oscuro";
+  ponerTema(nuevo);
+  try{ localStorage.setItem(CLAVE, nuevo); }catch(e){}
+}
+
+/* --- guardar una copia de esta pagina con el texto de ahora --- */
+function guardarHtml(){
+  var clon = document.documentElement.cloneNode(true);
+  var f = clon.querySelector("#fuente");
+  if(f) f.textContent = "\n" + fuenteActual.replace(/<\/(script)/gi, "<\\/$1") + "\n";
+  var d = clon.querySelector("#doc");
+  if(d) d.innerHTML = "";
+  var le = clon.querySelector("#ladoEditor");
+  if(le){ le.hidden = true; }
+  var ta = clon.querySelector("#ed");
+  if(ta){ ta.textContent = ""; ta.removeAttribute("value"); }
+  var be = clon.querySelector("#btnEditar");
+  if(be) be.innerHTML = "&#9998; Editar";
+  clon.querySelector("body").className = "";
+  descargar(nombreArchivo() + ".html", "<!doctype html>\n" + clon.outerHTML, "text/html");
+}
+
+/* --- botones y atajos --- */
+$("#btnEditar").addEventListener("click", alternarEditor);
+$("#btnTema").addEventListener("click", alternarTema);
+$("#btnImprimir").addEventListener("click", function(){ window.print(); });
+$("#btnMd").addEventListener("click", function(){ descargar(nombreArchivo() + ".md", fuenteActual.replace(/^\n+/, ""), "text/markdown"); });
+$("#btnHtml").addEventListener("click", guardarHtml);
+
+document.addEventListener("keydown", function(e){
+  if((e.ctrlKey || e.metaKey) && (e.key === "e" || e.key === "E")){
+    e.preventDefault();
+    alternarEditor();
+  }
+});
+
+/* --- en marcha --- */
+pintar(fuenteActual);
+
+/* por si alguien quiere trastear desde la consola del navegador */
+window.plantilla = { convertir: mdAHtml, pintar: pintar, editor: alternarEditor,
+                     guardarHtml: guardarHtml, tema: alternarTema,
+                     texto: function(){ return fuenteActual; } };
+
+})();
+</script>
+</body>
+</html>
