@@ -10,11 +10,15 @@ Publicado en <https://md.crgm.app>.
 
 - **Convierte Markdown a HTML** con un motor propio de unas 900 líneas: sin
   librerías, sin CDN y sin peticiones a internet. Todo está dentro de `index.html`.
-- **Catálogo de plantillas** (`▤ Plantillas`, o <kbd>Ctrl</kbd>+<kbd>K</kbd>) con 44
-  documentos listos para usar, repartidos en seis categorías: habilidades y
-  subagentes de Claude Code, `CLAUDE.md` y reglas, comandos y hooks, roles y
-  prompts, y documentos de trabajo (informes, actas, propuestas, ADR, changelog…).
-  Cada plantilla dice en qué ruta va el archivo y con qué nombre.
+- **Catálogo de plantillas** (`▤ Plantillas`, o <kbd>Ctrl</kbd>+<kbd>K</kbd>) con 55
+  documentos listos para usar, repartidos en ocho categorías: habilidades y
+  subagentes de Claude Code, `CLAUDE.md` / `AGENTS.md` y reglas, comandos y hooks,
+  roles y prompts, cómo escribir un `.md` para una IA, documentos de trabajo
+  (informes, actas, propuestas, ADR, changelog…) y trabajos académicos con la
+  norma APA 7. Cada plantilla dice en qué ruta va el archivo y con qué nombre, y
+  termina con las referencias de dónde sale su formato.
+- **El catálogo viaja dentro del archivo**: la galería funciona igual servida por
+  http que abriendo `index.html` a doble clic, sin servidor y sin conexión.
 - **Dibuja diagramas** de los bloques `mermaid`: flujo, secuencia, estados y
   tarta. El dibujo es un SVG hecho en casa, sin librerías: se imprime nítido, se
   adapta al tema claro u oscuro y funciona sin conexión.
@@ -28,8 +32,18 @@ Publicado en <https://md.crgm.app>.
 - **Colores en el texto** con clases listas (`rojo`, `verde`, `azul`, `naranja`,
   `morado`, `rosa`, `cian`, `gris`, `fondo`, `recuadro`…) que respetan el tema
   oscuro y la impresión.
-- **Se guarda solo** en el navegador (`localStorage`): cierras la pestaña y al
-  volver sigue tu texto donde lo dejaste. Nada sale de tu equipo.
+- **Se guarda solo, y no solo el último**: cada documento que escribes, abres o
+  sacas de una plantilla queda en el navegador (IndexedDB, y `localStorage` si el
+  navegador no deja) con un nombre corto — `md01`, `md02`… Puedes irte a mirar
+  plantillas y volver: lo anterior sigue ahí, en `◷ Recientes`, dentro de la
+  misma galería. Nada sale de tu equipo.
+- **Te avisa de lo que aún no has descargado**: abajo a la izquierda hay una
+  píldora con el documento en curso y su estado — *guardado aquí, sin descargar*
+  en ámbar, *descargado* en verde. Lo que vive en el navegador se pierde si
+  borras los datos de navegación; lo único definitivo es lo que descargas.
+- **Numera las descargas**: si el documento ya se descargó una vez (o lo abriste
+  de tu equipo), la siguiente descarga sale como `informe-v2.md`, `informe-v3.md`…
+  y así no pisas el archivo anterior.
 - **Tus propias plantillas**: guarda el documento que tengas abierto en
   *Mis plantillas* y reutilízalo cuando quieras.
 - **Abre archivos** `.md` de tu equipo, también arrastrándolos sobre la página.
@@ -71,12 +85,13 @@ y `?plantilla=<id>` carga una plantilla concreta (por ejemplo
 ## Qué hay en el repositorio
 
 ```
-index.html            La aplicación entera: estilos, motor e interfaz
+index.html            La aplicación entera: estilos, motor, interfaz y catálogo
 manifest.webmanifest  Nombre, iconos y accesos directos de la aplicación
 sw.js                 Service worker: guarda la aplicación para usarla sin conexión
 iconos/               Icono en SVG y en PNG (normal, maskable, favicon, Apple)
 favicon.ico           Icono para las pestañas antiguas
-plantillas/           Las 44 plantillas en .md e indice.json que las describe
+plantillas/           Las 55 plantillas en .md e indice.json que las describe
+herramientas/         empaquetar.py: mete el catálogo dentro de index.html
 CNAME                 md.crgm.app
 .nojekyll             Para que GitHub Pages sirva los archivos tal cual
 ```
@@ -118,9 +133,18 @@ El archivo `CNAME` ya está en el repositorio, así que el paso 3 se rellena sol
      "desc": "Una línea explicando para qué sirve."
    }
    ```
-3. Añade el archivo a la lista `CONCHA` de `sw.js` y **sube el número de
-   `VERSION`** (`v2` → `v3`). Sin eso, quien ya tenga la aplicación instalada
-   seguirá viendo la versión vieja.
+3. Ejecuta el empaquetador:
+
+   ```bash
+   python3 herramientas/empaquetar.py
+   ```
+
+   Mete el catálogo entero dentro de `index.html` (por eso la galería funciona
+   también a doble clic, sin servidor), rehace la lista de plantillas del
+   precache de `sw.js` y sube el número de `VERSION`. Sin ese último paso, quien
+   ya tenga la aplicación instalada seguiría viendo la versión vieja.
+
+   Con `--sin-subir` empaqueta sin tocar la versión, mientras pruebas.
 
 Lo mismo vale para cualquier cambio en `index.html`: al tocarlo, sube la versión
 del service worker. Quien tenga la aplicación abierta verá el aviso
@@ -132,10 +156,10 @@ del service worker. Quien tenga la aplicación abierta verá el aviso
 python3 -m http.server 8777
 ```
 
-Y abre <http://127.0.0.1:8777>. Hace falta un servidor (aunque sea este) porque
-el service worker y el catálogo de plantillas no funcionan por `file://`. Si abres
-`index.html` a doble clic, la aplicación lo detecta y se comporta como el archivo
-suelto: sigue escribiendo e imprimiendo, pero sin catálogo ni guardado.
+Y abre <http://127.0.0.1:8777>. Con servidor funciona todo. Si abres `index.html`
+a doble clic (`file://`), sigues teniendo el editor, la impresión y el catálogo de
+plantillas —que viaja dentro del archivo—, pero no el service worker ni el
+guardado automático en el navegador, que necesitan un origen de verdad.
 
 ## Licencia
 
