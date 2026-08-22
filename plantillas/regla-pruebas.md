@@ -4,7 +4,9 @@ paths:
   - "tests/**/*"
 ---
 
-<!-- Guardar como: .claude/rules/pruebas.md -->
+<!-- Guardar como: .claude/rules/pruebas.md
+     Los patrones de `paths` son globs: la regla solo entra en contexto
+     cuando Claude abre un archivo que encaja con alguno. -->
 
 # Convenciones de pruebas
 
@@ -35,3 +37,10 @@ describe("calcularTotal", () => {
 ## Datos de prueba
 
 Se construyen con las factorías de `tests/factorias/`. Nada de objetos literales de 40 líneas copiados entre archivos.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [How Claude remembers your project](https://code.claude.com/docs/en/memory.md) — dónde van las reglas por tema y cómo limitarlas con `paths`.
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices.md) — qué instrucciones merecen ocupar contexto.

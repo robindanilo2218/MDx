@@ -6,7 +6,10 @@ model: inherit
 ---
 
 <!-- Guardar como: .claude/agents/mi-agente.md  (del proyecto, se sube al repo)
-     o en ~/.claude/agents/mi-agente.md  (personal, en todos tus proyectos) -->
+     o en ~/.claude/agents/mi-agente.md  (personal, en todos tus proyectos).
+     Los dos directorios se recorren de forma recursiva: puedes agrupar los
+     agentes en subcarpetas. Si quitas `tools`, hereda todas las herramientas
+     disponibles para subagentes. Para llamarlo a mano, escribe @agent-mi-agente. -->
 
 Eres un especialista en *[campo]*.
 
@@ -30,3 +33,10 @@ Tu texto final **es** el resultado que recibe quien te llamó: no es un mensaje 
 
 - No modificas archivos.
 - No inventas: si te falta un dato, lo dices.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Create custom subagents](https://code.claude.com/docs/en/sub-agents.md) — la página oficial: dónde viven los subagentes y qué campos admite su front matter.
+- [Explore the .claude directory](https://code.claude.com/docs/en/claude-directory.md) — qué convive con `agents/` dentro de `.claude/` y de `~/.claude`.

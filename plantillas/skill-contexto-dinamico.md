@@ -9,7 +9,9 @@ allowed-tools: Bash(gh *)
 <!-- La sintaxis !`comando` ejecuta la orden ANTES de enviarle el texto a Claude
      y sustituye el hueco por su salida, así Claude recibe datos de verdad.
      context: fork hace que corra en su propio subagente y no gaste
-     el contexto de la conversación principal. -->
+     el contexto de la conversación principal.
+     Todo lo que ejecutes con !`...` tiene que estar permitido en
+     allowed-tools, o se quedará esperando permiso. -->
 
 # Contexto del pull request
 
@@ -34,3 +36,10 @@ Escribe un resumen para quien va a revisar el PR:
 4. **Qué no está probado**, si lo detectas.
 
 No repitas el diff línea a línea: eso ya lo tiene delante.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Extend Claude with skills](https://code.claude.com/docs/en/skills.md) — la sintaxis !`comando`, que se ejecuta antes de enviarle el texto a Claude.
+- [Create custom subagents](https://code.claude.com/docs/en/sub-agents.md) — qué es el subagente al que delegas con `context: fork` y `agent`.

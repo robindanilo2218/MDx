@@ -9,7 +9,8 @@ paths:
 
 <!-- Guardar como: .claude/skills/convenciones-api/SKILL.md
      user-invocable: false -> es conocimiento de fondo, no un comando
-     paths -> solo se carga cuando Claude trabaja con esos archivos -->
+     paths -> solo se carga cuando Claude trabaja con esos archivos,
+     así estas convenciones no gastan contexto el resto del tiempo -->
 
 # Convenciones de la API
 
@@ -48,3 +49,12 @@ Por cursor, nunca por número de página:
 - Devolver 200 con un error dentro.
 - Romper un contrato sin subir la versión.
 - Exponer identificadores de base de datos en la respuesta.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Extend Claude with skills](https://code.claude.com/docs/en/skills.md) — `user-invocable`, `paths` y cómo Claude carga una habilidad por relevancia.
+- [How Claude remembers your project](https://code.claude.com/docs/en/memory.md) — la otra forma de guardar convenciones: `.claude/rules/*.md`, también con `paths`.
+- [How to write effective AI agent skills: 6 data-backed practices](https://arize.com/blog/how-to-write-effective-ai-agent-skills/) — Laurie Voss, 2026: mover las referencias a archivos aparte gana puntos frente a la documentación larga.
+- [markdown-viewer/skills](https://github.com/markdown-viewer/skills) — catorce habilidades reales donde ver qué se queda en el cuerpo y qué baja a `references/`.

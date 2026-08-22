@@ -1,6 +1,9 @@
 <!-- Guardar como: CLAUDE.md en la raíz del proyecto (o .claude/CLAUDE.md).
      Se carga entero en cada sesión: apunta a menos de 200 líneas.
-     Escribe solo lo que Claude NO puede deducir leyendo el código. -->
+     Escribe solo lo que Claude NO puede deducir leyendo el código.
+     Regla de oro: si quitar una línea no haría que Claude se equivocase, bórrala.
+     Los comentarios HTML como este se eliminan antes de inyectar el archivo en
+     el contexto, así que no gastan tokens. -->
 
 # Nombre del proyecto
 
@@ -46,3 +49,12 @@ La regla que importa: `ui` → `api` → `dominio` → `datos`. Nunca al revés.
 - Ramas: `tipo/descripcion-corta`, por ejemplo `fix/pago-duplicado`.
 - Mensajes de commit en imperativo y en español.
 - No confirmes ni subas nada sin que te lo pidan.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [How Claude remembers your project](https://code.claude.com/docs/en/memory.md) — las cuatro ubicaciones de CLAUDE.md, el tamaño objetivo y las importaciones `@ruta`.
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices.md) — la sección «Write an effective CLAUDE.md»: qué incluir y qué dejar fuera.
+- [Explore the .claude directory](https://code.claude.com/docs/en/claude-directory.md) — qué más puede convivir en `.claude/`.
+- [AGENTS.md](https://agents.md) — el formato abierto equivalente, que leen Codex, Cursor y otros; puedes tener los dos y que este archivo remita a él.

@@ -23,3 +23,11 @@ git log --oneline -5
    - Cuerpo explicando **por qué**, no qué.
 3. Enséñame el mensaje **antes** de confirmar.
 4. No subas nada al remoto.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Commands](https://code.claude.com/docs/en/commands.md) — la referencia oficial de comandos.
+- [Extend Claude with skills](https://code.claude.com/docs/en/skills.md) — el bloque !`comando` y las reglas de `allowed-tools`.
+- [Claude Code settings](https://code.claude.com/docs/en/settings.md) — los cuatro archivos de settings y el orden de precedencia de los permisos.

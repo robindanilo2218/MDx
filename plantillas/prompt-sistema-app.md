@@ -1,5 +1,6 @@
 <!-- Plantilla de prompt de sistema para una aplicación que llama a la API de Claude.
-     Va en el parámetro `system`, no en el mensaje del usuario. -->
+     Va en el parámetro `system`, no en el mensaje del usuario: en la API de
+     Mensajes no existe un rol "system" dentro de `messages`. -->
 
 # Prompt de sistema
 
@@ -39,3 +40,10 @@ Dilo claro, en una frase, y ofrece el camino real: *[centro de ayuda, contacto h
 ## Casos delicados
 
 Si detectas *[urgencia médica, riesgo económico, datos sensibles...]*, *[qué debe hacer exactamente]*.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Messages](https://platform.claude.com/docs/en/api/messages) — el parámetro `system`: no existe un rol «system» dentro de `messages`.
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) — Anthropic: «Give Claude a role» y las técnicas vigentes de prompt.

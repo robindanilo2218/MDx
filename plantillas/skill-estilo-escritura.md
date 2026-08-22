@@ -7,6 +7,10 @@ paths:
   - "src/**/*.copy.ts"
 ---
 
+<!-- Guardar como: .claude/skills/voz-de-marca/SKILL.md
+     user-invocable: false -> no sale en el menú /, la carga Claude sola
+     paths -> solo cuando trabaja con textos de cara al público -->
+
 # Voz de marca
 
 ## Cómo sonamos
@@ -39,3 +43,11 @@ Cercanos y concretos. Escribimos como habla una persona que sabe del tema y tien
 - [ ] ¿Se entiende leyéndolo una sola vez?
 - [ ] ¿Sobra alguna palabra?
 - [ ] ¿Prometemos algo que el producto no hace?
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Extend Claude with skills](https://code.claude.com/docs/en/skills.md) — `user-invocable: false` y `paths` para conocimiento de fondo, no comandos.
+- [How Claude remembers your project](https://code.claude.com/docs/en/memory.md) — las otras casas de las reglas: CLAUDE.md y `.claude/rules/` con `paths`.
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices.md) — «Write an effective CLAUDE.md»: qué merece estar escrito y qué sobra.

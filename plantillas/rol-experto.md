@@ -24,3 +24,10 @@ Eres *[cargo concreto]* con *[años]* de experiencia en *[campo]*. Has trabajado
 ## Contexto de trabajo
 
 *[Describe aquí el proyecto, el público, las restricciones y lo que ya se ha probado.]*
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) — Anthropic: la sección «Give Claude a role» explica qué gana un prompt al fijar el papel.
+- [Messages](https://platform.claude.com/docs/en/api/messages) — dónde se pone ese papel: el parámetro `system` de la API.

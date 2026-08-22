@@ -47,3 +47,10 @@ Versionado según [SemVer](https://semver.org/lang/es/).
 - Primera versión pública.
 
 <!-- Categorías: Añadido, Cambiado, Obsoleto, Eliminado, Corregido, Seguridad -->
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Mantenga un changelog](https://keepachangelog.com/es-ES/1.1.0/) — la versión 1.1.0 en español: orden, formato y las seis categorías.
+- [Versionado Semántico 2.0.0](https://semver.org/lang/es/) — cuándo sube la mayor, la menor y el parche.

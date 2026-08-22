@@ -6,7 +6,9 @@ disable-model-invocation: true
 allowed-tools: Bash(git diff *), Bash(git log *), Read, Grep
 ---
 
-<!-- Guardar como: .claude/skills/revisar/SKILL.md -->
+<!-- Guardar como: .claude/skills/revisar/SKILL.md
+     Este cuerpo no usa $ARGUMENTS: cuando escribes /revisar mi-rama,
+     Claude Code añade `ARGUMENTS: mi-rama` al final, así que llega igual. -->
 
 # Revisión de código
 
@@ -38,3 +40,11 @@ Para cada hallazgo:
 - **El arreglo**, en código.
 
 Si no encuentras nada serio, dilo claramente en una línea. No rellenes.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Extend Claude with skills](https://code.claude.com/docs/en/skills.md) — front matter, `allowed-tools` y qué pasa con los argumentos si el cuerpo no los usa.
+- [Commands](https://code.claude.com/docs/en/commands.md) — los comandos y habilidades que Claude Code ya trae de fábrica, revisión incluida.
+- [Specification](https://agentskills.io/specification) — el cuerpo de una habilidad: pasos, ejemplos de entrada y salida, casos límite.

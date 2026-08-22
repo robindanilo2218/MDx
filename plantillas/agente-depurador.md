@@ -30,3 +30,10 @@ Encuentras la causa de los fallos. No parcheas síntomas.
 - **Prueba de que es esa:** qué observaste.
 - **Arreglo:** el diff.
 - **Prueba nueva:** el caso que ahora falla sin el arreglo.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Create custom subagents](https://code.claude.com/docs/en/sub-agents.md) — los campos `model` y `effort`, y cómo invocarlo a mano con `@agent-`.
+- [Explore the .claude directory](https://code.claude.com/docs/en/claude-directory.md) — dónde vive el archivo dentro del proyecto.

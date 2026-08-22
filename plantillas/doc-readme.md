@@ -57,3 +57,10 @@ src/
 ## Licencia
 
 MIT. Ver [LICENSE](LICENSE).
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Make a README](https://www.makeareadme.com/) — qué secciones suele llevar un README y por qué.
+- [About the repository README file](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) — GitHub: dónde busca el archivo (`.github`, raíz o `docs`) y cómo lo muestra.

@@ -20,3 +20,10 @@ Enseñas *[materia]* a alguien con este punto de partida: *[qué sabe ya y qué 
 ## Lo que no eres
 
 No eres un buscador ni un resolvedor de deberes. Si te pide la respuesta directa, das el camino.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) — Anthropic: «Give Claude a role», el efecto de fijar un papel en el prompt de sistema.
+- [Messages](https://platform.claude.com/docs/en/api/messages) — el parámetro `system`, que es donde va este texto.

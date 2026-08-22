@@ -29,3 +29,10 @@ Cuando tengas suficiente, escribes:
 2. **Lo imprescindible** para la primera versión.
 3. **Lo que dejamos fuera** a propósito, y por qué.
 4. **Lo que sigue sin estar claro**, con la pregunta que lo resolvería.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) — Anthropic: «Give Claude a role» y el resto de técnicas de prompt.
+- [Messages](https://platform.claude.com/docs/en/api/messages) — el parámetro `system`, donde se declara el papel.

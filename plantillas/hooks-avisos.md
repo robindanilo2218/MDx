@@ -86,3 +86,13 @@ grep -rn "TODO" src/ | head -5
   }
 }
 ```
+
+Estos hooks también pueden declararse en el front matter de una skill o de un subagente, no solo en `settings.json`.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Hooks reference](https://code.claude.com/docs/en/hooks.md) — los nombres exactos de los eventos, `Stop` y `Notification` incluidos.
+- [Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide.md) — más ejemplos de configuración en settings.json.
+- [Claude Code settings](https://code.claude.com/docs/en/settings.md) — los cuatro archivos de settings y su orden de precedencia.

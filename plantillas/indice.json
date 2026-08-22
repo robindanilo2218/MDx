@@ -5,14 +5,18 @@
       "descripcion": "Archivos SKILL.md que le enseñan a Claude un procedimiento. Van en .claude/skills/<nombre>/SKILL.md" },
     { "id": "agentes", "nombre": "Subagentes", "icono": "◉",
       "descripcion": "Especialistas a los que Claude delega tareas. Van en .claude/agents/<nombre>.md" },
-    { "id": "reglas", "nombre": "CLAUDE.md y reglas", "icono": "▤",
-      "descripcion": "Instrucciones que se cargan en cada sesión. CLAUDE.md en la raíz, o archivos sueltos en .claude/rules/" },
+    { "id": "reglas", "nombre": "CLAUDE.md, AGENTS.md y reglas", "icono": "▤",
+      "descripcion": "Instrucciones que se cargan en cada sesión. CLAUDE.md o AGENTS.md en la raíz, o archivos sueltos en .claude/rules/" },
     { "id": "comandos", "nombre": "Comandos y hooks", "icono": "⌘",
       "descripcion": "Órdenes que escribes con /barra, y hooks que se ejecutan siempre, decida Claude lo que decida" },
     { "id": "roles", "nombre": "Roles y prompts", "icono": "◆",
       "descripcion": "Prompts de sistema y papeles para conversar con Claude o para tu propia aplicación" },
+    { "id": "ia", "nombre": "Escribir para una IA", "icono": "◈",
+      "descripcion": "Archivos pensados para que los lea un modelo: contexto, encargos y material de consulta" },
     { "id": "documentos", "nombre": "Documentos", "icono": "▦",
-      "descripcion": "Informes, actas, propuestas y demás papeleo, ya maquetado para imprimir" }
+      "descripcion": "Informes, actas, propuestas y demás papeleo, ya maquetado para imprimir" },
+    { "id": "academico", "nombre": "Trabajos académicos (APA)", "icono": "¶",
+      "descripcion": "Documentos con el formato de la norma APA 7: portada, interlineado doble, sangría y lista de referencias" }
   ],
   "plantillas": [
     { "id": "skill-basica", "cat": "habilidades", "archivo": "skill-basica.md", "nombre": "SKILL.md",
@@ -39,6 +43,12 @@
     { "id": "skill-estilo-escritura", "cat": "habilidades", "archivo": "skill-estilo-escritura.md", "nombre": "SKILL.md",
       "titulo": "Voz de marca", "destino": ".claude/skills/voz-de-marca/SKILL.md",
       "desc": "Cómo se escriben los textos de cara al público: tono, palabras vetadas y formato." },
+    { "id": "skill-evaluable", "cat": "habilidades", "archivo": "skill-evaluable.md", "nombre": "SKILL.md",
+      "titulo": "Habilidad con evaluaciones", "destino": ".claude/skills/mi-habilidad/SKILL.md",
+      "desc": "Con criterios de aceptación y una carpeta evals/: casos que demuestran que la habilidad hace lo que promete." },
+    { "id": "skill-coleccion", "cat": "habilidades", "archivo": "skill-coleccion.md", "nombre": "README.md",
+      "titulo": "Colección de habilidades", "destino": "README.md",
+      "desc": "El README para publicar varias habilidades juntas: qué trae, cómo se instala y qué reglas siguen." },
 
     { "id": "agente-basico", "cat": "agentes", "archivo": "agente-basico.md", "nombre": "mi-agente.md",
       "titulo": "Subagente básico", "destino": ".claude/agents/mi-agente.md",
@@ -86,6 +96,9 @@
     { "id": "regla-commits", "cat": "reglas", "archivo": "regla-commits.md", "nombre": "git.md",
       "titulo": "Regla: git, commits y PRs", "destino": ".claude/rules/git.md",
       "desc": "Nombres de rama, formato de commit y qué no se hace jamás con el historial." },
+    { "id": "agents-md", "cat": "reglas", "archivo": "agents-md.md", "nombre": "AGENTS.md",
+      "titulo": "AGENTS.md (formato abierto)", "destino": "AGENTS.md",
+      "desc": "El README para agentes que leen Codex, Cursor, Copilot y veinte más: comandos, estilo, pruebas y límites." },
 
     { "id": "comando-basico", "cat": "comandos", "archivo": "comando-basico.md", "nombre": "mi-comando.md",
       "titulo": "Comando básico", "destino": ".claude/commands/mi-comando.md",
@@ -122,6 +135,19 @@
       "titulo": "Prompt de sistema para una app", "destino": "Parámetro system de la API",
       "desc": "Qué puede hacer, qué no, con qué tono y qué hacer cuando no pueda ayudar." },
 
+    { "id": "ia-estructura-md", "cat": "ia", "archivo": "ia-estructura-md.md", "nombre": "estructura.md",
+      "titulo": "La anatomía de un .md para una IA", "destino": "—",
+      "desc": "Qué va en cada parte del archivo y por qué: la guía para escribir cualquier cosa que vaya a leer un modelo." },
+    { "id": "ia-contexto-proyecto", "cat": "ia", "archivo": "ia-contexto-proyecto.md", "nombre": "contexto.md",
+      "titulo": "Contexto de proyecto", "destino": "—",
+      "desc": "Lo que la IA necesita saber antes de responder: estado, montaje, glosario, convenciones y lo prohibido." },
+    { "id": "ia-tarea", "cat": "ia", "archivo": "ia-tarea.md", "nombre": "tarea.md",
+      "titulo": "Encargo de una tarea", "destino": "—",
+      "desc": "Objetivo, entradas, salida esperada, criterios de aceptación y ejemplos de respuesta buena y mala." },
+    { "id": "ia-base-conocimiento", "cat": "ia", "archivo": "ia-base-conocimiento.md", "nombre": "referencia.md",
+      "titulo": "Base de conocimiento", "destino": "—",
+      "desc": "Material de consulta en secciones cortas y autocontenidas, para que la IA cite en vez de inventar." },
+
     { "id": "guia-markdown", "cat": "documentos", "archivo": "guia-markdown.md", "nombre": "guia-markdown.md",
       "titulo": "Guía completa de Markdown", "destino": "Referencia",
       "desc": "Toda la sintaxis con su resultado al lado: 22 apartados, de los títulos a las notas al pie." },
@@ -151,6 +177,19 @@
       "desc": "Formato Keep a Changelog: añadido, cambiado, obsoleto, eliminado, corregido y seguridad." },
     { "id": "doc-carta", "cat": "documentos", "archivo": "doc-carta.md", "nombre": "carta.md",
       "titulo": "Carta formal", "destino": "—",
-      "desc": "Remitente, destinatario, asunto y tres párrafos: motivo, datos y petición." }
+      "desc": "Remitente, destinatario, asunto y tres párrafos: motivo, datos y petición." },
+
+    { "id": "apa-articulo", "cat": "academico", "archivo": "apa-articulo.md", "nombre": "articulo-apa.md",
+      "titulo": "Artículo de investigación (APA 7)", "destino": "—",
+      "desc": "Portada de estudiante, resumen, método, resultados con tabla y figura, discusión y apéndices, con los cinco niveles de título." },
+    { "id": "apa-ensayo", "cat": "academico", "archivo": "apa-ensayo.md", "nombre": "ensayo-apa.md",
+      "titulo": "Ensayo académico (APA 7)", "destino": "—",
+      "desc": "Tesis, tres argumentos con citas, objeción y conclusión, más cómo se arma un párrafo académico." },
+    { "id": "apa-anteproyecto", "cat": "academico", "archivo": "apa-anteproyecto.md", "nombre": "anteproyecto.md",
+      "titulo": "Anteproyecto de investigación (APA 7)", "destino": "—",
+      "desc": "Problema, preguntas, objetivos, justificación, marco teórico, hipótesis, metodología y cronograma." },
+    { "id": "apa-citas", "cat": "academico", "archivo": "apa-citas.md", "nombre": "citas-apa.md",
+      "titulo": "Citas y referencias (APA 7)", "destino": "—",
+      "desc": "Chuleta de consulta: cómo se cita cada fuente dentro del texto y cómo se escribe en la lista final." }
   ]
 }

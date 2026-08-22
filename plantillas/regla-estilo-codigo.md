@@ -5,7 +5,9 @@ paths:
 
 <!-- Guardar como: .claude/rules/estilo-codigo.md
      Con `paths`, esta regla solo entra en contexto cuando Claude abre
-     archivos que encajan con el patrón. Sin `paths`, se carga siempre. -->
+     archivos que encajan con el patrón. Sin `paths`, se carga siempre.
+     Tus reglas para todos los proyectos van en ~/.claude/rules/; ambas
+     carpetas se recorren de forma recursiva. -->
 
 # Estilo de código TypeScript
 
@@ -39,3 +41,10 @@ paths:
 - `await` siempre; nada de `.then()` encadenados.
 - Toda promesa se espera o se registra explícitamente como olvidada.
 - Las operaciones en paralelo con `Promise.all`, no en bucle secuencial.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [How Claude remembers your project](https://code.claude.com/docs/en/memory.md) — `.claude/rules/`, el campo `paths` y cómo se descubren las reglas.
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices.md) — la regla de oro: si quitar la línea no cambia nada, bórrala.

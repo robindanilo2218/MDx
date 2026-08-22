@@ -66,3 +66,13 @@ También vale salir con código `2` y escribir el motivo en `stderr`: bloquea ig
 ## Ojo
 
 Un hook se ejecuta con **tus** permisos. Revisa el script como revisarías cualquier cosa que corre sola en tu máquina.
+
+Comprueba con `/hooks` que quedó registrado: ese menú enseña evento, matcher, tipo y archivo de origen, pero es de solo lectura; para añadir o cambiar un hook se edita el JSON.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Hooks reference](https://code.claude.com/docs/en/hooks.md) — campos de un hook y salida JSON de `PreToolUse`.
+- [Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide.md) — por qué un hook decide y una instrucción de CLAUDE.md solo orienta.
+- [Claude Code settings](https://code.claude.com/docs/en/settings.md) — `permissions.deny`, la otra forma de cerrar la puerta.

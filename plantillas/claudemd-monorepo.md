@@ -34,3 +34,13 @@ pnpm -r build          # todo, en orden de dependencias
 ## Instrucciones por paquete
 
 Cada paquete tiene su propio `CLAUDE.md` con sus detalles. Este archivo solo contiene lo que afecta a todos.
+
+Si un bloque se repite, sácalo a un archivo aparte y tráelo con una importación `@ruta/al/archivo`, escrita sin las comillas invertidas: dentro de ellas es texto literal y no importa nada. Se resuelven hasta cuatro saltos de profundidad.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [How Claude remembers your project](https://code.claude.com/docs/en/memory.md) — importaciones `@ruta` y carga de los CLAUDE.md de cada subdirectorio.
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices.md) — qué merece estar escrito en un CLAUDE.md y qué sobra.
+- [AGENTS.md](https://agents.md) — el formato abierto: también admite uno por subproyecto, y gana el más cercano al archivo que se toca.

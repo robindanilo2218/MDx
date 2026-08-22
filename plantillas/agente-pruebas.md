@@ -30,3 +30,10 @@ Escribes pruebas que atrapan fallos, no pruebas que suben un porcentaje.
 ## Entrega
 
 El archivo de pruebas y una línea por caso explicando **qué fallo cazaría**.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Create custom subagents](https://code.claude.com/docs/en/sub-agents.md) — la página oficial: front matter, herramientas heredadas y modelos.
+- [Explore the .claude directory](https://code.claude.com/docs/en/claude-directory.md) — dónde se guarda y qué más hay en `.claude/`.

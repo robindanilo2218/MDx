@@ -48,3 +48,10 @@ El motivo, en dos o tres frases. Lo que importa aquí es el criterio, porque es 
 **Habrá que revisarlo si:**
 
 - …
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Documenting Architecture Decisions](https://www.cognitect.com/blog/2011/11/15/documenting-architecture-decisions) — Michael Nygard, 2011: el artículo que fijó el formato (contexto, decisión, estado, consecuencias).
+- [Architectural Decision Records](https://adr.github.io/) — plantillas, herramientas y variantes del formato.

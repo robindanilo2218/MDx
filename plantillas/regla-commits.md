@@ -1,4 +1,6 @@
-<!-- Guardar como: .claude/rules/git.md -->
+<!-- Guardar como: .claude/rules/git.md
+     Esto es contexto, no una barrera: para impedir de verdad un push forzado
+     hace falta un hook PreToolUse. -->
 
 # Git: ramas, commits y pull requests
 
@@ -40,3 +42,11 @@ un 21% de más.
 - Reescribir el historial de una rama compartida.
 - `--force` sobre `main`.
 - Commits con el mensaje «cambios», «wip» o «arreglos».
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [How Claude remembers your project](https://code.claude.com/docs/en/memory.md) — `.claude/rules/` y cómo se cargan estas reglas.
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices.md) — qué convenciones merece la pena escribir.
+- [Hooks reference](https://code.claude.com/docs/en/hooks.md) — cómo impedir un push forzado pase lo que pase.

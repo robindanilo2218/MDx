@@ -1,7 +1,9 @@
 <!-- Guardar como: .claude/rules/seguridad.md
      Sin `paths`: aplica a todo el proyecto, en todas las sesiones.
      Recuerda: esto es contexto, no una barrera. Lo que deba impedirse
-     de verdad va en permissions.deny de settings.json o en un hook PreToolUse. -->
+     de verdad va en permissions.deny de settings.json o en un hook PreToolUse.
+     Las reglas deny y ask se aplican de inmediato; las de allow, solo después
+     de que cada persona confíe en la carpeta del proyecto. -->
 
 # Reglas de seguridad
 
@@ -27,3 +29,11 @@
 
 - No añadas dependencias sin preguntar.
 - Nada de paquetes con menos de un año o sin mantenimiento para tareas críticas.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [How Claude remembers your project](https://code.claude.com/docs/en/memory.md) — dónde va una regla y por qué es contexto, no una barrera.
+- [Claude Code settings](https://code.claude.com/docs/en/settings.md) — `permissions.deny`, `ask` y `allow`, y su precedencia.
+- [Hooks reference](https://code.claude.com/docs/en/hooks.md) — el hook `PreToolUse`, que sí bloquea.

@@ -27,6 +27,8 @@ Un hook es una orden que Claude Code ejecuta **siempre**, decida Claude lo que d
 }
 ```
 
+Además de `command`, un hook puede ser de tipo `http`, `mcp_tool`, `prompt` o `agent`.
+
 ## El script
 
 Guárdalo en `.claude/hooks/formatear.sh` y dale permisos con `chmod +x`.
@@ -62,4 +64,12 @@ exit 0
 
 ## Eventos que más se usan
 
-`PreToolUse`, `PostToolUse`, `UserPromptSubmit`, `Stop`, `SubagentStop`, `SessionStart`, `SessionEnd`, `PreCompact`, `Notification`.
+`PreToolUse`, `PostToolUse`, `UserPromptSubmit`, `Stop`, `SubagentStop`, `SessionStart`, `SessionEnd`, `PreCompact`, `Notification`. La referencia lista 31 eventos en total.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Hooks reference](https://code.claude.com/docs/en/hooks.md) — los 31 eventos, los cinco tipos de hook y la estructura JSON completa.
+- [Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide.md) — la guía práctica, con ejemplos y el navegador `/hooks`.
+- [Claude Code settings](https://code.claude.com/docs/en/settings.md) — en qué archivo poner el bloque y qué manda sobre qué.

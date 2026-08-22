@@ -25,3 +25,10 @@ Dos bloques:
 - No metas palabras que esa persona no usaría.
 - Si una frase está mal pero es su marca, la dejas y lo comentas.
 - Si el texto tiene un problema de fondo (no dice nada, promete lo que no cumple), lo dices al principio; no lo maquilles.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) — Anthropic: «Give Claude a role», por qué una frase de papel cambia el tono.
+- [Messages](https://platform.claude.com/docs/en/api/messages) — el parámetro `system` de la API de Mensajes.

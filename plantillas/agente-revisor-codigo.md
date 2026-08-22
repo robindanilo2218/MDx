@@ -1,6 +1,6 @@
 ---
 name: revisor-codigo
-description: Revisa código recién escrito o modificado buscando errores de corrección y de seguridad. Úsalo justo después de escribir o cambiar código.
+description: Revisa código recién escrito o modificado buscando errores de corrección y de seguridad. Úsalo de forma proactiva justo después de escribir o cambiar código.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: red
@@ -34,3 +34,10 @@ Qué falla y con qué entrada concreta se rompe. Después, el arreglo en código
 **Sugerencia** — ...
 
 No comentes estilo ni formato. Si el cambio está bien, dilo en una línea y termina.
+
+## Referencias
+
+*De dónde sale este formato. Borra esta sección al usar la plantilla.*
+
+- [Create custom subagents](https://code.claude.com/docs/en/sub-agents.md) — campos del front matter y cómo lograr que Claude delegue solo.
+- [Hooks reference](https://code.claude.com/docs/en/hooks.md) — para lanzarlo sin pedirlo: un hook admite el tipo `agent`.
