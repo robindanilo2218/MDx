@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plantilla Markdown</title>
 <style>
 /* ==========================================================================
    PALETA
@@ -283,874 +282,393 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
   .indice{border:1px solid #bbb}
   .notas-al-pie{break-before:auto}
 }
+
+/* ==========================================================================
+   SITIO: barra adaptable, catálogo de plantillas, avisos
+   ========================================================================== */
+.barra{flex-wrap:wrap; max-width:min(94vw,54rem); justify-content:flex-end}
+.barra button b{font-weight:400; font-style:normal}
+.barra button span{margin-left:.4em}
+@media (max-width:820px){
+  .barra button span{display:none}
+  .barra button{padding:.6em .65em; font-size:15px}
+}
+
+/* metadatos del documento (front matter completo) */
+.portada-meta{
+  margin:1.2rem 0 0; padding:.8rem 1rem; border:1px solid var(--borde);
+  border-radius:.6rem; background:var(--codigo-fondo);
+  display:grid; grid-template-columns:auto 1fr; gap:.25rem .9rem;
+  font-family:var(--mono); font-size:.78rem; line-height:1.55;
+}
+.portada-meta dt{font-weight:600; color:var(--tenue); margin:0}
+.portada-meta dd{margin:0; white-space:pre-wrap; word-break:break-word}
+.portada.solo-meta{border-bottom:0; padding-bottom:0; margin-bottom:2rem}
+
+/* diálogo del catálogo */
+.velo{
+  position:fixed; inset:0; z-index:100; padding:1rem;
+  background:rgba(8,12,18,.55); display:flex; align-items:center; justify-content:center;
+}
+.velo[hidden]{display:none}
+.dialogo{
+  width:min(66rem,100%); max-height:min(88vh,880px); overflow:hidden;
+  background:var(--papel); color:var(--texto); font-family:var(--sans);
+  border:1px solid var(--borde); border-radius:1rem;
+  box-shadow:0 24px 64px rgba(0,0,0,.35);
+  display:grid; grid-template-rows:auto minmax(0,1fr);
+}
+.dialogo-cabecera{display:flex; align-items:center; gap:.9rem; padding:.9rem 1.1rem; border-bottom:1px solid var(--borde)}
+.dialogo-cabecera h2{margin:0; padding:0; border:0; font-size:1.05rem; font-family:var(--sans); font-weight:650; white-space:nowrap}
+.dialogo-cabecera input[type=search]{
+  flex:1; min-width:0; font:inherit; font-size:.9rem; padding:.5em .8em;
+  border:1px solid var(--borde); border-radius:.5em; background:var(--fondo); color:var(--texto);
+}
+.dialogo-cabecera input[type=search]:focus{outline:2px solid var(--acento); outline-offset:-1px}
+.cerrar{
+  font:inherit; cursor:pointer; border:0; background:transparent; color:var(--tenue);
+  border-radius:.5em; padding:.4em .6em; line-height:1;
+}
+.cerrar:hover{background:var(--acento-suave); color:var(--acento)}
+.dialogo-cuerpo{display:grid; grid-template-columns:15.5rem minmax(0,1fr); min-height:0}
+.categorias{border-right:1px solid var(--borde); overflow:auto; padding:.7rem; min-height:0}
+.categorias button{
+  display:block; width:100%; text-align:left; font:inherit; font-size:.88rem; cursor:pointer;
+  border:0; background:transparent; color:var(--texto); border-radius:.55em; padding:.55em .7em; margin-bottom:.15rem;
+}
+.categorias button:hover{background:var(--acento-suave)}
+.categorias button[aria-current=true]{background:var(--acento); color:#fff}
+.categorias button i{font-style:normal; display:inline-block; width:1.4em; opacity:.8}
+.categorias .cuenta{float:right; font-size:.78em; opacity:.6}
+.categorias p{margin:.9rem .7rem .4rem; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--tenue)}
+.tarjetas{overflow:auto; padding:1rem; min-height:0; display:grid; gap:.8rem; align-content:start;
+  grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))}
+.tarjeta{
+  text-align:left; font:inherit; cursor:pointer; color:var(--texto);
+  border:1px solid var(--borde); border-radius:.7rem; background:var(--fondo);
+  padding:.85rem .95rem; display:flex; flex-direction:column; gap:.35rem;
+  transition:border-color .12s, transform .12s;
+}
+.tarjeta:hover{border-color:var(--acento); transform:translateY(-1px)}
+.tarjeta h3{margin:0; font-size:.94rem; font-weight:650; font-family:var(--sans)}
+.tarjeta p{margin:0; font-size:.82rem; color:var(--tenue); line-height:1.45}
+.tarjeta code{
+  font-size:.72rem; padding:.2em .45em; align-self:flex-start; margin-top:.2rem;
+  background:var(--codigo-fondo); border:1px solid var(--borde); border-radius:.35em; color:var(--tenue);
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.tarjeta .quitar{
+  align-self:flex-start; margin-top:.3rem; font:inherit; font-size:.75rem; cursor:pointer;
+  border:0; background:transparent; color:var(--p); padding:.2em 0; text-decoration:underline;
+}
+.vacio{grid-column:1/-1; color:var(--tenue); font-size:.9rem; padding:2rem 0; text-align:center}
+@media (max-width:760px){
+  .dialogo-cuerpo{grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr)}
+  .categorias{border-right:0; border-bottom:1px solid var(--borde); display:flex; gap:.3rem; overflow-x:auto; padding:.6rem}
+  .categorias button{width:auto; white-space:nowrap; margin:0}
+  .categorias p, .categorias .cuenta{display:none}
+}
+
+/* avisos flotantes */
+.aviso-flotante{
+  position:fixed; left:50%; bottom:1.2rem; transform:translateX(-50%); z-index:120;
+  display:flex; align-items:center; gap:.9rem; max-width:min(92vw,32rem);
+  background:var(--texto); color:var(--fondo); font-family:var(--sans); font-size:.86rem;
+  padding:.7em 1em; border-radius:.65em; box-shadow:0 8px 30px rgba(0,0,0,.3);
+}
+.aviso-flotante[hidden]{display:none}
+.aviso-flotante button{
+  font:inherit; font-weight:650; cursor:pointer; white-space:nowrap;
+  border:0; border-radius:.4em; padding:.35em .7em; background:var(--fondo); color:var(--texto);
+}
+
+/* ==========================================================================
+   COLOR DEL CODIGO, DIAGRAMAS Y FORMULAS
+   ========================================================================== */
+:root{
+  --t-com:#6a737d; --t-cad:#0a7d3f; --t-num:#0550ae; --t-pal:#cf222e; --t-fun:#6639ba;
+  --t-tip:#953800; --t-var:#bc4c00; --t-eti:#116329; --t-atr:#6639ba; --t-ope:#a4361c;
+  --t-cla:#0550ae; --t-lit:#0550ae; --t-dec:#7b3ff2; --t-reg:#0a7d3f; --t-ent:#0550ae;
+  --t-mas:#116329; --t-mas-f:#e6ffec; --t-menos:#a40e26; --t-menos-f:#ffebe9;
+
+  --dia-relleno:#eef4ff; --dia-borde:#3b6fd4; --dia-texto:#0f172a; --dia-linea:#5f6b7a;
+  --dia-fondo:#ffffff; --dia-tenue:#475569; --dia-grupo:#f4f6fa; --dia-grupo-borde:#9aa6b6;
+  --dia-nota:#fff8c5; --dia-nota-borde:#c9a227;
+
+  --c-rojo:#c0392b; --c-verde:#137a3b; --c-azul:#1d4ed8; --c-naranja:#c2410c;
+  --c-morado:#6d28d9; --c-rosa:#be185d; --c-cian:#0e7490;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-tema="claro"]){
+    --t-com:#8b949e; --t-cad:#7ee787; --t-num:#79c0ff; --t-pal:#ff7b72; --t-fun:#d2a8ff;
+    --t-tip:#ffa657; --t-var:#ffa657; --t-eti:#7ee787; --t-atr:#d2a8ff; --t-ope:#ff9492;
+    --t-cla:#79c0ff; --t-lit:#79c0ff; --t-dec:#d2a8ff; --t-reg:#7ee787; --t-ent:#79c0ff;
+    --t-mas:#7ee787; --t-mas-f:#0f2417; --t-menos:#ffa198; --t-menos-f:#2d1416;
+
+    --dia-relleno:#1b2434; --dia-borde:#6ea8fe; --dia-texto:#e6edf3; --dia-linea:#8b98a9;
+    --dia-fondo:#12171f; --dia-tenue:#b6c2cf; --dia-grupo:#161d29; --dia-grupo-borde:#3d4757;
+    --dia-nota:#3a3111; --dia-nota-borde:#a98b1d;
+
+    --c-rojo:#ff8b80; --c-verde:#5fd07a; --c-azul:#79c0ff; --c-naranja:#ffa657;
+    --c-morado:#d2a8ff; --c-rosa:#ff9ec8; --c-cian:#56d4dd;
+  }
+}
+:root[data-tema="oscuro"]{
+  --t-com:#8b949e; --t-cad:#7ee787; --t-num:#79c0ff; --t-pal:#ff7b72; --t-fun:#d2a8ff;
+  --t-tip:#ffa657; --t-var:#ffa657; --t-eti:#7ee787; --t-atr:#d2a8ff; --t-ope:#ff9492;
+  --t-cla:#79c0ff; --t-lit:#79c0ff; --t-dec:#d2a8ff; --t-reg:#7ee787; --t-ent:#79c0ff;
+  --t-mas:#7ee787; --t-mas-f:#0f2417; --t-menos:#ffa198; --t-menos-f:#2d1416;
+
+  --dia-relleno:#1b2434; --dia-borde:#6ea8fe; --dia-texto:#e6edf3; --dia-linea:#8b98a9;
+  --dia-fondo:#12171f; --dia-tenue:#b6c2cf; --dia-grupo:#161d29; --dia-grupo-borde:#3d4757;
+  --dia-nota:#3a3111; --dia-nota-borde:#a98b1d;
+
+  --c-rojo:#ff8b80; --c-verde:#5fd07a; --c-azul:#79c0ff; --c-naranja:#ffa657;
+  --c-morado:#d2a8ff; --c-rosa:#ff9ec8; --c-cian:#56d4dd;
+}
+
+/* marcas que deja el coloreador */
+.t-com{color:var(--t-com); font-style:italic}
+.t-cad{color:var(--t-cad)}
+.t-num{color:var(--t-num)}
+.t-pal{color:var(--t-pal)}
+.t-fun{color:var(--t-fun)}
+.t-tip{color:var(--t-tip)}
+.t-var{color:var(--t-var)}
+.t-eti{color:var(--t-eti)}
+.t-atr{color:var(--t-atr)}
+.t-ope{color:var(--t-ope)}
+.t-cla{color:var(--t-cla)}
+.t-lit{color:var(--t-lit)}
+.t-dec{color:var(--t-dec)}
+.t-reg{color:var(--t-reg)}
+.t-ent{color:var(--t-ent)}
+.t-doc{color:var(--t-com)}
+.t-pun{color:var(--tenue)}
+.t-mas{color:var(--t-mas); background:var(--t-mas-f); display:inline-block; width:100%}
+.t-menos{color:var(--t-menos); background:var(--t-menos-f); display:inline-block; width:100%}
+.t-fue{font-weight:700}
+.t-cur{font-style:italic}
+.t-enl{color:var(--acento); text-decoration:underline}
+
+/* etiqueta del lenguaje en la esquina del bloque */
+pre[data-lenguaje]::after{
+  content:attr(data-lenguaje); position:absolute; top:.45rem; left:.9rem;
+  font-family:var(--sans); font-size:9.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--tenue); opacity:.65; pointer-events:none;
+}
+pre[data-lenguaje]{padding-top:1.9rem}
+
+/* diagramas */
+figure.diagrama{
+  margin:1.5rem 0; padding:.9rem .6rem; text-align:center; position:relative;
+  background:var(--dia-fondo); border:1px solid var(--borde); border-radius:.6rem;
+}
+figure.diagrama .diagrama-svg{max-width:100%; height:auto; display:inline-block}
+.ver-codigo{
+  position:absolute; top:.45rem; right:.5rem; font:inherit; font-family:var(--sans);
+  font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; cursor:pointer;
+  color:var(--tenue); background:var(--papel); border:1px solid var(--borde);
+  border-radius:.35rem; padding:.2rem .5rem; opacity:0; transition:opacity .15s;
+}
+figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
+.diagrama-fuente{text-align:left; margin:.8rem 0 0}
+.diagrama-fuente[hidden]{display:none}
+
+/* formulas */
+.formula{font-size:1.03em}
+.formula-caja{margin:1.3rem 0; overflow-x:auto; text-align:center}
+.formula-bloque{display:block; margin:0 auto; font-size:1.22em}
+.formula-cruda{color:var(--t-menos)}
+math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math","XITS Math","TeX Gyre Termes Math","DejaVu Math TeX Gyre",var(--serif, serif)}
+math mo{font-family:inherit}
+
+/* colorines para el texto, por si se quieren usar a mano */
+.rojo{color:var(--c-rojo)}
+.verde{color:var(--c-verde)}
+.azul{color:var(--c-azul)}
+.naranja{color:var(--c-naranja)}
+.morado{color:var(--c-morado)}
+.rosa{color:var(--c-rosa)}
+.cian{color:var(--c-cian)}
+.gris{color:var(--tenue)}
+.grande{font-size:1.25em}
+.pequeno{font-size:.85em}
+.fondo{background:var(--marca); padding:.05em .3em; border-radius:.25em}
+.recuadro{
+  border:1px solid var(--borde); border-radius:.5rem; padding:.9rem 1.1rem; margin:1.2rem 0;
+  background:var(--codigo-fondo);
+}
+
+/* la barra se aparta sola al bajar por el documento */
+.barra{transition:opacity .2s ease, transform .2s ease}
+.barra.escondida{opacity:0; transform:translateY(-150%); pointer-events:none}
+.barra:hover, .barra:focus-within{opacity:1 !important; transform:none !important}
+
+@media print{
+  :root{
+    --t-com:#5c6370; --t-cad:#0a6b36; --t-num:#0b4a9b; --t-pal:#a4121f; --t-fun:#5b2ea6;
+    --t-tip:#7a2e00; --t-var:#9c3d00; --t-eti:#0d5226; --t-atr:#5b2ea6; --t-ope:#8a2c17;
+    --t-cla:#0b4a9b; --t-lit:#0b4a9b; --t-dec:#63239c; --t-reg:#0a6b36; --t-ent:#0b4a9b;
+    --t-mas:#0d5226; --t-mas-f:#fff; --t-menos:#8a0c1f; --t-menos-f:#fff;
+    --dia-relleno:#f2f6fd; --dia-borde:#2f5fb8; --dia-texto:#000; --dia-linea:#444;
+    --dia-fondo:#fff; --dia-tenue:#333; --dia-grupo:#f6f7f9; --dia-grupo-borde:#888;
+    --dia-nota:#fffbe6; --dia-nota-borde:#a88b1f;
+    --c-rojo:#a4121f; --c-verde:#0d5226; --c-azul:#0b4a9b; --c-naranja:#9c3d00;
+    --c-morado:#5b2ea6; --c-rosa:#8f1350; --c-cian:#0a5a66;
+  }
+  figure.diagrama{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
+  .formula-caja{break-inside:avoid; page-break-inside:avoid}
+  .ver-codigo, .diagrama-fuente{display:none !important}
+  pre[data-lenguaje]::after{color:#777}
+}
+
+/* ==========================================================================
+   EN EL TELEFONO
+   ========================================================================== */
+.documento{overflow-wrap:break-word}
+.documento h1, .documento h2, .documento h3{overflow-wrap:break-word}
+
+@media (max-width:820px){
+  /* el editor y el documento, uno encima del otro en vez de lado a lado */
+  body.editando #panel{
+    grid-template-columns:1fr;
+    grid-template-rows:42vh 58vh;
+    height:100vh;
+    height:100dvh;
+    grid-template-rows:42dvh 58dvh;
+  }
+  body.editando #ladoEditor{border-right:0; border-bottom:1px solid var(--borde)}
+  body.editando .documento{height:100%; padding:1.4rem 1.1rem 4rem}
+  #ed{font-size:16px; padding:3.6rem 1rem 3rem}
+  .documento{padding:4rem 1.1rem 5rem}
+  figure.diagrama{padding:.6rem .25rem; margin:1.2rem 0}
+  .formula-bloque{font-size:1.06em}
+  .ver-codigo{opacity:1}
+  blockquote, .alerta{padding-left:.9rem; padding-right:.9rem}
+  pre{padding:.9rem .8rem}
+  pre[data-lenguaje]{padding-top:1.8rem}
+  .dos-columnas{columns:1}
+}
+
+@media (max-width:420px){
+  .documento{padding:3.6rem .9rem 4rem}
+  h1{font-size:1.72rem}
+  h2{font-size:1.32rem}
+  .barra{gap:.1rem; padding:.25rem}
+  .barra button{padding:.55em .5em}
+}
+
+/* la galeria de plantillas en pantallas estrechas */
+@media (max-width:760px){
+  .velo{padding:.5rem}
+  .dialogo{max-height:calc(100vh - 1rem); max-height:calc(100dvh - 1rem); border-radius:.8rem}
+  .categorias{scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch}
+  .categorias button{scroll-snap-align:start}
+  .tarjetas{padding:.7rem; grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .dialogo-cabecera{flex-wrap:wrap; gap:.5rem; padding:.7rem .8rem}
+  .dialogo-cabecera h2{flex:1; font-size:.98rem}
+  .dialogo-cabecera input[type=search]{order:3; flex:1 0 100%}
+}
 </style>
+<title>Markdown · crgm</title>
+<meta name="description" content="Editor de Markdown que funciona sin conexión: escribe, mira el resultado, imprime en PDF y llévate un solo archivo HTML. Con catálogo de plantillas para Claude Code, documentos y reglas.">
+<meta name="theme-color" content="#2f7bff">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="iconos/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="iconos/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="iconos/apple-touch-icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Markdown">
+<meta name="mobile-web-app-capable" content="yes">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Markdown · crgm">
+<meta property="og:description" content="Escribe en Markdown, imprímelo en PDF y llévate un solo archivo. Sin cuenta y sin conexión.">
+<meta property="og:image" content="iconos/icono-512.png">
 </head>
 <body>
 
 <div class="barra no-print" id="barra">
-  <button type="button" id="btnEditar" title="Escribir aquí mismo (Ctrl+E)">&#9998; Editar</button>
-  <button type="button" id="btnMd" title="Descargar el texto Markdown (.md)">&#10515; .md</button>
-  <button type="button" id="btnHtml" title="Guardar una copia de esta página con tu texto">&#10515; .html</button>
-  <button type="button" id="btnImprimir" title="Imprimir o guardar como PDF (Ctrl+P)">&#128424; Imprimir</button>
-  <button type="button" id="btnTema" title="Claro / oscuro">&#9686; Tema</button>
+  <button type="button" id="btnEditar"    title="Escribir aquí mismo (Ctrl+E)"><b>&#9998;</b><span>Editar</span></button>
+  <button type="button" id="btnPlantillas" title="Catálogo de plantillas (Ctrl+K)"><b>&#9636;</b><span>Plantillas</span></button>
+  <button type="button" id="btnNuevo"     title="Empezar un documento en blanco"><b>&#65291;</b><span>Nuevo</span></button>
+  <button type="button" id="btnAbrir"     title="Abrir un archivo .md de tu equipo"><b>&#128194;</b><span>Abrir</span></button>
+  <button type="button" id="btnMd"        title="Descargar el texto en Markdown"><b>&#10515;</b><span>.md</span></button>
+  <button type="button" id="btnHtml"      title="Descargar esta página con tu documento dentro"><b>&#10515;</b><span>.html</span></button>
+  <button type="button" id="btnImprimir"  title="Imprimir o guardar como PDF (Ctrl+P)"><b>&#128424;</b><span>Imprimir</span></button>
+  <button type="button" id="btnTema"      title="Claro / oscuro"><b>&#9686;</b><span>Tema</span></button>
+  <button type="button" id="btnInstalar"  title="Instalar como aplicación" hidden><b>&#10514;</b><span>Instalar</span></button>
 </div>
+
+<input type="file" id="archivo" accept=".md,.markdown,.mdown,.mkd,.txt,text/markdown,text/plain" hidden>
 
 <div id="panel">
   <div id="ladoEditor" class="no-print" hidden><textarea id="ed" spellcheck="false" placeholder="Escribe aquí en Markdown..."></textarea></div>
   <article id="doc" class="documento"></article>
 </div>
 
-<noscript><p style="max-width:40rem;margin:4rem auto;padding:0 1.5rem">Esta plantilla necesita JavaScript activado en el navegador para convertir el Markdown en HTML. El texto del documento está intacto dentro del archivo.</p></noscript>
+<div class="velo no-print" id="velo" hidden>
+  <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="tituloDialogo">
+    <div class="dialogo-cabecera">
+      <h2 id="tituloDialogo">Plantillas</h2>
+      <input type="search" id="buscar" placeholder="Buscar entre las plantillas..." autocomplete="off">
+      <button type="button" class="cerrar" id="cerrarDialogo" aria-label="Cerrar">&#10005;</button>
+    </div>
+    <div class="dialogo-cuerpo">
+      <nav class="categorias" id="categorias"></nav>
+      <div class="tarjetas" id="tarjetas"></div>
+    </div>
+  </div>
+</div>
 
-<!-- ==========================================================================
-     &#9998;  TU DOCUMENTO EMPIEZA AQUÍ.
-     Escribe Markdown normal entre esta línea y la marca de FIN de más abajo.
-     Reglas: escribe siempre pegado al margen izquierdo (sin sangría) y no
-     escribas nunca la etiqueta de cierre de script sin barra invertida.
-     ========================================================================== -->
+<div class="aviso-flotante no-print" id="aviso" hidden>
+  <span id="avisoTexto"></span>
+  <button type="button" id="avisoBoton" hidden></button>
+</div>
+
+<noscript><p style="max-width:40rem;margin:4rem auto;padding:0 1.5rem;font-family:sans-serif">Esta página necesita JavaScript para convertir el Markdown en HTML.</p></noscript>
+
 <script type="text/markdown" id="fuente">
 ---
-titulo: Guía y plantilla completa de Markdown
-subtitulo: Escribe en el Bloc de notas, mira e imprime en el navegador
-autor: Tu nombre
-fecha: 21 de agosto de 2026
+titulo: Escribe en Markdown
+subtitulo: Míralo bien, imprímelo y llévatelo
 ---
 
-Esta página es a la vez **una plantilla vacía** y **un catálogo de toda la sintaxis** de Markdown. Duplica el archivo, borra este contenido y escribe lo tuyo. Mientras aprendes, deja este original a mano para copiar la sintaxis que necesites.
+Esto es un editor de Markdown que funciona **sin cuenta, sin internet y sin subir nada a ningún sitio**. Lo que escribes se queda en tu navegador.
 
 > [!TIP]
-> Escribe en el Bloc de notas, guarda con <kbd>Ctrl</kbd>+<kbd>S</kbd> y vuelve al navegador: con <kbd>F5</kbd> ves el resultado. Si prefieres no salir del navegador, pulsa **&#9998; Editar** arriba a la derecha.
+> Pulsa **✎ Editar** y empieza. Lo que escribas se guarda solo, aquí mismo.
 
-[TOC]
+## Por dónde empezar
 
-## 1. Cómo usar esta plantilla
+- **▤ Plantillas** — un catálogo listo para usar: habilidades y agentes para Claude, `CLAUDE.md`, reglas, informes, actas, propuestas… Elige una y ya tienes el documento montado.
+- **✎ Editar** — escribes a la izquierda, lo ves a la derecha.
+- **🖨 Imprimir** — imprime o guarda en PDF, limpio y sin la barra de botones.
+- **⤓ .html** — te descargas esta misma página con tu texto dentro: un solo archivo que funciona sin conexión y que puedes enviar por correo.
 
-### Duplicar y escribir
+## También dibuja
 
-1. Copia y pega este archivo, y ponle el nombre de tu documento: `informe-agosto.html`.
-2. Ábrelo con el Bloc de notas (clic derecho → *Abrir con*) y con el navegador a la vez.
-3. Busca la línea que dice `TU DOCUMENTO EMPIEZA AQUÍ` y borra todo lo que hay entre esa marca y la de `FIN DEL DOCUMENTO`.
-4. Escribe tu texto en Markdown, guarda y actualiza el navegador.
+Un bloque marcado como `mermaid` se dibuja de verdad (flujo, secuencia, estados y tarta), las fórmulas entre `$` se ven como fórmulas y el código se colorea solo según el lenguaje. Todo dentro de esta página, sin conexión.
 
-### Imprimir o guardar en PDF
-
-Pulsa **&#128424; Imprimir** (o <kbd>Ctrl</kbd>+<kbd>P</kbd>). La barra de botones, el editor y los enlaces de anclaje desaparecen solos: solo se imprime el documento. En el destino de impresión elige *Guardar como PDF* para obtener un PDF.
-
-### Las cuatro reglas de oro
-
-- **Pega el texto al margen izquierdo.** Cuatro espacios al principio de una línea convierten el texto en un bloque de código.
-- **Deja una línea en blanco** entre párrafos, listas, tablas y títulos. Es lo que separa un bloque de otro.
-- **No escribas la etiqueta de cierre de script tal cual** dentro de tu texto: cortaría el archivo. Si necesitas mencionarla, escríbela con barra invertida: `<\/script>`.
-- **Guarda el archivo en UTF-8** para que los acentos y las eñes se vean bien. El Bloc de notas de Windows lo hace por defecto; si te salen símbolos raros, usa *Archivo → Guardar como → Codificación: UTF-8*.
-
-## 2. Metadatos del documento (front matter)
-
-Las primeras líneas del archivo, entre dos líneas de tres guiones, describen el documento. No son obligatorias, pero si las pones se dibuja una portada y el título aparece en la pestaña del navegador y en la cabecera del PDF.
-
-````yaml
----
-titulo: Guía y plantilla completa de Markdown
-subtitulo: Escribe en el Bloc de notas, mira e imprime en el navegador
-autor: Tu nombre
-fecha: 21 de agosto de 2026
----
-````
-
-Se admiten `titulo`, `subtitulo`, `autor` y `fecha` (también en inglés: `title`, `subtitle`, `author`, `date`). La portada de arriba está generada con ese bloque.
-
-## 3. Encabezados
-
-### Estilo almohadilla
-
-Una a seis almohadillas y un espacio. Es el estilo que conviene usar siempre.
-
-````md
-# Título del documento
-## Sección
-### Apartado
-#### Subapartado
-##### Nivel cinco
-###### Nivel seis
-````
-
-### Estilo subrayado
-
-Solo existe para dos niveles. Se subraya el texto con signos igual o con guiones.
-
-````md
-Título de nivel 1
-=================
-
-Título de nivel 2
------------------
-````
-
-> [!WARNING]
-> Una línea de guiones justo debajo de un párrafo lo convierte en título de nivel 2 en vez de dibujar una raya. Si lo que quieres es una raya divisoria, deja una línea en blanco antes.
-
-### Identificador propio
-
-Por defecto cada título recibe un identificador para poder enlazarlo. Puedes fijarlo tú entre llaves al final:
-
-````md
-## Presupuesto anual {#presupuesto}
-````
-
-Después enlazas con `[ver presupuesto](#presupuesto)`.
-
-### Índice automático
-
-Escribe `[TOC]` en una línea sola y se genera el índice con todos los títulos del documento, cada uno enlazado a su sección. El índice del principio de esta página es exactamente eso.
-
-## 4. Párrafos y saltos de línea
-
-Un párrafo es texto seguido; para empezar otro se deja **una línea en blanco**. Pulsar Intro una sola vez no basta: esas dos líneas se unen en un mismo párrafo.
-
-Para forzar un salto dentro del mismo párrafo hay tres formas: terminar la línea con **dos espacios**, terminarla con una **barra invertida**, o escribir `<br>`.
-
-````md
-Primera línea con dos espacios al final.  
-Segunda línea del mismo párrafo.
-
-Primera línea con barra invertida.\
-Segunda línea.
-
-Primera línea con etiqueta.<br>
-Segunda línea.
-````
-
-<div class="demo">
-
-Primera línea con dos espacios al final.  
-Segunda línea del mismo párrafo.
-
-</div>
-
-Para separar bloques con aire de más, una línea con `&nbsp;` (un espacio duro) funciona como párrafo vacío.
-
-## 5. Énfasis y estilos de texto
-
-| Escribes | Se ve |
-| --- | --- |
-| `*cursiva*` o `_cursiva_` | *cursiva* |
-| `**negrita**` o `__negrita__` | **negrita** |
-| `***negrita y cursiva***` | ***negrita y cursiva*** |
-| `~~tachado~~` | ~~tachado~~ |
-| `==resaltado==` | ==resaltado== |
-| `` `código` `` | `código` |
-| `H~2~O` (subíndice) | H~2~O |
-| `x^2^` (superíndice) | x^2^ |
-| `<kbd>Ctrl</kbd>` | <kbd>Ctrl</kbd> |
-| `<small>letra pequeña</small>` | <small>letra pequeña</small> |
-| `<u>subrayado</u>` | <u>subrayado</u> |
-
-Se pueden combinar sin problema: ``**texto _mezclado_ con `código`**`` se ve como **texto _mezclado_ con `código`**.
-
-> [!NOTE]
-> El guión bajo dentro de una palabra no marca cursiva, para no romper nombres como `mi_variable_larga`. Si necesitas cursiva a mitad de palabra, usa asteriscos.
-
-## 6. Listas
-
-### Lista sin orden
-
-Guión, asterisco o signo más; los tres valen, pero conviene no mezclarlos dentro del mismo documento.
-
-````md
-- Primer punto
-- Segundo punto
-- Tercer punto
-````
-
-<div class="demo">
-
-- Primer punto
-- Segundo punto
-- Tercer punto
-
-</div>
-
-### Lista numerada
-
-````md
-1. Preparar el material
-2. Redactar el borrador
-3. Revisar y publicar
-````
-
-<div class="demo">
-
-1. Preparar el material
-2. Redactar el borrador
-3. Revisar y publicar
-
-</div>
-
-Los números que escribes no importan: el navegador renumera solo. Sí importa **el primero**, que fija dónde empieza la cuenta.
-
-````md
-5. Este punto es el número cinco
-1. y este sale como el seis
-1. y este como el siete
-````
-
-<div class="demo">
-
-5. Este punto es el número cinco
-1. y este sale como el seis
-1. y este como el siete
-
-</div>
-
-### Listas anidadas
-
-Se anidan con **dos o cuatro espacios** de sangría respecto al punto padre.
-
-````md
-- Frutas
-  - Cítricos
-    - Naranja
-    - Limón
-  - Tropicales
-- Verduras
-  1. Hoja verde
-  2. Raíz
-````
-
-<div class="demo">
-
-- Frutas
-  - Cítricos
-    - Naranja
-    - Limón
-  - Tropicales
-- Verduras
-  1. Hoja verde
-  2. Raíz
-
-</div>
-
-### Lista de tareas
-
-````md
-- [x] Comprar el dominio
-- [x] Montar la plantilla
-- [ ] Escribir el primer documento
-- [ ] Imprimirlo
-````
-
-<div class="demo">
-
-- [x] Comprar el dominio
-- [x] Montar la plantilla
-- [ ] Escribir el primer documento
-- [ ] Imprimirlo
-
-</div>
-
-### Listas apretadas y listas sueltas
-
-Sin líneas en blanco entre puntos, la lista sale **apretada**. Con una línea en blanco entre ellos, sale **suelta** y cada punto se separa como un párrafo.
-
-<div class="demo">
-
-- Apretada, una línea
-- Apretada, otra línea
-
-</div>
-
-<div class="demo">
-
-- Suelta, con aire alrededor
-
-- Suelta, segundo punto
-
-</div>
-
-### Un punto con varios párrafos
-
-Para meter más de un párrafo, una cita o un bloque de código dentro de un mismo punto, se sangra el contenido a la altura del texto del punto.
-
-````md
-1. Primer paso del proceso.
-
-   Este párrafo sigue perteneciendo al paso uno porque está sangrado.
-
-   ```
-   comando --de --ejemplo
-   ```
-
-2. Segundo paso.
-````
-
-<div class="demo">
-
-1. Primer paso del proceso.
-
-   Este párrafo sigue perteneciendo al paso uno porque está sangrado.
-
-   ```
-   comando --de --ejemplo
-   ```
-
-2. Segundo paso.
-
-</div>
-
-## 7. Citas y avisos
-
-### Cita normal
-
-````md
-> El buen diseño es tan poco diseño como sea posible.
->
-> — Dieter Rams
-````
-
-<div class="demo">
-
-> El buen diseño es tan poco diseño como sea posible.
->
-> — Dieter Rams
-
-</div>
-
-### Citas anidadas y con contenido
-
-````md
-> Nivel uno de la cita.
->
-> > Nivel dos, citando a otro.
->
-> - También caben listas
-> - y `código`
-````
-
-<div class="demo">
-
-> Nivel uno de la cita.
->
-> > Nivel dos, citando a otro.
->
-> - También caben listas
-> - y `código`
-
-</div>
-
-### Avisos de colores
-
-Una cita que empieza por una etiqueta entre corchetes con admiración se convierte en un recuadro de color. Sirven `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` y `[!CAUTION]` (o en español `[!NOTA]`, `[!CONSEJO]`, `[!IMPORTANTE]`, `[!AVISO]` y `[!PRECAUCION]`).
-
-````md
-> [!NOTE]
-> Información útil que conviene tener presente.
-
-> [!TIP]
-> Un atajo o una recomendación.
-
-> [!IMPORTANT]
-> Algo imprescindible para que el resto funcione.
-
-> [!WARNING]
-> Cuidado: esto puede dar problemas.
-
-> [!CAUTION]
-> Riesgo real de perder datos o romper algo.
-````
-
-<div class="demo">
-
-> [!NOTE]
-> Información útil que conviene tener presente.
-
-> [!TIP]
-> Un atajo o una recomendación.
-
-> [!IMPORTANT]
-> Algo imprescindible para que el resto funcione.
-
-> [!WARNING]
-> Cuidado: esto puede dar problemas.
-
-> [!CAUTION]
-> Riesgo real de perder datos o romper algo.
-
-</div>
-
-## 8. Código
-
-### Código dentro de una frase
-
-Se envuelve entre acentos graves: `` `npm install` `` se ve como `npm install`.
-
-Si el propio código lleva un acento grave, se usan dos por fuera: ``` `` `así` `` ``` da `` `así` ``.
-
-### Bloques de código
-
-Tres acentos graves antes y después. Si escribes el nombre del lenguaje detrás de los primeros, aparece la etiqueta en la esquina.
-
-````md
-```js
-function saludar(nombre) {
-  return `Hola, ${nombre}`;
-}
-```
-````
-
-<div class="demo">
-
-```js
-function saludar(nombre) {
-  return `Hola, ${nombre}`;
-}
-```
-
-</div>
-
-Nombres habituales: `js`, `ts`, `html`, `css`, `json`, `python`, `bash`, `sql`, `yaml`, `md`, `diff`, `text`.
-
-### Bloques con virgulillas
-
-Tres virgulillas hacen lo mismo. Sirven para mostrar bloques que contienen acentos graves.
-
-````md
-~~~
-Aquí dentro pueden ir ``` sin cerrar el bloque.
-~~~
-````
-
-### Un bloque dentro de otro
-
-Para enseñar un bloque de tres acentos, el bloque de fuera lleva cuatro. Es lo que hace esta guía en cada ejemplo.
-
-### Bloque por sangría
-
-Cuatro espacios al principio de la línea también crean un bloque de código, aunque es la forma antigua y da sustos cuando uno sangra sin querer.
-
-<div class="demo">
-
-    esto es código por llevar cuatro espacios
-    segunda línea
-
-</div>
-
-### Marcar diferencias
-
-````md
-```diff
-- const color = "rojo";
-+ const color = "azul";
-  const tamano = 12;
-```
-````
-
-<div class="demo">
-
-```diff
-- const color = "rojo";
-+ const color = "azul";
-  const tamano = 12;
-```
-
-</div>
-
-## 9. Enlaces
-
-| Escribes | Se ve |
-| --- | --- |
-| `[texto del enlace](https://ejemplo.com)` | [texto del enlace](https://ejemplo.com) |
-| `[con título](https://ejemplo.com "sale al pasar el ratón")` | [con título](https://ejemplo.com "sale al pasar el ratón") |
-| `<https://ejemplo.com>` | <https://ejemplo.com> |
-| `<correo@ejemplo.com>` | <correo@ejemplo.com> |
-| `[a otra sección](#11-tablas)` | [a otra sección](#11-tablas) |
-| `[a un archivo](./informe.pdf)` | [a un archivo](./informe.pdf) |
-| `[con **negrita** dentro](https://ejemplo.com)` | [con **negrita** dentro](https://ejemplo.com) |
-
-Una dirección suelta como https://www.ejemplo.com también se convierte en enlace sola.
-
-### Enlaces por referencia
-
-Cuando la misma dirección se repite, o cuando es tan larga que estorba, se pone una etiqueta corta en el texto y la dirección al final del documento.
-
-````md
-Consulta la [documentación oficial][doc] y el [repositorio][repo].
-También vale la forma corta: [doc].
-
-[doc]: https://ejemplo.com/documentacion "Documentación"
-[repo]: https://ejemplo.com/repositorio
-````
-
-<div class="demo">
-
-Consulta la [documentación oficial][doc] y el [repositorio][repo]. También vale la forma corta: [doc].
-
-</div>
-
-[doc]: https://ejemplo.com/documentacion "Documentación"
-[repo]: https://ejemplo.com/repositorio
-
-Las líneas de definición se pueden colocar donde quieras: no se imprimen.
-
-### Enlaces internos
-
-Cada título tiene un identificador que se forma pasando el texto a minúsculas, quitando acentos y símbolos y cambiando los espacios por guiones. «## 11. Tablas» se convierte en `#11-tablas`. Pasa el ratón por encima de cualquier título de esta página y aparece una almohadilla a la derecha: es su enlace.
-
-## 10. Imágenes y figuras
-
-La sintaxis es la del enlace con una admiración delante. El texto entre corchetes es la descripción alternativa: se lee en voz alta para quien no ve la imagen y aparece si el archivo falta.
-
-````md
-![Descripción de la imagen](fotos/portada.jpg)
-![Con título](fotos/portada.jpg "Sale al pasar el ratón")
-[![Imagen que enlaza](fotos/boton.png)](https://ejemplo.com)
-````
-
-<div class="demo">
-
-![Un rectángulo de ejemplo](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MjAiIGhlaWdodD0iMjYwIiB2aWV3Qm94PSIwIDAgNTIwIDI2MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMWY2ZmViIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODI1MGRmIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjUyMCIgaGVpZ2h0PSIyNjAiIHJ4PSIxNCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjkwIiByPSI0MiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjIyIi8+PHJlY3QgeD0iNjAiIHk9IjE2MCIgd2lkdGg9IjQwMCIgaGVpZ2h0PSIxNCIgcng9IjciIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4zNSIvPjxyZWN0IHg9IjYwIiB5PSIxODgiIHdpZHRoPSIyNTAiIGhlaWdodD0iMTQiIHJ4PSI3IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMjIiLz48dGV4dCB4PSIyMDAiIHk9IjEwMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjZmZmZmZmIj5JbWFnZW4gZGUgZWplbXBsbzwvdGV4dD48L3N2Zz4= "Imagen de ejemplo incrustada en el archivo")
-
-</div>
-
-Las rutas son relativas al archivo HTML: si tus imágenes están en una carpeta `fotos` junto al documento, escribe `fotos/lo-que-sea.jpg`. También sirve una dirección de internet completa, pero entonces la imagen no se verá sin conexión.
-
-### Controlar el tamaño
-
-Markdown no tiene sintaxis para el tamaño; se usa HTML directamente:
-
-````md
-<img src="fotos/portada.jpg" alt="Portada" width="320">
-````
-
-### Imagen con pie
-
-````md
-<figure>
-  <img src="fotos/portada.jpg" alt="Portada" width="320">
-  <figcaption>Figura 1. Texto del pie de la imagen.</figcaption>
-</figure>
-````
-
-<div class="demo">
-
-<figure>
-<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MjAiIGhlaWdodD0iMjYwIiB2aWV3Qm94PSIwIDAgNTIwIDI2MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMWY2ZmViIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODI1MGRmIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjUyMCIgaGVpZ2h0PSIyNjAiIHJ4PSIxNCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjkwIiByPSI0MiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjIyIi8+PHJlY3QgeD0iNjAiIHk9IjE2MCIgd2lkdGg9IjQwMCIgaGVpZ2h0PSIxNCIgcng9IjciIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4zNSIvPjxyZWN0IHg9IjYwIiB5PSIxODgiIHdpZHRoPSIyNTAiIGhlaWdodD0iMTQiIHJ4PSI3IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMjIiLz48dGV4dCB4PSIyMDAiIHk9IjEwMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjZmZmZmZmIj5JbWFnZW4gZGUgZWplbXBsbzwvdGV4dD48L3N2Zz4=" alt="Rectángulo de ejemplo" width="260">
-<figcaption>Figura 1. Texto del pie de la imagen.</figcaption>
-</figure>
-
-</div>
-
-## 11. Tablas
-
-Las barras verticales separan las columnas y la segunda línea marca dónde acaba la cabecera. No hace falta que las barras queden alineadas en el archivo: el navegador lo cuadra solo.
-
-````md
-| Producto | Cantidad | Precio |
-| --- | --- | --- |
-| Café | 2 | 8,50 € |
-| Té | 1 | 4,20 € |
-````
-
-<div class="demo">
-
-| Producto | Cantidad | Precio |
-| --- | --- | --- |
-| Café | 2 | 8,50 € |
-| Té | 1 | 4,20 € |
-
-</div>
-
-### Alineación de columnas
-
-Los dos puntos en la línea de guiones deciden la alineación: a la izquierda, centrada o a la derecha.
-
-````md
-| Izquierda | Centrada | Derecha |
-| :--- | :---: | ---: |
-| Texto | Texto | 1.250,00 |
-| Más texto | Más texto | 87,50 |
-````
-
-<div class="demo">
-
-| Izquierda | Centrada | Derecha |
-| :--- | :---: | ---: |
-| Texto | Texto | 1.250,00 |
-| Más texto | Más texto | 87,50 |
-
-</div>
-
-### Detalles útiles
-
-- Dentro de las celdas funciona el formato normal: **negrita**, `código`, [enlaces](#11-tablas).
-- Una celda vacía se deja sin nada entre las barras.
-- Para escribir una barra vertical dentro de una celda, se escapa: `\|`.
-- No se pueden partir celdas en varias líneas ni juntar celdas. Si necesitas eso, usa una tabla en HTML.
-
-<div class="demo">
-
-| Concepto | Detalle |
-| --- | --- |
-| Con formato | **negrita**, *cursiva* y `código` |
-| Celda vacía | |
-| Con barra | `a \| b` se ve como a \| b |
-
-</div>
-
-## 12. Líneas divisorias
-
-Tres o más guiones, asteriscos o guiones bajos en una línea sola, siempre con una línea en blanco por encima.
-
-````md
----
-***
-___
-````
-
-<div class="demo">
-
----
-
-</div>
-
-## 13. Notas al pie
-
-Se marca el punto con un corchete y un acento circunflejo, y en cualquier otro sitio del documento se escribe el texto de la nota. Se numeran solas por orden de aparición y se colocan todas juntas al final de la página.
-
-````md
-Esto necesita una aclaración[^1] y esto otra[^fuente].
-
-[^1]: El texto de la primera nota.
-[^fuente]: Se puede usar una palabra como etiqueta en vez de un número.
-````
-
-<div class="demo">
-
-Esto necesita una aclaración[^1] y esto otra[^fuente].
-
-</div>
-
-Baja al final de esta página: ahí están las dos notas, con una flecha para volver al punto exacto donde estabas.
-
-[^1]: El texto de la primera nota. Puede llevar **formato** y [enlaces](#13-notas-al-pie).
-[^fuente]: Se puede usar una palabra como etiqueta en vez de un número; el número se calcula solo.
-
-## 14. Listas de definiciones
-
-Un término en una línea y su definición debajo, empezando por dos puntos y un espacio. Un término puede tener varias definiciones.
-
-````md
-Markdown
-: Lenguaje de marcas ligero para escribir con formato en texto plano.
-
-HTML
-: El idioma que entiende el navegador.
-: Se puede mezclar con Markdown.
-````
-
-<div class="demo">
-
-Markdown
-: Lenguaje de marcas ligero para escribir con formato en texto plano.
-
-HTML
-: El idioma que entiende el navegador.
-: Se puede mezclar con Markdown.
-
-</div>
-
-## 15. Abreviaturas
-
-Se declara una vez en cualquier parte del documento y a partir de ahí, cada vez que la palabra aparezca, sale subrayada con puntitos y con su explicación al pasar el ratón.
-
-````md
-*[HTML]: Lenguaje de marcado para páginas web
-*[PDF]: Formato de documento portátil
-
-Este archivo es HTML y se puede imprimir en PDF.
-````
-
-<div class="demo">
-
-Este archivo es HTML y se puede imprimir en PDF. Pasa el ratón por encima de las siglas.
-
-</div>
-
-*[HTML]: Lenguaje de marcado para páginas web
-*[PDF]: Formato de documento portátil
-
-## 16. Emojis
-
-Se pueden pegar tal cual (🚀) o escribir su nombre entre dos puntos.
-
-| Escribes | Se ve | | Escribes | Se ve |
-| --- | :---: | --- | --- | :---: |
-| `:white_check_mark:` | :white_check_mark: | | `:warning:` | :warning: |
-| `:x:` | :x: | | `:bulb:` | :bulb: |
-| `:rocket:` | :rocket: | | `:fire:` | :fire: |
-| `:star:` | :star: | | `:tada:` | :tada: |
-| `:pushpin:` | :pushpin: | | `:memo:` | :memo: |
-| `:bug:` | :bug: | | `:zap:` | :zap: |
-| `:books:` | :books: | | `:mag:` | :mag: |
-| `:thumbsup:` | :thumbsup: | | `:eyes:` | :eyes: |
-| `:lock:` | :lock: | | `:gear:` | :gear: |
-| `:calendar:` | :calendar: | | `:chart:` | :chart: |
-
-Si el nombre no está en la lista, el texto se queda tal cual, así que no se rompe nada.
-
-## 17. HTML dentro de Markdown
-
-Todo lo que Markdown no cubre se resuelve escribiendo HTML directamente. La única regla es dejar una línea en blanco antes y después del bloque.
-
-### Detalles plegables
-
-````md
-<details>
-<summary>Pulsa para desplegar</summary>
-
-Aquí dentro se sigue escribiendo **Markdown normal**, siempre que haya
-una línea en blanco después de la etiqueta de resumen.
-
-</details>
-````
-
-<div class="demo">
-
-<details>
-<summary>Pulsa para desplegar</summary>
-
-Aquí dentro se sigue escribiendo **Markdown normal**, siempre que haya una línea en blanco después de la etiqueta de resumen.
-
-</details>
-
-</div>
-
-### Etiquetas útiles
-
-| Escribes | Se ve |
-| --- | --- |
-| `<kbd>Ctrl</kbd> + <kbd>P</kbd>` | <kbd>Ctrl</kbd> + <kbd>P</kbd> |
-| `<mark>resaltado</mark>` | <mark>resaltado</mark> |
-| `<abbr title="Por ejemplo">p. ej.</abbr>` | <abbr title="Por ejemplo">p. ej.</abbr> |
-| `<sup>arriba</sup>` y `<sub>abajo</sub>` | <sup>arriba</sup> y <sub>abajo</sub> |
-| `<u>subrayado</u>` | <u>subrayado</u> |
-| `<span style="color:#cf222e">en rojo</span>` | <span style="color:#cf222e">en rojo</span> |
-| `<br>` | un salto de línea |
-
-### Centrar y repartir en columnas
-
-Esta plantilla trae tres clases preparadas: `centrado`, `dos-columnas` y `salto-pagina`.
-
-````md
-<p class="centrado">Este párrafo va centrado.</p>
-
-<div class="dos-columnas">
-
-Texto largo que se reparte en dos columnas al imprimir...
-
-</div>
-````
-
-<div class="demo">
-
-<p class="centrado">Este párrafo va centrado.</p>
-
-</div>
-
-## 18. Escapar caracteres
-
-Delante de un carácter con significado especial se pone una barra invertida y el carácter se escribe tal cual, sin transformarse.
-
-````md
-\*esto no va en cursiva\*
-\# esto no es un título
-2 \* 3 \= 6
-````
-
-<div class="demo">
-
-\*esto no va en cursiva\*  
-\# esto no es un título
-
-</div>
-
-Se pueden escapar: `\ ` `` ` `` `*` `_` `{ }` `[ ]` `( )` `#` `+` `-` `.` `!` `|` `~` `^` `=` `<` `>` `$` `:` `/` `"` `'`
-
-También funcionan las entidades de HTML: `&copy;` da &copy;, `&nbsp;` da un espacio que no se parte, `&mdash;` da &mdash; y `&hellip;` da &hellip;
-
-## 19. Comentarios ocultos
-
-Un comentario de HTML no se ve en la página ni se imprime, pero queda escrito en el archivo. Sirve para notas al margen, recordatorios o para apagar un trozo sin borrarlo.
-
-````md
-<!-- Recordar actualizar las cifras antes de imprimir -->
-````
-
-<!-- Este comentario existe en el archivo pero no se ve en la página. -->
-
-## 20. Preparar la impresión
-
-- **Forzar un cambio de página:** `<div class="salto-pagina"></div>` en una línea sola.
-- **Márgenes del papel:** se cambian en la hoja de estilo, en la regla `@page`, arriba del archivo.
-- Los títulos nunca se quedan solos al final de una página, y las tablas, imágenes y bloques de código no se parten por la mitad: eso ya está resuelto en la hoja de estilo.
-- Para que salga el fondo gris de los bloques de código en el PDF, marca la casilla *Gráficos de fondo* en las opciones de impresión del navegador.
-
-## 21. Lo que no se ve sin programas extra
-
-Estas dos sintaxis existen en otros editores de Markdown, pero necesitan una librería aparte y esta plantilla no la lleva para poder funcionar sin conexión. Se muestran como bloques de código, sin dibujarse:
-
-````md
 ```mermaid
-graph TD;
-  A[Inicio] --> B{¿Todo bien?};
-  B -->|Sí| C[Publicar];
-  B -->|No| D[Corregir];
+graph LR
+  A[Escribes] --> B[Lo ves al lado]
+  B --> C{¿Te gusta?}
+  C -->|Sí| D([Imprimes o te lo llevas])
+  C -->|No| A
 ```
-````
 
-````md
-La fórmula $E = mc^2$ y el bloque:
+## Si no te acuerdas de la sintaxis
 
-$$
-\int_0^\infty e^{-x} dx = 1
-$$
-````
+Abre **Plantillas → Documentos → Guía completa de Markdown**: está toda, con su resultado al lado, incluidos los diagramas, las fórmulas y los colores.
 
-## 22. Chuleta rápida
+## Instalar
 
-| Para... | Se escribe |
-| --- | --- |
-| Título de nivel 2 | `## Texto` |
-| Negrita | `**texto**` |
-| Cursiva | `*texto*` |
-| Tachado | `~~texto~~` |
-| Resaltado | `==texto==` |
-| Código en línea | `` `texto` `` |
-| Bloque de código | tres acentos graves arriba y abajo |
-| Lista | `- punto` |
-| Lista numerada | `1. punto` |
-| Tarea | `- [ ] pendiente` |
-| Cita | `> texto` |
-| Aviso de color | `> [!WARNING]` |
-| Enlace | `[texto](direccion)` |
-| Imagen | `![descripción](archivo.jpg)` |
-| Tabla | `\| a \| b \|` y debajo `\| --- \| --- \|` |
-| Raya divisoria | `---` con una línea en blanco encima |
-| Nota al pie | `texto[^1]` y `[^1]: la nota` |
-| Salto de línea | dos espacios al final de la línea |
-| Índice automático | `[TOC]` |
-| Comentario invisible | `<!-- texto -->` |
-| Cambio de página | `<div class="salto-pagina"></div>` |
-
----
-
-## Empieza aquí
-
-Borra desde el primer título de esta página hasta esta línea y escribe lo tuyo. Si te quedas con la duda de cómo se escribía algo, abre el archivo original: sigue estando entero.
-
+En el móvil o en el escritorio puedes instalarla como una aplicación: aparece el botón **⤒ Instalar** en la barra, o usa *Añadir a la pantalla de inicio* desde el menú del navegador. Una vez instalada funciona sin conexión.
 </script>
-<!-- ==========================================================================
-     &#9998;  FIN DEL DOCUMENTO. De aquí para abajo está el motor: no hace falta
-     tocar nada, pero puedes leerlo, es JavaScript normal y corriente.
-     ========================================================================== -->
 <script>
 /* ==========================================================================
    MOTOR MARKDOWN -> HTML
@@ -1158,6 +676,1827 @@ Borra desde el primer título de esta página hasta esta línea y escribe lo tuy
    ========================================================================== */
 (function(){
 "use strict";
+
+/* ==========================================================================
+   RESALTADO DE CODIGO
+   Un lexer diminuto: cada lenguaje es una lista de reglas y gana la primera
+   que encaje en la posicion actual. Sin librerias y sin internet.
+   ========================================================================== */
+function X(s){
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/* trozos que se repiten en muchos lenguajes */
+var R_COM_LINEA  = "\\/\\/[^\\n]*";
+var R_COM_BLOQUE = "\\/\\*[\\s\\S]*?(?:\\*\\/|$)";
+var R_ALM        = "#[^\\n]*";
+var R_CAD_D      = '"(?:\\\\[\\s\\S]|[^"\\\\\\n])*"?';
+var R_CAD_S      = "'(?:\\\\[\\s\\S]|[^'\\\\\\n])*'?";
+var R_CAD_P      = "`(?:\\\\[\\s\\S]|[^`\\\\])*`?";
+var R_NUM        = "\\b(?:0[xX][0-9a-fA-F_]+|0[bB][01_]+|0[oO][0-7_]+|\\d[\\d_]*(?:\\.[\\d_]+)?(?:[eE][+-]?\\d+)?)\\b";
+var R_ESP        = "\\s+";
+var R_PALABRA    = "[A-Za-z_$][\\w$]*";
+var R_LLAMADA    = "[A-Za-z_$][\\w$]*(?=\\s*\\()";
+
+function pal(lista){ return "\\b(?:" + lista.join("|") + ")\\b"; }
+
+/* lenguajes con llaves y punto y coma: se comparte casi todo */
+function estiloC(clave, tipo, literal, extras){
+  return (extras || []).concat([
+    { re: R_COM_BLOQUE, clase: "t-com" },
+    { re: R_COM_LINEA,  clase: "t-com" },
+    { re: R_CAD_P,      clase: "t-cad" },
+    { re: R_CAD_D,      clase: "t-cad" },
+    { re: R_CAD_S,      clase: "t-cad" },
+    { re: R_NUM,        clase: "t-num" },
+    { re: pal(literal), clase: "t-lit" },
+    { re: pal(clave),   clase: "t-pal" },
+    { re: pal(tipo),    clase: "t-tip" },
+    { re: R_LLAMADA,    clase: "t-fun" },
+    { re: "\\b[A-Z][\\w$]*\\b", clase: "t-tip" },
+    { re: R_PALABRA,    clase: "" },
+    { re: R_ESP,        clase: "" },
+    { re: "[+\\-*/%=!<>&|^~?:]+", clase: "t-ope" }
+  ]);
+}
+
+var CLAVE_JS = ["as","async","await","break","case","catch","class","const","continue","debugger","default",
+  "delete","do","else","export","extends","finally","for","from","function","get","if","implements","import",
+  "in","instanceof","interface","let","new","of","package","private","protected","public","return","set",
+  "static","super","switch","this","throw","try","typeof","var","void","while","with","yield"];
+var TIPO_JS = ["Array","Boolean","Date","Error","Function","JSON","Map","Math","Number","Object","Promise",
+  "Proxy","RegExp","Set","String","Symbol","WeakMap","WeakSet","console","document","window","globalThis"];
+var LIT_JS = ["true","false","null","undefined","NaN","Infinity"];
+
+var LENGUAJES = {};
+
+LENGUAJES.javascript = estiloC(CLAVE_JS, TIPO_JS, LIT_JS, [
+  { re: "\\/(?![\\/*])(?:\\\\[\\s\\S]|\\[(?:\\\\[\\s\\S]|[^\\]\\\\\\n])*\\]|[^\\/\\\\\\n])+\\/[gimsuyd]*(?=\\s*[;,)\\].]|\\s*$)", clase: "t-reg" }
+]);
+
+LENGUAJES.typescript = estiloC(
+  CLAVE_JS.concat(["abstract","declare","enum","namespace","readonly","type","keyof","infer","satisfies","override"]),
+  TIPO_JS.concat(["string","number","boolean","any","unknown","never","void","object","bigint","symbol","Record","Partial","Readonly"]),
+  LIT_JS, LENGUAJES.javascript.slice(0, 1));
+
+LENGUAJES.json = [
+  { re: '"(?:\\\\[\\s\\S]|[^"\\\\])*"(?=\\s*:)', clase: "t-cla" },
+  { re: '"(?:\\\\[\\s\\S]|[^"\\\\])*"', clase: "t-cad" },
+  { re: "-?\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b", clase: "t-num" },
+  { re: "\\b(?:true|false|null)\\b", clase: "t-lit" },
+  { re: R_ESP, clase: "" },
+  { re: "[{}\\[\\],:]", clase: "t-pun" }
+];
+
+LENGUAJES.python = [
+  { re: '(?:[rRbBuUfF]{0,2})"""[\\s\\S]*?(?:"""|$)', clase: "t-cad" },
+  { re: "(?:[rRbBuUfF]{0,2})'''[\\s\\S]*?(?:'''|$)", clase: "t-cad" },
+  { re: "(?:[rRbBuUfF]{0,2})" + R_CAD_D, clase: "t-cad" },
+  { re: "(?:[rRbBuUfF]{0,2})" + R_CAD_S, clase: "t-cad" },
+  { re: R_ALM, clase: "t-com" },
+  { re: "@[A-Za-z_][\\w.]*", clase: "t-dec" },
+  { re: R_NUM, clase: "t-num" },
+  { re: pal(["True","False","None"]), clase: "t-lit" },
+  { re: pal(["and","as","assert","async","await","break","class","continue","def","del","elif","else","except",
+             "finally","for","from","global","if","import","in","is","lambda","match","nonlocal","not","or",
+             "pass","raise","return","try","while","with","yield","case"]), clase: "t-pal" },
+  { re: pal(["abs","all","any","bool","bytes","dict","dir","enumerate","eval","filter","float","format","frozenset",
+             "getattr","hasattr","hash","id","input","int","isinstance","issubclass","iter","len","list","map","max",
+             "min","next","object","open","ord","print","range","repr","reversed","round","set","setattr","sorted",
+             "str","sum","super","tuple","type","zip","self","cls"]), clase: "t-tip" },
+  { re: R_LLAMADA, clase: "t-fun" },
+  { re: R_PALABRA, clase: "" },
+  { re: R_ESP, clase: "" },
+  { re: "[+\\-*/%=!<>&|^~]+", clase: "t-ope" }
+];
+
+LENGUAJES.css = [
+  { re: R_COM_BLOQUE, clase: "t-com" },
+  { re: R_CAD_D, clase: "t-cad" },
+  { re: R_CAD_S, clase: "t-cad" },
+  { re: "@[A-Za-z-]+", clase: "t-pal" },
+  { re: "--[\\w-]+", clase: "t-var" },
+  { re: "#[0-9a-fA-F]{3,8}\\b", clase: "t-num" },
+  { re: "\\b-?\\d*\\.?\\d+(?:px|r?em|%|vh|vw|vmin|vmax|s|ms|deg|fr|ch|pt|cm|mm|in|ex|q)?\\b", clase: "t-num" },
+  { re: "[.#][A-Za-z_][\\w-]*", clase: "t-tip" },
+  { re: "::?[A-Za-z-]+", clase: "t-tip" },
+  { re: "[A-Za-z-]+(?=\\s*:)", clase: "t-cla" },
+  { re: "[A-Za-z-]+(?=\\s*\\()", clase: "t-fun" },
+  { re: R_ESP, clase: "" },
+  { re: "[A-Za-z_][\\w-]*", clase: "" }
+];
+
+LENGUAJES.bash = [
+  { re: R_ALM, clase: "t-com" },
+  { re: "<<-?\\s*'?([A-Za-z_]\\w*)'?[\\s\\S]*?^\\1$", clase: "t-cad" },
+  { re: R_CAD_D, clase: "t-cad" },
+  { re: R_CAD_S, clase: "t-cad" },
+  { re: "\\$\\{[^}]*\\}|\\$[A-Za-z_]\\w*|\\$[0-9@*#?$!-]", clase: "t-var" },
+  { re: "(?:^|(?<=[\\s;|&(]))-{1,2}[A-Za-z][\\w-]*", clase: "t-atr" },
+  { re: pal(["if","then","else","elif","fi","for","while","until","do","done","case","esac","function","in",
+             "select","time","return","break","continue","local","export","readonly","declare","source","alias",
+             "set","unset","trap","shift","exit"]), clase: "t-pal" },
+  { re: pal(["echo","printf","read","cd","pwd","ls","cp","mv","rm","mkdir","rmdir","touch","cat","head","tail",
+             "grep","sed","awk","sort","uniq","cut","tr","find","xargs","chmod","chown","tar","gzip","curl","wget",
+             "git","npm","node","python3","python","pip","docker","make","ssh","scp","sudo","test","which","kill"]), clase: "t-fun" },
+  { re: R_NUM, clase: "t-num" },
+  { re: R_ESP, clase: "" },
+  { re: "[A-Za-z_][\\w-]*", clase: "" },
+  { re: "[|&;<>()$`\\\\]+", clase: "t-ope" }
+];
+
+LENGUAJES.html = [
+  { re: "<!--[\\s\\S]*?(?:-->|$)", clase: "t-com" },
+  { re: "<!\\[CDATA\\[[\\s\\S]*?\\]\\]>", clase: "t-cad" },
+  { re: "<!DOCTYPE[^>]*>", clase: "t-doc" },
+  { re: "<\\/?[A-Za-z][\\w:-]*", clase: "t-eti" },
+  { re: "\\/?>", clase: "t-eti" },
+  { re: "[A-Za-z_:][\\w:.-]*(?=\\s*=)", clase: "t-atr" },
+  { re: R_CAD_D, clase: "t-cad" },
+  { re: R_CAD_S, clase: "t-cad" },
+  { re: "&[A-Za-z][A-Za-z0-9]*;|&#\\d+;|&#[xX][0-9a-fA-F]+;", clase: "t-ent" },
+  { re: R_ESP, clase: "" },
+  { re: "[^<&\\s]+", clase: "" }
+];
+
+LENGUAJES.yaml = [
+  { re: R_ALM, clase: "t-com" },
+  { re: "^---[ \\t]*$|^\\.\\.\\.[ \\t]*$", clase: "t-pun" },
+  { re: "^[ \\t]*-(?=\\s)", clase: "t-pun" },
+  { re: "(?:^|(?<=[\\s{,]))[A-Za-z_][\\w.\\- ]*(?=\\s*:)", clase: "t-cla" },
+  { re: "&[A-Za-z_][\\w-]*|\\*[A-Za-z_][\\w-]*", clase: "t-var" },
+  { re: R_CAD_D, clase: "t-cad" },
+  { re: R_CAD_S, clase: "t-cad" },
+  { re: "\\b(?:true|false|null|yes|no|on|off|~)\\b", clase: "t-lit" },
+  { re: R_NUM, clase: "t-num" },
+  { re: "[|>][+-]?$", clase: "t-ope" },
+  { re: R_ESP, clase: "" },
+  { re: "[^\\s:#]+", clase: "" }
+];
+
+LENGUAJES.sql = [
+  { re: "--[^\\n]*", clase: "t-com" },
+  { re: R_COM_BLOQUE, clase: "t-com" },
+  { re: R_CAD_S, clase: "t-cad" },
+  { re: '"(?:[^"\\n])*"|`(?:[^`\\n])*`|\\[[^\\]\\n]*\\]', clase: "t-cla" },
+  { re: "\\b(?:SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|ALTER|DROP|TABLE|VIEW|INDEX|" +
+        "JOIN|LEFT|RIGHT|INNER|OUTER|FULL|CROSS|ON|USING|GROUP|BY|ORDER|HAVING|LIMIT|OFFSET|UNION|ALL|" +
+        "DISTINCT|AS|AND|OR|NOT|IN|EXISTS|BETWEEN|LIKE|ILIKE|IS|NULL|CASE|WHEN|THEN|ELSE|END|WITH|" +
+        "PRIMARY|FOREIGN|KEY|REFERENCES|UNIQUE|CHECK|DEFAULT|CONSTRAINT|CASCADE|RETURNING|BEGIN|COMMIT|" +
+        "ROLLBACK|TRANSACTION|GRANT|REVOKE|EXPLAIN|ANALYZE|IF|TRUNCATE|DESC|ASC)\\b", clase: "t-pal", ci: true },
+  { re: "\\b(?:INT|INTEGER|BIGINT|SMALLINT|SERIAL|DECIMAL|NUMERIC|REAL|DOUBLE|FLOAT|BOOLEAN|BOOL|CHAR|" +
+        "VARCHAR|TEXT|DATE|TIME|TIMESTAMP|TIMESTAMPTZ|INTERVAL|JSON|JSONB|UUID|BLOB|BYTEA)\\b", clase: "t-tip", ci: true },
+  { re: "\\b(?:COUNT|SUM|AVG|MIN|MAX|COALESCE|NULLIF|CAST|NOW|CURRENT_DATE|CURRENT_TIMESTAMP|LOWER|UPPER|" +
+        "TRIM|LENGTH|SUBSTRING|REPLACE|ROUND|ABS|CONCAT|ARRAY_AGG|STRING_AGG|ROW_NUMBER|RANK|DENSE_RANK)\\b", clase: "t-fun", ci: true },
+  { re: R_NUM, clase: "t-num" },
+  { re: R_ESP, clase: "" },
+  { re: "[A-Za-z_][\\w$]*", clase: "" },
+  { re: "[=<>!+\\-*/%|]+", clase: "t-ope" }
+];
+
+LENGUAJES.markdown = [
+  { re: "^ {0,3}(?:```|~~~)[^\\n]*[\\s\\S]*?(?:^ {0,3}(?:```|~~~)[^\\n]*$|$)", clase: "t-cad" },
+  { re: "\\\\[\\s\\S]", clase: "" },
+  { re: "^ {0,3}#{1,6} [^\\n]*", clase: "t-pal" },
+  { re: "^ {0,3}> ?[^\\n]*", clase: "t-com" },
+  { re: "^ {0,3}(?:[-*+]|\\d+[.)])(?= )", clase: "t-pun" },
+  { re: "!?\\[[^\\]\\n]*\\]\\([^)\\n]*\\)", clase: "t-enl" },
+  { re: "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__", clase: "t-fue" },
+  { re: "\\*[^*\\n]+\\*|_[^_\\n]+_", clase: "t-cur" },
+  { re: "`[^`\\n]+`", clase: "t-cad" },
+  { re: R_ESP, clase: "" },
+  { re: "[^\\s`*_\\[!#>-]+", clase: "" }
+];
+
+LENGUAJES.diff = [
+  { re: "^(?:diff|index|---|\\+\\+\\+)[^\\n]*", clase: "t-com" },
+  { re: "^@@[^\\n]*", clase: "t-pal" },
+  { re: "^\\+[^\\n]*", clase: "t-mas" },
+  { re: "^-[^\\n]*", clase: "t-menos" },
+  { re: "^[^\\n]*", clase: "" },
+  { re: R_ESP, clase: "" }
+];
+
+LENGUAJES.ini = [
+  { re: "[;#][^\\n]*", clase: "t-com" },
+  { re: "^\\s*\\[[^\\]\\n]*\\]", clase: "t-tip" },
+  { re: "^\\s*[A-Za-z_][\\w.-]*(?=\\s*=)", clase: "t-cla" },
+  { re: R_CAD_D, clase: "t-cad" },
+  { re: R_CAD_S, clase: "t-cad" },
+  { re: R_NUM, clase: "t-num" },
+  { re: "\\b(?:true|false)\\b", clase: "t-lit" },
+  { re: R_ESP, clase: "" },
+  { re: "[^\\s=\\[\\]#;]+", clase: "" }
+];
+
+LENGUAJES.java = estiloC(
+  ["abstract","assert","break","case","catch","class","continue","default","do","else","enum","extends","final",
+   "finally","for","if","implements","import","instanceof","interface","native","new","package","private",
+   "protected","public","record","return","static","strictfp","super","switch","synchronized","this","throw",
+   "throws","transient","try","var","volatile","while","yield"],
+  ["boolean","byte","char","double","float","int","long","short","void","String","Integer","Double","Boolean",
+   "List","Map","Set","Optional","Stream"],
+  ["true","false","null"],
+  [{ re: "@[A-Za-z_]\\w*", clase: "t-dec" }]);
+
+LENGUAJES.c = estiloC(
+  ["auto","break","case","const","continue","default","do","else","enum","extern","for","goto","if","inline",
+   "register","restrict","return","sizeof","static","struct","switch","typedef","union","volatile","while"],
+  ["char","double","float","int","long","short","signed","unsigned","void","bool","size_t","FILE","uint8_t",
+   "uint16_t","uint32_t","uint64_t","int8_t","int16_t","int32_t","int64_t"],
+  ["true","false","NULL"],
+  [{ re: "^[ \\t]*#\\s*[a-z]+[^\\n]*", clase: "t-dec" }]);
+
+LENGUAJES.cpp = estiloC(
+  ["alignas","break","case","catch","class","concept","const","constexpr","continue","co_await","co_return",
+   "co_yield","decltype","default","delete","do","else","enum","explicit","export","extern","for","friend",
+   "goto","if","inline","mutable","namespace","new","noexcept","operator","private","protected","public",
+   "requires","return","sizeof","static","static_cast","struct","switch","template","this","throw","try",
+   "typedef","typename","union","using","virtual","volatile","while"],
+  ["auto","bool","char","double","float","int","long","short","signed","string","unsigned","void","size_t",
+   "vector","map","set","pair","shared_ptr","unique_ptr"],
+  ["true","false","nullptr","NULL"],
+  [{ re: "^[ \\t]*#\\s*[a-z]+[^\\n]*", clase: "t-dec" }]);
+
+LENGUAJES.go = estiloC(
+  ["break","case","chan","const","continue","default","defer","else","fallthrough","for","func","go","goto",
+   "if","import","interface","map","package","range","return","select","struct","switch","type","var"],
+  ["bool","byte","complex64","complex128","error","float32","float64","int","int8","int16","int32","int64",
+   "rune","string","uint","uint8","uint16","uint32","uint64","uintptr","any"],
+  ["true","false","nil","iota"], []);
+
+LENGUAJES.rust = estiloC(
+  ["as","async","await","break","const","continue","crate","dyn","else","enum","extern","fn","for","if","impl",
+   "in","let","loop","match","mod","move","mut","pub","ref","return","self","Self","static","struct","super",
+   "trait","type","unsafe","use","where","while"],
+  ["bool","char","f32","f64","i8","i16","i32","i64","i128","isize","str","String","u8","u16","u32","u64","u128",
+   "usize","Vec","Option","Result","Box","HashMap"],
+  ["true","false","None","Some","Ok","Err"],
+  [{ re: "#!?\\[[^\\]]*\\]", clase: "t-dec" }, { re: "'[a-z_]\\w*(?!')", clase: "t-var" }]);
+
+LENGUAJES.php = estiloC(
+  ["abstract","and","array","as","break","callable","case","catch","class","clone","const","continue","declare",
+   "default","do","echo","else","elseif","empty","enddeclare","endfor","endforeach","endif","endswitch","endwhile",
+   "enum","extends","final","finally","fn","for","foreach","function","global","goto","if","implements","include",
+   "include_once","instanceof","insteadof","interface","isset","list","match","namespace","new","or","print",
+   "private","protected","public","readonly","require","require_once","return","static","switch","throw","trait",
+   "try","unset","use","var","while","xor","yield"],
+  ["bool","float","int","mixed","object","string","void","iterable","never","self","parent"],
+  ["true","false","null","TRUE","FALSE","NULL"],
+  [{ re: "<\\?php|\\?>", clase: "t-dec" }, { re: "\\$[A-Za-z_]\\w*", clase: "t-var" }, { re: R_ALM, clase: "t-com" }]);
+
+LENGUAJES.ruby = [
+  { re: R_ALM, clase: "t-com" },
+  { re: "^=begin[\\s\\S]*?^=end", clase: "t-com" },
+  { re: R_CAD_D, clase: "t-cad" },
+  { re: R_CAD_S, clase: "t-cad" },
+  { re: ":[A-Za-z_]\\w*[?!]?", clase: "t-lit" },
+  { re: "@@?[A-Za-z_]\\w*|\\$[A-Za-z_]\\w*", clase: "t-var" },
+  { re: pal(["alias","and","begin","break","case","class","def","defined?","do","else","elsif","end","ensure",
+             "for","if","in","module","next","not","or","redo","rescue","retry","return","self","super","then",
+             "undef","unless","until","when","while","yield","require","require_relative","attr_accessor",
+             "attr_reader","attr_writer","include","extend","private","protected","public"]), clase: "t-pal" },
+  { re: pal(["true","false","nil"]), clase: "t-lit" },
+  { re: R_NUM, clase: "t-num" },
+  { re: "\\b[A-Z]\\w*\\b", clase: "t-tip" },
+  { re: "[A-Za-z_]\\w*[?!]?(?=\\s*\\()", clase: "t-fun" },
+  { re: R_ESP, clase: "" },
+  { re: "[A-Za-z_]\\w*[?!]?", clase: "" },
+  { re: "[+\\-*/%=!<>&|^~]+", clase: "t-ope" }
+];
+
+LENGUAJES.lua = [
+  { re: "--\\[\\[[\\s\\S]*?\\]\\]", clase: "t-com" },
+  { re: "--[^\\n]*", clase: "t-com" },
+  { re: "\\[\\[[\\s\\S]*?\\]\\]", clase: "t-cad" },
+  { re: R_CAD_D, clase: "t-cad" },
+  { re: R_CAD_S, clase: "t-cad" },
+  { re: pal(["and","break","do","else","elseif","end","for","function","goto","if","in","local","not","or",
+             "repeat","return","then","until","while"]), clase: "t-pal" },
+  { re: pal(["true","false","nil"]), clase: "t-lit" },
+  { re: R_NUM, clase: "t-num" },
+  { re: R_LLAMADA, clase: "t-fun" },
+  { re: R_ESP, clase: "" },
+  { re: R_PALABRA, clase: "" },
+  { re: "[+\\-*/%=!<>#~^]+", clase: "t-ope" }
+];
+
+/* alias: los nombres que se escriben de verdad en las vallas */
+var ALIAS = {
+  js: "javascript", mjs: "javascript", cjs: "javascript", jsx: "javascript", node: "javascript",
+  ts: "typescript", tsx: "typescript",
+  py: "python", python3: "python",
+  sh: "bash", shell: "bash", zsh: "bash", console: "bash", terminal: "bash", consola: "bash", bat: "bash",
+  htm: "html", xml: "html", svg: "html", vue: "html", xhtml: "html",
+  scss: "css", less: "css", sass: "css", postcss: "css",
+  yml: "yaml",
+  md: "markdown", mkd: "markdown",
+  patch: "diff",
+  toml: "ini", cfg: "ini", conf: "ini", properties: "ini", dotenv: "ini", env: "ini",
+  "c++": "cpp", cc: "cpp", hpp: "cpp", cxx: "cpp",
+  h: "c", objc: "c",
+  cs: "java", csharp: "java", kotlin: "java", kt: "java", scala: "java", swift: "java", dart: "java", groovy: "java",
+  rb: "ruby",
+  rs: "rust",
+  golang: "go",
+  psql: "sql", mysql: "sql", sqlite: "sql", postgres: "sql", postgresql: "sql",
+  json5: "json", jsonc: "json",
+  dockerfile: "bash", docker: "bash", makefile: "bash", make: "bash", gitignore: "ini", nginx: "ini"
+};
+
+/* cache de expresiones ya compiladas */
+var LEXERS = {};
+function lexer(nombre){
+  if(LEXERS[nombre]) return LEXERS[nombre];
+  var reglas = LENGUAJES[nombre];
+  if(!reglas) return null;
+  var listas = [];
+  for(var i = 0; i < reglas.length; i++){
+    var r = reglas[i];
+    var banderas = "y" + (r.ci ? "i" : "") + (/\^|\$/.test(r.re) ? "m" : "");
+    try{ listas.push({ re: new RegExp(r.re, banderas), clase: r.clase }); }
+    catch(e){ /* el navegador no entiende esta regla: se salta y el resto sigue */ }
+  }
+  LEXERS[nombre] = listas;
+  return LEXERS[nombre];
+}
+
+function nombreLenguaje(etiqueta){
+  var n = String(etiqueta || "").toLowerCase().replace(/^lang(uage)?-/, "").split(/[\s,{]/)[0];
+  return ALIAS[n] || n;
+}
+
+function hayLenguaje(etiqueta){
+  var n = nombreLenguaje(etiqueta);
+  return !!(n && LENGUAJES[n]);
+}
+
+function colorear(codigo, etiqueta){
+  var reglas = lexer(nombreLenguaje(etiqueta));
+  if(!reglas) return X(codigo);
+  var txt = String(codigo), n = txt.length, i = 0, salida = [], sueltos = "";
+  var vueltas = 0, tope = n * 4 + 1000;
+  while(i < n && vueltas++ < tope){
+    var encontrado = null;
+    for(var k = 0; k < reglas.length; k++){
+      reglas[k].re.lastIndex = i;
+      var m = reglas[k].re.exec(txt);
+      if(m && m[0].length > 0){ encontrado = { t: m[0], c: reglas[k].clase }; break; }
+    }
+    if(!encontrado){ sueltos += txt.charAt(i); i++; continue; }
+    if(sueltos){ salida.push(X(sueltos)); sueltos = ""; }
+    if(encontrado.c) salida.push('<span class="' + encontrado.c + '">' + X(encontrado.t) + "</span>");
+    else salida.push(X(encontrado.t));
+    i += encontrado.t.length;
+  }
+  if(sueltos) salida.push(X(sueltos));
+  if(i < n) salida.push(X(txt.slice(i)));
+  return salida.join("");
+}
+
+/* el HTML lleva CSS y JavaScript dentro: se colorean por separado */
+function colorearHtml(codigo){
+  var trozos = [], resto = String(codigo), salida = "";
+  var re = /(<(script|style)\b[^>]*>)([\s\S]*?)(<\/\2\s*>)/gi, ult = 0, m;
+  while((m = re.exec(resto))){
+    salida += colorear(resto.slice(ult, m.index), "html");
+    salida += colorear(m[1], "html");
+    salida += colorear(m[3], m[2].toLowerCase() === "style" ? "css" : "javascript");
+    salida += colorear(m[4], "html");
+    ult = m.index + m[0].length;
+  }
+  salida += colorear(resto.slice(ult), "html");
+  return salida;
+}
+
+function resaltar(codigo, etiqueta){
+  var n = nombreLenguaje(etiqueta);
+  if(n === "html") return colorearHtml(codigo);
+  return colorear(codigo, etiqueta);
+}
+/* ==========================================================================
+   DIAGRAMAS
+   Dibuja de verdad, en SVG, los bloques ```mermaid: diagramas de flujo,
+   de secuencia y tartas. Sin librerias: se analiza el texto, se calcula la
+   colocacion y se escribe el SVG a mano.
+   ========================================================================== */
+var DIA_FUENTE = '13px ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+var DIA_FUENTE_SVG = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+var DIA_TAM = 13, DIA_ALTO_LINEA = 17, DIA_ANCHO_MAX = 210;
+var nDiagramas = 0;
+
+/* ---------- medir texto ---------- */
+var _lienzo;
+function medir(txt, tam, negrita){
+  if(_lienzo === undefined){
+    try{ _lienzo = document.createElement("canvas").getContext("2d"); }
+    catch(e){ _lienzo = null; }
+  }
+  if(!_lienzo) return String(txt).length * (tam || DIA_TAM) * 0.56;
+  _lienzo.font = (negrita ? "600 " : "") + (tam || DIA_TAM) + "px " + DIA_FUENTE_SVG;
+  return _lienzo.measureText(String(txt)).width;
+}
+
+/* corta el texto en lineas: respeta <br> y parte lo que se pase de ancho */
+function partirTexto(txt, anchoMax, tam){
+  var crudo = String(txt).replace(/<br\s*\/?>/gi, "\n").replace(/\\n/g, "\n");
+  var lineas = [];
+  crudo.split("\n").forEach(function(trozo){
+    var palabras = trozo.split(/\s+/).filter(function(p){ return p !== ""; });
+    if(!palabras.length){ lineas.push(""); return; }
+    var actual = "";
+    palabras.forEach(function(p){
+      var prueba = actual ? actual + " " + p : p;
+      if(actual && medir(prueba, tam) > anchoMax){ lineas.push(actual); actual = p; }
+      else actual = prueba;
+    });
+    if(actual) lineas.push(actual);
+  });
+  return lineas.length ? lineas : [""];
+}
+
+function anchoLineas(lineas, tam, negrita){
+  var a = 0;
+  lineas.forEach(function(l){ a = Math.max(a, medir(l, tam, negrita)); });
+  return a;
+}
+
+function textoSvg(lineas, cx, cy, opciones){
+  var o = opciones || {};
+  var tam = o.tam || DIA_TAM, alto = o.alto || DIA_ALTO_LINEA;
+  var y = cy - (lineas.length - 1) * alto / 2 + tam * 0.35;
+  var atr = ' text-anchor="' + (o.anclaje || "middle") + '"';
+  if(o.negrita) atr += ' font-weight="600"';
+  if(o.tam) atr += ' font-size="' + o.tam + '"';
+  if(o.color) atr += ' fill="' + o.color + '"';
+  var s = "<text" + atr + ' x="' + r2(cx) + '" y="' + r2(y) + '">';
+  lineas.forEach(function(l, i){
+    s += '<tspan x="' + r2(cx) + '"' + (i ? ' dy="' + alto + '"' : "") + ">" + X(l) + "</tspan>";
+  });
+  return s + "</text>";
+}
+
+function r2(n){ return Math.round(n * 100) / 100; }
+function escRe2(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+/* ==========================================================================
+   1. ANALISIS DEL TEXTO
+   ========================================================================== */
+var FORMAS = [
+  { a: "(((", c: [")))"], f: "circulo2" },
+  { a: "([",  c: ["])"],  f: "estadio" },
+  { a: "[[",  c: ["]]"],  f: "subrutina" },
+  { a: "[(",  c: [")]"],  f: "cilindro" },
+  { a: "((",  c: ["))"],  f: "circulo" },
+  { a: "{{",  c: ["}}"],  f: "hexagono" },
+  { a: "[/",  c: ["/]", "\\]"], f: ["paralelogramo", "trapecio"] },
+  { a: "[\\", c: ["\\]", "/]"], f: ["paralelogramo2", "trapecio2"] },
+  { a: ">",   c: ["]"],   f: "bandera" },
+  { a: "[",   c: ["]"],   f: "rect" },
+  { a: "(",   c: [")"],   f: "redondo" },
+  { a: "{",   c: ["}"],   f: "rombo" }
+];
+
+function casarForma(L, j){
+  for(var k = 0; k < FORMAS.length; k++){
+    var F = FORMAS[k];
+    if(L.substr(j, F.a.length) !== F.a) continue;
+    var ini = j + F.a.length, desde = ini;
+    if(L.charAt(ini) === '"'){
+      var fc = L.indexOf('"', ini + 1);
+      if(fc > 0) desde = fc + 1;
+    }
+    var mejor = -1, cual = 0;
+    for(var q = 0; q < F.c.length; q++){
+      var p = L.indexOf(F.c[q], desde);
+      if(p >= 0 && (mejor < 0 || p < mejor)){ mejor = p; cual = q; }
+    }
+    if(mejor < 0) continue;
+    var txt = L.slice(ini, mejor).trim().replace(/^"|"$/g, "");
+    var forma = typeof F.f === "string" ? F.f : F.f[cual];
+    return { texto: txt, forma: forma, fin: mejor + F.c[cual].length };
+  }
+  return null;
+}
+
+var RE_IDENT = /^[A-Za-z0-9_À-ɏ一-鿿]+/;
+
+function extraerNodos(L, defs){
+  var out = "", i = 0;
+  while(i < L.length){
+    var mi = RE_IDENT.exec(L.slice(i));
+    if(!mi){ out += L.charAt(i); i++; continue; }
+    var id = mi[0], j = i + id.length;
+    var par = casarForma(L, j);
+    if(par){
+      defs.push({ id: id, forma: par.forma, texto: par.texto });
+      out += id;
+      i = par.fin;
+    }else{
+      out += id;
+      i = j;
+    }
+  }
+  return out;
+}
+
+var FICHAS = ["<-.->", "<-->", "<==>", "o--o", "x--x", "-.->", "==>", "-->", "--o", "--x",
+              "===", "---", "-.-", "==", "--"];
+var RE_FICHAS = new RegExp("(" + FICHAS.map(escRe2).join("|") + ")");
+
+function normalizarEnlaces(sk){
+  return sk
+    .replace(/-{3,}>/g, "-->").replace(/={3,}>/g, "==>")
+    .replace(/-\.{2,}->/g, "-.->").replace(/-\.{2,}-/g, "-.-")
+    .replace(/-{4,}/g, "---").replace(/={4,}/g, "===")
+    .replace(/-{2,}\s+([^\n|]+?)\s+(-->|---|--o|--x)/g, function(m, t, fin){ return fin + "|" + t + "|"; })
+    .replace(/-\.\s*([^\n|]+?)\s*(\.->|\.-)/g, function(m, t, fin){ return (fin === ".->" ? "-.->" : "-.-") + "|" + t + "|"; })
+    .replace(/={2,}\s+([^\n|]+?)\s+(==>|===|==o|==x)/g, function(m, t, fin){ return fin + "|" + t + "|"; });
+}
+
+function leerFicha(f){
+  var e = { tipo: "solido", finA: "", finB: "" };
+  if(f.indexOf("-.") === 0 || f.indexOf("<-.") === 0) e.tipo = "punteado";
+  else if(f.indexOf("=") >= 0) e.tipo = "grueso";
+  var ult = f.charAt(f.length - 1);
+  if(ult === ">") e.finB = "flecha";
+  else if(ult === "o") e.finB = "circulo";
+  else if(ult === "x") e.finB = "cruz";
+  var pri = f.charAt(0);
+  if(pri === "<") e.finA = "flecha";
+  else if(pri === "o") e.finA = "circulo";
+  else if(pri === "x") e.finA = "cruz";
+  return e;
+}
+
+function analizarFlujo(texto, esEstado){
+  var lineas = texto.replace(/\r\n?/g, "\n").split("\n");
+  var G = { dir: esEstado ? "TD" : "TD", nodos: {}, orden: [], enlaces: [], grupos: [], estilos: {}, clases: {} };
+  var pila = [], primera = true;
+
+  function nodo(id, forma, txt){
+    if(!G.nodos[id]){
+      G.nodos[id] = { id: id, forma: forma || "rect", texto: txt === undefined ? id : txt, grupo: pila.length ? pila[pila.length - 1] : null };
+      G.orden.push(id);
+      if(pila.length) pila[pila.length - 1].miembros.push(id);
+    }else{
+      var n = G.nodos[id];
+      if(forma && forma !== "rect") n.forma = forma;
+      if(txt !== undefined && txt !== id) n.texto = txt;
+      if(n.grupo === null && pila.length){ n.grupo = pila[pila.length - 1]; pila[pila.length - 1].miembros.push(id); }
+    }
+    return G.nodos[id];
+  }
+
+  for(var i = 0; i < lineas.length; i++){
+    var L = lineas[i].replace(/%%[^\n]*$/, "").trim();
+    if(!L) continue;
+
+    if(primera){
+      var mh = L.match(/^(?:graph|flowchart)\s+([A-Za-z]{2})\b/i);
+      if(mh){ G.dir = mh[1].toUpperCase(); primera = false; continue; }
+      if(/^(?:graph|flowchart|stateDiagram(?:-v2)?)\b/i.test(L)){ primera = false; continue; }
+      primera = false;
+    }
+
+    var md = L.match(/^direction\s+([A-Za-z]{2})$/i);
+    if(md){ G.dir = md[1].toUpperCase(); continue; }
+
+    var ms = L.match(/^subgraph\s+(.*)$/i);
+    if(ms){
+      var resto = ms[1].trim(), gid = "", gtxt = resto;
+      var mg = resto.match(/^([A-Za-z0-9_À-ɏ]+)\s*\[([^\]]*)\]$/);
+      if(mg){ gid = mg[1]; gtxt = mg[2].replace(/^"|"$/g, ""); }
+      else gid = "g" + G.grupos.length;
+      var grupo = { id: gid, texto: gtxt.replace(/^"|"$/g, ""), miembros: [], padre: pila.length ? pila[pila.length - 1] : null, indice: G.grupos.length };
+      G.grupos.push(grupo);
+      pila.push(grupo);
+      continue;
+    }
+    if(/^end$/i.test(L)){ if(pila.length) pila.pop(); continue; }
+
+    var me = L.match(/^style\s+([A-Za-z0-9_À-ɏ]+)\s+(.*)$/i);
+    if(me){ G.estilos[me[1]] = leerEstilo(me[2]); continue; }
+    var mcd = L.match(/^classDef\s+([A-Za-z0-9_,À-ɏ]+)\s+(.*)$/i);
+    if(mcd){
+      var est = leerEstilo(mcd[2]);
+      mcd[1].split(",").forEach(function(c){ G.clases[c.trim()] = est; });
+      continue;
+    }
+    var mc = L.match(/^class\s+([A-Za-z0-9_,\sÀ-ɏ]+)\s+([A-Za-z0-9_À-ɏ]+)$/i);
+    if(mc){
+      var cl = mc[2];
+      mc[1].split(",").forEach(function(id){
+        id = id.trim();
+        if(id) (G.nodos[id] || nodo(id)).clase = cl;
+      });
+      continue;
+    }
+    if(/^(click|linkStyle|accTitle|accDescr)\b/i.test(L)) continue;
+
+    /* estados: [*] a la izquierda es el principio, a la derecha el final */
+    if(esEstado){
+      var mDesc = L.match(/^state\s+"([^"]*)"\s+as\s+([A-Za-z0-9_À-ɏ]+)$/i);
+      if(mDesc){ nodo(mDesc[2], "redondo", mDesc[1]); continue; }
+      if(/^(note|state\s)/i.test(L) && !/-->|---/.test(L)) continue;
+      var corte = L.search(/-->|---/);
+      L = L.replace(/\[\*\]/g, function(m, desplazamiento){
+        return (corte < 0 || desplazamiento < corte) ? "iniEstado" : "finEstado";
+      });
+      var mEt = L.match(/^(.*?)(-->|---)([^:]*?):\s*(.+)$/);
+      if(mEt) L = mEt[1] + mEt[2] + "|" + mEt[4].trim() + "|" + mEt[3];
+    }
+
+    var defs = [];
+    var sk = extraerNodos(L, defs);
+    defs.forEach(function(d){ nodo(d.id, d.forma, d.texto); });
+
+    /* la clase con dos puntos: A:::destacado */
+    sk = sk.replace(/([A-Za-z0-9_À-ɏ]+):::([A-Za-z0-9_]+)/g, function(m, id, cl){
+      nodo(id).clase = cl;
+      return id;
+    });
+
+    sk.split(";").forEach(function(trozo){
+      trozo = normalizarEnlaces(trozo.trim());
+      if(!trozo) return;
+      var partes = trozo.split(RE_FICHAS);
+      if(partes.length === 1){
+        var solo = partes[0].trim();
+        if(solo && /^[A-Za-z0-9_À-ɏ&\s]+$/.test(solo)){
+          solo.split("&").forEach(function(id){ id = id.trim(); if(id) nodo(id); });
+        }
+        return;
+      }
+      var prev = null;
+      for(var p = 0; p < partes.length; p += 2){
+        var bloque = partes[p], etiqueta = "";
+        var mlab = bloque.match(/^\s*\|([^|]*)\|\s*/);
+        if(mlab){ etiqueta = mlab[1].trim().replace(/^"|"$/g, ""); bloque = bloque.slice(mlab[0].length); }
+        var ids = bloque.split("&").map(function(s){ return s.trim(); }).filter(Boolean);
+        ids.forEach(function(id){ nodo(id); });
+        if(prev && ids.length){
+          var ficha = partes[p - 1];
+          prev.forEach(function(a){
+            ids.forEach(function(b){
+              var e = leerFicha(ficha);
+              e.a = a; e.b = b; e.texto = etiqueta;
+              G.enlaces.push(e);
+            });
+          });
+        }
+        if(ids.length) prev = ids;
+      }
+    });
+  }
+
+  if(esEstado){
+    if(G.nodos.iniEstado){ G.nodos.iniEstado.forma = "punto"; G.nodos.iniEstado.texto = ""; }
+    if(G.nodos.finEstado){ G.nodos.finEstado.forma = "fin"; G.nodos.finEstado.texto = ""; }
+    G.orden.forEach(function(id){
+      var nn = G.nodos[id];
+      if(nn.forma === "rect" && nn.texto === id) nn.forma = "redondo";
+    });
+  }
+  return G;
+}
+
+function leerEstilo(s){
+  var e = {};
+  String(s).split(",").forEach(function(par){
+    var m = par.split(":");
+    if(m.length < 2) return;
+    var k = m[0].trim().toLowerCase(), v = m.slice(1).join(":").trim();
+    if(k === "fill") e.relleno = v;
+    else if(k === "stroke") e.borde = v;
+    else if(k === "color") e.texto = v;
+    else if(k === "stroke-width") e.grosor = parseFloat(v) || 1;
+    else if(k === "stroke-dasharray") e.rayas = v;
+  });
+  return e;
+}
+
+/* ==========================================================================
+   2. COLOCACION
+   ========================================================================== */
+function tamNodo(n){
+  var esRedondo = n.forma === "circulo" || n.forma === "circulo2";
+  var esRombo = n.forma === "rombo";
+  var lineas = partirTexto(n.texto, esRedondo ? 110 : DIA_ANCHO_MAX, DIA_TAM);
+  var a = anchoLineas(lineas, DIA_TAM);
+  var altoTxt = lineas.length * DIA_ALTO_LINEA;
+  n.lineas = lineas;
+  if(n.forma === "punto"){ n.w = 16; n.h = 16; return; }
+  if(n.forma === "fin"){ n.w = 20; n.h = 20; return; }
+  if(esRedondo){
+    var d = Math.max(46, Math.sqrt(a * a + altoTxt * altoTxt) + 22);
+    n.w = d; n.h = d; return;
+  }
+  if(esRombo){ n.w = Math.max(70, a * 1.5 + 34); n.h = Math.max(52, altoTxt * 1.7 + 18); return; }
+  if(n.forma === "hexagono"){ n.w = Math.max(70, a + 46); n.h = Math.max(38, altoTxt + 18); return; }
+  if(n.forma === "cilindro"){ n.w = Math.max(70, a + 34); n.h = Math.max(46, altoTxt + 30); return; }
+  if(n.forma === "paralelogramo" || n.forma === "paralelogramo2" || n.forma === "trapecio" || n.forma === "trapecio2"){
+    n.w = Math.max(80, a + 46); n.h = Math.max(38, altoTxt + 18); return;
+  }
+  n.w = Math.max(56, a + 34);
+  n.h = Math.max(36, altoTxt + 18);
+}
+
+function colocarFlujo(G){
+  var ids = G.orden.slice();
+  if(!ids.length) return null;
+  ids.forEach(function(id){ tamNodo(G.nodos[id]); });
+
+  /* primero se marcan las flechas que vuelven atras: si no, un bucle
+     empujaria su destino hasta el infinito al repartir los niveles */
+  var salientes = {};
+  G.enlaces.forEach(function(e){
+    e.atras = false;
+    if(e.a === e.b){ e.atras = true; return; }
+    (salientes[e.a] = salientes[e.a] || []).push(e);
+  });
+  var visto = {};
+  ids.forEach(function(raiz){
+    if(visto[raiz]) return;
+    var pila = [{ id: raiz, k: 0 }];
+    visto[raiz] = 1;
+    while(pila.length){
+      var arriba = pila[pila.length - 1];
+      var lista = salientes[arriba.id] || [];
+      if(arriba.k >= lista.length){ visto[arriba.id] = 2; pila.pop(); continue; }
+      var e = lista[arriba.k++];
+      var s = visto[e.b] || 0;
+      if(s === 1) e.atras = true;
+      else if(s === 0){ visto[e.b] = 1; pila.push({ id: e.b, k: 0 }); }
+    }
+  });
+
+  /* rangos por camino mas largo sobre el grafo ya sin ciclos */
+  var rango = {};
+  ids.forEach(function(id){ rango[id] = 0; });
+  var cambio = true, vueltas = 0;
+  while(cambio && vueltas++ < ids.length + 4){
+    cambio = false;
+    G.enlaces.forEach(function(e){
+      if(e.atras) return;
+      if(rango[e.b] < rango[e.a] + 1){ rango[e.b] = rango[e.a] + 1; cambio = true; }
+    });
+  }
+  ids.forEach(function(id){ G.nodos[id].rango = rango[id]; });
+
+  /* las flechas que se saltan niveles pasan por nodos invisibles: asi no
+     atraviesan las cajas de en medio y ademas se les reserva su carril */
+  var nFicticio = 0;
+  G.enlaces.forEach(function(e){
+    e.cadena = null;
+    if(e.atras || e.a === e.b) return;
+    if(rango[e.b] - rango[e.a] <= 1) return;
+    var ga = G.nodos[e.a].grupo, gb = G.nodos[e.b].grupo;
+    var cadena = [e.a];
+    for(var r = rango[e.a] + 1; r < rango[e.b]; r++){
+      var did = "\u0001f" + (nFicticio++);
+      G.nodos[did] = { id: did, ficticio: true, w: 2, h: 2, texto: "", forma: "punto",
+                       rango: r, grupo: (ga && ga === gb) ? ga : null, lineas: [""] };
+      rango[did] = r;
+      ids.push(did);
+      cadena.push(did);
+    }
+    cadena.push(e.b);
+    e.cadena = cadena;
+  });
+
+  var capas = [];
+  ids.forEach(function(id){
+    var r = rango[id];
+    (capas[r] = capas[r] || []).push(id);
+  });
+  for(var c = 0; c < capas.length; c++) if(!capas[c]) capas[c] = [];
+
+  /* ordenar dentro de cada capa: primero por grupo, luego por baricentro */
+  function grupoRaiz(n){
+    var g = n.grupo;
+    while(g && g.padre) g = g.padre;
+    return g ? g.indice : -1;
+  }
+  var vecinos = {};
+  ids.forEach(function(id){ vecinos[id] = { arriba: [], abajo: [] }; });
+  G.enlaces.forEach(function(e){
+    if(e.a === e.b || e.atras) return;
+    var cad = e.cadena || [e.a, e.b];
+    for(var q = 1; q < cad.length; q++){
+      var u = cad[q - 1], w = cad[q];
+      if(!vecinos[u] || !vecinos[w]) continue;
+      vecinos[u].abajo.push(w); vecinos[w].arriba.push(u);
+    }
+  });
+
+  var pos = {};
+  capas.forEach(function(capa){ capa.forEach(function(id, k){ pos[id] = k; }); });
+
+  for(var pase = 0; pase < 6; pase++){
+    var haciaAbajo = pase % 2 === 0;
+    for(var ci = 0; ci < capas.length; ci++){
+      var capa = capas[haciaAbajo ? ci : capas.length - 1 - ci];
+      var bar = {};
+      capa.forEach(function(id, k){
+        var vs = haciaAbajo ? vecinos[id].arriba : vecinos[id].abajo;
+        if(!vs.length){ bar[id] = pos[id]; return; }
+        var s = 0;
+        vs.forEach(function(v){ s += pos[v]; });
+        bar[id] = s / vs.length;
+      });
+      capa.sort(function(a, b){
+        var ga = grupoRaiz(G.nodos[a]), gb = grupoRaiz(G.nodos[b]);
+        if(ga !== gb) return ga - gb;
+        if(bar[a] !== bar[b]) return bar[a] - bar[b];
+        return ids.indexOf(a) - ids.indexOf(b);
+      });
+      capa.forEach(function(id, k){ pos[id] = k; });
+    }
+  }
+
+  /* coordenadas */
+  var horizontal = G.dir === "LR" || G.dir === "RL";
+  var hayGrupos = G.grupos.length > 0;
+  var SEP = hayGrupos ? 46 : 38, SEP_GRUPO = 74;
+  var SALTO = hayGrupos ? 88 : 66;
+
+  /* eje principal: una capa detras de otra */
+  var avance = 0, ejes = [];
+  capas.forEach(function(capa){
+    var grueso = 0;
+    capa.forEach(function(id){
+      var n = G.nodos[id];
+      grueso = Math.max(grueso, horizontal ? n.w : n.h);
+    });
+    ejes.push(avance + grueso / 2);
+    avance += grueso + SALTO;
+  });
+
+  /* eje transversal: se reparten y luego se acercan a sus vecinos */
+  capas.forEach(function(capa){
+    var t = 0;
+    capa.forEach(function(id, k){
+      var n = G.nodos[id];
+      var tam = horizontal ? n.h : n.w;
+      if(k > 0){
+        var ant = G.nodos[capa[k - 1]];
+        t += (grupoRaiz(ant) !== grupoRaiz(n) ? SEP_GRUPO : SEP);
+      }
+      n.t = t + tam / 2;
+      t += tam;
+    });
+  });
+
+  for(var it = 0; it < 8; it++){
+    for(var ci2 = 0; ci2 < capas.length; ci2++){
+      var capa2 = capas[ci2];
+      capa2.forEach(function(id){
+        var n = G.nodos[id];
+        var vs = vecinos[id].arriba.concat(vecinos[id].abajo);
+        if(!vs.length) return;
+        var s = 0, cuenta = 0;
+        vs.forEach(function(v){ if(G.nodos[v].t !== undefined){ s += G.nodos[v].t; cuenta++; } });
+        if(cuenta) n.t = n.t + (s / cuenta - n.t) * 0.5;
+      });
+      /* separar lo que se haya montado */
+      for(var k2 = 1; k2 < capa2.length; k2++){
+        var a2 = G.nodos[capa2[k2 - 1]], b2 = G.nodos[capa2[k2]];
+        var minimo = (horizontal ? (a2.h + b2.h) : (a2.w + b2.w)) / 2 +
+                     (grupoRaiz(a2) !== grupoRaiz(b2) ? SEP_GRUPO : SEP);
+        if(b2.t - a2.t < minimo) b2.t = a2.t + minimo;
+      }
+      for(var k3 = capa2.length - 2; k3 >= 0; k3--){
+        var a3 = G.nodos[capa2[k3]], b3 = G.nodos[capa2[k3 + 1]];
+        var min3 = (horizontal ? (a3.h + b3.h) : (a3.w + b3.w)) / 2 +
+                   (grupoRaiz(a3) !== grupoRaiz(b3) ? SEP_GRUPO : SEP);
+        if(b3.t - a3.t < min3) a3.t = b3.t - min3;
+      }
+    }
+  }
+
+  /* pasar (eje, transversal) a (x, y) segun la direccion */
+  capas.forEach(function(capa, r){
+    capa.forEach(function(id){
+      var n = G.nodos[id], e = ejes[r];
+      if(G.dir === "TD" || G.dir === "TB"){ n.x = n.t; n.y = e; }
+      else if(G.dir === "BT"){ n.x = n.t; n.y = -e; }
+      else if(G.dir === "LR"){ n.x = e; n.y = n.t; }
+      else { n.x = -e; n.y = n.t; }
+    });
+  });
+
+  /* cajas de los subgrupos */
+  G.grupos.forEach(function(g){ g.caja = null; });
+  for(var gi = G.grupos.length - 1; gi >= 0; gi--){
+    var g = G.grupos[gi];
+    var x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity, algo = false;
+    g.miembros.forEach(function(id){
+      var n = G.nodos[id];
+      if(!n || n.x === undefined) return;
+      algo = true;
+      x1 = Math.min(x1, n.x - n.w / 2); x2 = Math.max(x2, n.x + n.w / 2);
+      y1 = Math.min(y1, n.y - n.h / 2); y2 = Math.max(y2, n.y + n.h / 2);
+    });
+    G.grupos.forEach(function(h){
+      if(h.padre === g && h.caja){
+        algo = true;
+        x1 = Math.min(x1, h.caja.x1); x2 = Math.max(x2, h.caja.x2);
+        y1 = Math.min(y1, h.caja.y1); y2 = Math.max(y2, h.caja.y2);
+      }
+    });
+    if(!algo) continue;
+    var pad = 14;
+    g.caja = { x1: x1 - pad, y1: y1 - pad - 20, x2: x2 + pad, y2: y2 + pad };
+  }
+
+  /* margenes */
+  var mx1 = Infinity, my1 = Infinity, mx2 = -Infinity, my2 = -Infinity;
+  ids.forEach(function(id){
+    var n = G.nodos[id];
+    mx1 = Math.min(mx1, n.x - n.w / 2); mx2 = Math.max(mx2, n.x + n.w / 2);
+    my1 = Math.min(my1, n.y - n.h / 2); my2 = Math.max(my2, n.y + n.h / 2);
+  });
+  G.grupos.forEach(function(g){
+    if(!g.caja) return;
+    mx1 = Math.min(mx1, g.caja.x1); mx2 = Math.max(mx2, g.caja.x2);
+    my1 = Math.min(my1, g.caja.y1); my2 = Math.max(my2, g.caja.y2);
+  });
+  /* hueco para los lazos y para las flechas que vuelven atras, que se
+     dibujan por fuera de las cajas */
+  var hayLazo = false, hayVuelta = false;
+  G.enlaces.forEach(function(e){
+    if(e.a === e.b) hayLazo = true;
+    else if(e.atras || e.b.rango < e.a.rango) hayVuelta = true;
+  });
+  if(hayLazo){
+    if(horizontal) my1 -= 56;
+    else mx2 += 78;
+  }
+  if(hayVuelta){
+    if(horizontal) my1 -= 66;
+    else mx2 += 72;
+  }
+
+  var M = 14;
+  var dx = M - mx1, dy = M - my1;
+  ids.forEach(function(id){ G.nodos[id].x += dx; G.nodos[id].y += dy; });
+  G.grupos.forEach(function(g){
+    if(!g.caja) return;
+    g.caja.x1 += dx; g.caja.x2 += dx; g.caja.y1 += dy; g.caja.y2 += dy;
+  });
+  return { w: mx2 - mx1 + M * 2, h: my2 - my1 + M * 2, capas: capas, rango: rango };
+}
+
+/* ==========================================================================
+   3. DIBUJO
+   ========================================================================== */
+function formaSvg(n, est){
+  var x = n.x - n.w / 2, y = n.y - n.h / 2, w = n.w, h = n.h;
+  var relleno = est.relleno || "var(--dia-relleno)";
+  var borde = est.borde || "var(--dia-borde)";
+  var atr = ' fill="' + relleno + '" stroke="' + borde + '" stroke-width="' + (est.grosor || 1.4) + '"' +
+            (est.rayas ? ' stroke-dasharray="' + est.rayas + '"' : "");
+  function P(d){ return '<path d="' + d + '"' + atr + "/>"; }
+  switch(n.forma){
+    case "punto":
+      return '<circle cx="' + r2(n.x) + '" cy="' + r2(n.y) + '" r="8" fill="' + borde + '" stroke="none"/>';
+    case "fin":
+      return '<circle cx="' + r2(n.x) + '" cy="' + r2(n.y) + '" r="10" fill="none" stroke="' + borde + '" stroke-width="1.6"/>' +
+             '<circle cx="' + r2(n.x) + '" cy="' + r2(n.y) + '" r="6" fill="' + borde + '" stroke="none"/>';
+    case "circulo":
+    case "circulo2":
+      var s = '<circle cx="' + r2(n.x) + '" cy="' + r2(n.y) + '" r="' + r2(w / 2) + '"' + atr + "/>";
+      if(n.forma === "circulo2") s += '<circle cx="' + r2(n.x) + '" cy="' + r2(n.y) + '" r="' + r2(w / 2 - 5) + '" fill="none" stroke="' + borde + '" stroke-width="1.2"/>';
+      return s;
+    case "estadio":
+      return '<rect x="' + r2(x) + '" y="' + r2(y) + '" width="' + r2(w) + '" height="' + r2(h) + '" rx="' + r2(h / 2) + '"' + atr + "/>";
+    case "redondo":
+      return '<rect x="' + r2(x) + '" y="' + r2(y) + '" width="' + r2(w) + '" height="' + r2(h) + '" rx="9"' + atr + "/>";
+    case "subrutina":
+      return '<rect x="' + r2(x) + '" y="' + r2(y) + '" width="' + r2(w) + '" height="' + r2(h) + '"' + atr + "/>" +
+             '<line x1="' + r2(x + 8) + '" y1="' + r2(y) + '" x2="' + r2(x + 8) + '" y2="' + r2(y + h) + '" stroke="' + borde + '" stroke-width="1.2"/>' +
+             '<line x1="' + r2(x + w - 8) + '" y1="' + r2(y) + '" x2="' + r2(x + w - 8) + '" y2="' + r2(y + h) + '" stroke="' + borde + '" stroke-width="1.2"/>';
+    case "cilindro":
+      var ry = 8;
+      return P("M" + r2(x) + "," + r2(y + ry) + " a" + w / 2 + "," + ry + " 0 0,1 " + w + ",0" +
+               " v" + r2(h - ry * 2) + " a" + w / 2 + "," + ry + " 0 0,1 " + (-w) + ",0 z") +
+             '<path d="M' + r2(x) + "," + r2(y + ry) + " a" + w / 2 + "," + ry + " 0 0,0 " + w + ',0" fill="none" stroke="' + borde + '" stroke-width="1.2"/>';
+    case "rombo":
+      return P("M" + r2(n.x) + "," + r2(y) + " L" + r2(x + w) + "," + r2(n.y) +
+               " L" + r2(n.x) + "," + r2(y + h) + " L" + r2(x) + "," + r2(n.y) + " z");
+    case "hexagono":
+      var d1 = Math.min(18, w / 4);
+      return P("M" + r2(x + d1) + "," + r2(y) + " H" + r2(x + w - d1) + " L" + r2(x + w) + "," + r2(n.y) +
+               " L" + r2(x + w - d1) + "," + r2(y + h) + " H" + r2(x + d1) + " L" + r2(x) + "," + r2(n.y) + " z");
+    case "paralelogramo":
+      var d2 = Math.min(20, w / 5);
+      return P("M" + r2(x + d2) + "," + r2(y) + " H" + r2(x + w) + " L" + r2(x + w - d2) + "," + r2(y + h) + " H" + r2(x) + " z");
+    case "paralelogramo2":
+      var d3 = Math.min(20, w / 5);
+      return P("M" + r2(x) + "," + r2(y) + " H" + r2(x + w - d3) + " L" + r2(x + w) + "," + r2(y + h) + " H" + r2(x + d3) + " z");
+    case "trapecio":
+      var d4 = Math.min(20, w / 5);
+      return P("M" + r2(x + d4) + "," + r2(y) + " H" + r2(x + w - d4) + " L" + r2(x + w) + "," + r2(y + h) + " H" + r2(x) + " z");
+    case "trapecio2":
+      var d5 = Math.min(20, w / 5);
+      return P("M" + r2(x) + "," + r2(y) + " H" + r2(x + w) + " L" + r2(x + w - d5) + "," + r2(y + h) + " H" + r2(x + d5) + " z");
+    case "bandera":
+      return P("M" + r2(x) + "," + r2(y) + " H" + r2(x + w - 14) + " L" + r2(x + w) + "," + r2(n.y) +
+               " L" + r2(x + w - 14) + "," + r2(y + h) + " H" + r2(x) + " z");
+    default:
+      return '<rect x="' + r2(x) + '" y="' + r2(y) + '" width="' + r2(w) + '" height="' + r2(h) + '" rx="3"' + atr + "/>";
+  }
+}
+
+/* punto de salida/entrada de una linea en el borde de un nodo */
+function puerto(n, hacia, dir){
+  var horizontal = dir === "LR" || dir === "RL";
+  var signo = (dir === "BT" || dir === "RL") ? -1 : 1;
+  var lado = (hacia === "adelante" ? signo : -signo);
+  if(horizontal) return { x: n.x + lado * n.w / 2, y: n.y, dx: lado, dy: 0 };
+  return { x: n.x, y: n.y + lado * n.h / 2, dx: 0, dy: lado };
+}
+
+function puntoCubica(p0, p1, p2, p3, t){
+  var u = 1 - t;
+  return {
+    x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
+    y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y
+  };
+}
+
+function pintarEnlace(partes, d, e, id, medio){
+  var rayas = e.tipo === "punteado" ? ' stroke-dasharray="5 4"' : "";
+  var grosor = e.tipo === "grueso" ? 2.6 : 1.5;
+  var fin = e.finB ? ' marker-end="url(#' + id + "-" + e.finB + ')"' : "";
+  var ini = e.finA ? ' marker-start="url(#' + id + "-" + e.finA + '-i)"' : "";
+  partes.push('<path d="' + d + '" fill="none" stroke="var(--dia-linea)" stroke-width="' + grosor + '"' + rayas + fin + ini + "/>");
+  if(!e.texto) return;
+  var ls = partirTexto(e.texto, 150, 11.5);
+  var aw = anchoLineas(ls, 11.5) + 10, ah = ls.length * 14 + 4;
+  partes.push('<rect x="' + r2(medio.x - aw / 2) + '" y="' + r2(medio.y - ah / 2) + '" width="' + r2(aw) +
+              '" height="' + r2(ah) + '" rx="3" fill="var(--dia-fondo)" stroke="none"/>');
+  partes.push(textoSvg(ls, medio.x, medio.y, { tam: 11.5, alto: 14, color: "var(--dia-tenue)" }));
+}
+
+function dibujarFlujo(texto, esEstado){
+  var G = analizarFlujo(texto, esEstado);
+  if(!G.orden.length) return null;
+  var caja = colocarFlujo(G);
+  if(!caja) return null;
+  var id = "d" + (++nDiagramas);
+  var invertida = G.dir === "BT" || G.dir === "RL";
+  var partes = [];
+
+  /* subgrupos, al fondo */
+  G.grupos.forEach(function(g){
+    if(!g.caja) return;
+    var c = g.caja;
+    partes.push('<rect x="' + r2(c.x1) + '" y="' + r2(c.y1) + '" width="' + r2(c.x2 - c.x1) +
+                '" height="' + r2(c.y2 - c.y1) + '" rx="8" fill="var(--dia-grupo)" stroke="var(--dia-grupo-borde)" stroke-width="1.2" stroke-dasharray="5 4"/>');
+    if(g.texto){
+      partes.push('<text x="' + r2(c.x1 + 12) + '" y="' + r2(c.y1 + 15) + '" text-anchor="start" font-size="11.5" font-weight="600" fill="var(--dia-tenue)">' + X(g.texto) + "</text>");
+    }
+  });
+
+  /* lineas */
+  var usados = {};
+  G.enlaces.forEach(function(e, k){
+    var a = G.nodos[e.a], b = G.nodos[e.b];
+    if(!a || !b) return;
+    var d, p0, p1, p2, p3;
+    if(e.cadena){
+      var pts = [puerto(a, "adelante", G.dir)];
+      for(var q2 = 1; q2 < e.cadena.length - 1; q2++){
+        var f = G.nodos[e.cadena[q2]];
+        pts.push({ x: f.x, y: f.y });
+      }
+      pts.push(puerto(b, "atras", G.dir));
+      var horiz = G.dir === "LR" || G.dir === "RL";
+      d = "M" + r2(pts[0].x) + "," + r2(pts[0].y);
+      for(var q3 = 1; q3 < pts.length; q3++){
+        var u = pts[q3 - 1], w2 = pts[q3];
+        var c1, c2;
+        if(horiz){
+          var mx = (u.x + w2.x) / 2;
+          c1 = { x: mx, y: u.y }; c2 = { x: mx, y: w2.y };
+        }else{
+          var my = (u.y + w2.y) / 2;
+          c1 = { x: u.x, y: my }; c2 = { x: w2.x, y: my };
+        }
+        d += " C" + r2(c1.x) + "," + r2(c1.y) + " " + r2(c2.x) + "," + r2(c2.y) + " " + r2(w2.x) + "," + r2(w2.y);
+      }
+      var medio = pts[Math.floor(pts.length / 2)];
+      p0 = pts[0]; p3 = pts[pts.length - 1];
+      p1 = medio; p2 = medio;
+      pintarEnlace(partes, d, e, id, medio);
+      return;
+    }
+    if(a === b){
+      var rr = 26;
+      if(G.dir === "LR" || G.dir === "RL"){
+        p0 = { x: a.x - 8, y: a.y - a.h / 2 };
+        p3 = { x: a.x + 8, y: a.y - a.h / 2 };
+        p1 = { x: p0.x - rr, y: p0.y - rr * 1.5 };
+        p2 = { x: p3.x + rr, y: p3.y - rr * 1.5 };
+      }else{
+        p0 = { x: a.x + a.w / 2, y: a.y - 6 };
+        p3 = { x: a.x + a.w / 2, y: a.y + 6 };
+        p1 = { x: p0.x + rr * 2, y: p0.y - rr };
+        p2 = { x: p3.x + rr * 2, y: p3.y + rr };
+      }
+    }else{
+      var haciaDelante = !e.atras && b.rango > a.rango;
+      if(haciaDelante){
+        p0 = puerto(a, "adelante", G.dir);
+        p3 = puerto(b, "atras", G.dir);
+      }else{
+        var lado = (usados[e.a + ">" + e.b] = (usados[e.a + ">" + e.b] || 0) + 1);
+        var D = 34 + lado * 14;
+        if(G.dir === "LR" || G.dir === "RL"){
+          p0 = { x: a.x, y: a.y - a.h / 2 };
+          p3 = { x: b.x, y: b.y - b.h / 2 };
+          p1 = { x: a.x, y: a.y - a.h / 2 - D };
+          p2 = { x: b.x, y: b.y - b.h / 2 - D };
+        }else{
+          p0 = { x: a.x + a.w / 2, y: a.y };
+          p3 = { x: b.x + b.w / 2, y: b.y };
+          p1 = { x: a.x + a.w / 2 + D, y: a.y };
+          p2 = { x: b.x + b.w / 2 + D, y: b.y };
+        }
+      }
+      if(!p1){
+        var lx = Math.abs(p3.x - p0.x), ly = Math.abs(p3.y - p0.y);
+        var m = Math.max(18, (G.dir === "LR" || G.dir === "RL" ? lx : ly) * 0.45);
+        p1 = { x: p0.x + p0.dx * m, y: p0.y + p0.dy * m };
+        p2 = { x: p3.x + p3.dx * m, y: p3.y + p3.dy * m };
+      }
+    }
+    d = "M" + r2(p0.x) + "," + r2(p0.y) + " C" + r2(p1.x) + "," + r2(p1.y) + " " +
+        r2(p2.x) + "," + r2(p2.y) + " " + r2(p3.x) + "," + r2(p3.y);
+    pintarEnlace(partes, d, e, id, puntoCubica(p0, p1, p2, p3, 0.5));
+  });
+
+  /* nodos */
+  G.orden.forEach(function(nid){
+    var n = G.nodos[nid];
+    var est = {};
+    if(n.clase && G.clases[n.clase]) est = G.clases[n.clase];
+    if(G.estilos[nid]) est = G.estilos[nid];
+    partes.push(formaSvg(n, est));
+    if(n.forma !== "punto" && n.forma !== "fin"){
+      var cyTexto = n.forma === "cilindro" ? n.y + 4 : n.y;
+      partes.push(textoSvg(n.lineas, n.x, cyTexto, { color: est.texto || "var(--dia-texto)" }));
+    }
+  });
+
+  return envolver(id, caja.w, caja.h, partes.join("\n"), "Diagrama de flujo");
+}
+
+/* ==========================================================================
+   4. DIAGRAMA DE SECUENCIA
+   ========================================================================== */
+function dibujarSecuencia(texto){
+  var lineas = texto.replace(/\r\n?/g, "\n").split("\n");
+  var actores = [], porId = {}, sucesos = [], pilaG = [], autonum = false, num = 0;
+
+  function actor(id, alias, esPersona){
+    id = id.trim();
+    if(!id) return null;
+    if(!porId[id]){
+      porId[id] = { id: id, texto: alias || id, persona: !!esPersona, indice: actores.length, activo: 0, barras: [] };
+      actores.push(porId[id]);
+    }else if(alias) porId[id].texto = alias;
+    return porId[id];
+  }
+
+  for(var i = 0; i < lineas.length; i++){
+    var L = lineas[i].replace(/%%[^\n]*$/, "").trim();
+    if(!L || /^sequenceDiagram$/i.test(L)) continue;
+    if(/^autonumber\b/i.test(L)){ autonum = true; continue; }
+
+    var mp = L.match(/^(participant|actor)\s+(.+)$/i);
+    if(mp){
+      var cuerpo = mp[2], ma = cuerpo.match(/^(\S+)\s+as\s+(.+)$/i);
+      if(ma) actor(ma[1], ma[2].trim(), /^actor$/i.test(mp[1]));
+      else actor(cuerpo.trim(), "", /^actor$/i.test(mp[1]));
+      continue;
+    }
+    var mn = L.match(/^note\s+(left of|right of|over)\s+([^:]+):\s*(.*)$/i);
+    if(mn){
+      var refs = mn[2].split(",").map(function(s){ return actor(s.trim()); }).filter(Boolean);
+      sucesos.push({ t: "nota", donde: mn[1].toLowerCase(), refs: refs, texto: mn[3].trim() });
+      continue;
+    }
+    var mg = L.match(/^(loop|alt|opt|par|critical|rect|break)\s*(.*)$/i);
+    if(mg){
+      var g = { t: "grupo", clase: mg[1].toLowerCase(), texto: mg[2].trim(), desde: sucesos.length, ramas: [] };
+      sucesos.push(g); pilaG.push(g); continue;
+    }
+    var mel = L.match(/^(else|and|option)\s*(.*)$/i);
+    if(mel){
+      if(pilaG.length) sucesos.push({ t: "rama", grupo: pilaG[pilaG.length - 1], texto: mel[2].trim() });
+      continue;
+    }
+    if(/^end$/i.test(L)){
+      var g2 = pilaG.pop();
+      if(g2){ g2.hasta = sucesos.length; sucesos.push({ t: "finGrupo", grupo: g2 }); }
+      continue;
+    }
+    var mact = L.match(/^(activate|deactivate)\s+(\S+)$/i);
+    if(mact){
+      sucesos.push({ t: /^activate$/i.test(mact[1]) ? "activar" : "desactivar", a: actor(mact[2]) });
+      continue;
+    }
+
+    var mm = L.match(/^([^\s:>+-]+)\s*(-{1,2}>>?|-{1,2}x|-{1,2}\)|--?>)\s*([+-]?)\s*([^\s:]+)\s*:\s*(.*)$/);
+    if(!mm) mm = L.match(/^(\S+?)\s*(--?>>|--?>|--?x|--?\))\s*([+-]?)\s*(\S+?)\s*:\s*(.*)$/);
+    if(mm){
+      var a = actor(mm[1]), b = actor(mm[4]);
+      if(!a || !b) continue;
+      var f = mm[2];
+      sucesos.push({
+        t: "msg", a: a, b: b, texto: mm[5].trim(),
+        rayas: f.indexOf("--") === 0,
+        punta: f.charAt(f.length - 1) === "x" ? "cruz" : (f.charAt(f.length - 1) === ")" ? "abierta" : (f.indexOf(">>") > 0 ? "flecha" : "linea")),
+        act: mm[3]
+      });
+      continue;
+    }
+  }
+  if(!actores.length) return null;
+
+  /* medidas */
+  var ANCHO_MIN = 110, PAD = 22, ALTO_CAB = 42, SEP_MSG = 40;
+  actores.forEach(function(a){
+    a.lineas = partirTexto(a.texto, 150, 12.5);
+    a.w = Math.max(86, anchoLineas(a.lineas, 12.5, true) + 30);
+    a.h = Math.max(34, a.lineas.length * 16 + 14);
+  });
+
+  /* separacion horizontal segun el texto de los mensajes entre vecinos */
+  var necesario = [];
+  for(var q = 0; q < actores.length - 1; q++) necesario[q] = ANCHO_MIN;
+  sucesos.forEach(function(s){
+    if(s.t !== "msg" || s.a === s.b) return;
+    var i1 = Math.min(s.a.indice, s.b.indice), i2 = Math.max(s.a.indice, s.b.indice);
+    var ls = partirTexto(s.texto, 260, 12);
+    s.lineas = ls;
+    var anchoTxt = anchoLineas(ls, 12) + 26;
+    var reparto = anchoTxt / (i2 - i1);
+    for(var k = i1; k < i2; k++) necesario[k] = Math.max(necesario[k], reparto);
+  });
+
+  var x = PAD + actores[0].w / 2;
+  actores.forEach(function(a, k){
+    if(k > 0) x += Math.max(necesario[k - 1], (actores[k - 1].w + a.w) / 2 + 24);
+    a.x = x;
+  });
+  var ultimo = actores[actores.length - 1];
+  var minX = actores[0].x - actores[0].w / 2;
+  var maxX = ultimo.x + ultimo.w / 2;
+  var altoCab = 0;
+  actores.forEach(function(a){ altoCab = Math.max(altoCab, a.h); });
+
+  /* recorrido vertical */
+  var y = PAD + altoCab + 24;
+  var dibujos = [], cajasGrupo = [];
+  var idd = "s" + (++nDiagramas);
+
+  sucesos.forEach(function(s){
+    if(s.t === "msg"){
+      var ls = s.lineas || partirTexto(s.texto, 260, 12);
+      if(autonum) { num++; ls = ls.slice(); ls[0] = num + ". " + ls[0]; }
+      var propio = s.a === s.b;
+      var altoTxt = ls.length * 15;
+      y += altoTxt + 6;
+      var x1 = s.a.x, x2 = s.b.x;
+      var dir = x2 >= x1 ? 1 : -1;
+      var off1 = s.a.activo > 0 ? dir * 5 : 0, off2 = s.b.activo > 0 ? -dir * 5 : 0;
+      if(s.act === "+"){ s.b.activo++; s.b.barras.push({ y1: y }); off2 = -dir * 5; }
+      if(propio){
+        var bx = x1 + 6, w2 = 44;
+        dibujos.push('<path d="M' + r2(bx) + "," + r2(y) + " h" + w2 + " v22 h" + (-w2) +
+                     '" fill="none" stroke="var(--dia-linea)" stroke-width="1.4"' +
+                     (s.rayas ? ' stroke-dasharray="5 4"' : "") +
+                     ' marker-end="url(#' + idd + '-flecha)"/>');
+        dibujos.push(textoSvg(ls, bx + w2 + 10, y + 4, { tam: 12, alto: 15, anclaje: "start", color: "var(--dia-texto)" }));
+        maxX = Math.max(maxX, bx + w2 + 10 + anchoLineas(ls, 12));
+        y += 30;
+      }else{
+        dibujos.push('<line x1="' + r2(x1 + off1) + '" y1="' + r2(y) + '" x2="' + r2(x2 + off2) + '" y2="' + r2(y) +
+                     '" stroke="var(--dia-linea)" stroke-width="1.4"' + (s.rayas ? ' stroke-dasharray="5 4"' : "") +
+                     (s.punta === "linea" ? "" : ' marker-end="url(#' + idd + "-" + (s.punta === "cruz" ? "cruz" : "flecha") + ')"') + "/>");
+        dibujos.push(textoSvg(ls, (x1 + x2) / 2, y - altoTxt / 2 - 3, { tam: 12, alto: 15, color: "var(--dia-texto)" }));
+        y += 14;
+      }
+      if(s.act === "-" && s.a.activo > 0){
+        s.a.activo--;
+        var ba = s.a.barras.pop();
+        if(ba) ba.y2 = y;
+      }
+    }else if(s.t === "activar"){
+      s.a.activo++; s.a.barras.push({ y1: y });
+    }else if(s.t === "desactivar"){
+      if(s.a.activo > 0){ s.a.activo--; var b2 = s.a.barras.pop(); if(b2) b2.y2 = y; }
+    }else if(s.t === "nota"){
+      var lsn = partirTexto(s.texto, 220, 12);
+      var wn = anchoLineas(lsn, 12) + 24, hn = lsn.length * 15 + 16;
+      var cx, x1n;
+      if(s.donde === "over"){
+        var xs = s.refs.map(function(r){ return r.x; });
+        var mn2 = Math.min.apply(null, xs), mx2 = Math.max.apply(null, xs);
+        cx = (mn2 + mx2) / 2;
+        wn = Math.max(wn, mx2 - mn2 + 60);
+      }else if(s.donde === "left of"){ cx = s.refs[0].x - wn / 2 - 12; }
+      else { cx = s.refs[0].x + wn / 2 + 12; }
+      y += 8;
+      dibujos.push('<rect x="' + r2(cx - wn / 2) + '" y="' + r2(y) + '" width="' + r2(wn) + '" height="' + r2(hn) +
+                   '" rx="4" fill="var(--dia-nota)" stroke="var(--dia-nota-borde)" stroke-width="1.2"/>');
+      dibujos.push(textoSvg(lsn, cx, y + hn / 2, { tam: 12, alto: 15, color: "var(--dia-texto)" }));
+      y += hn + 12;
+      minX = Math.min(minX, cx - wn / 2);
+      maxX = Math.max(maxX, cx + wn / 2);
+    }else if(s.t === "grupo"){
+      y += 8;
+      s.y1 = y;
+      y += 22;
+    }else if(s.t === "rama"){
+      s.y = y;
+      s.grupo.ramas.push({ y: y, texto: s.texto });
+      y += 20;
+    }else if(s.t === "finGrupo"){
+      y += 10;
+      s.grupo.y2 = y;
+      cajasGrupo.push(s.grupo);
+      y += 8;
+    }
+  });
+
+  var yPie = y + 22;
+  var alto = yPie + altoCab + PAD;
+  actores.forEach(function(a){
+    a.barras.forEach(function(b){ if(b.y2 === undefined) b.y2 = yPie - 6; });
+  });
+  var desplaza = Math.max(0, PAD - minX);
+  var ancho = maxX + desplaza + PAD;
+
+  var partes = [];
+  /* cajas de grupo, al fondo */
+  cajasGrupo.forEach(function(g){
+    var gx1 = minX - 10, gx2 = maxX + 10;
+    partes.push('<rect x="' + r2(gx1) + '" y="' + r2(g.y1) + '" width="' + r2(gx2 - gx1) + '" height="' + r2(g.y2 - g.y1) +
+                '" rx="4" fill="none" stroke="var(--dia-grupo-borde)" stroke-width="1.2"/>');
+    var et = g.clase.toUpperCase();
+    var wet = medir(et, 10.5, true) + 14;
+    partes.push('<path d="M' + r2(gx1) + "," + r2(g.y1) + " h" + r2(wet) + " l8,14 h" + r2(-wet - 8) +
+                ' z" fill="var(--dia-grupo)" stroke="var(--dia-grupo-borde)" stroke-width="1"/>');
+    partes.push('<text x="' + r2(gx1 + 7) + '" y="' + r2(g.y1 + 10.5) + '" font-size="10.5" font-weight="700" text-anchor="start" fill="var(--dia-tenue)">' + X(et) + "</text>");
+    if(g.texto) partes.push('<text x="' + r2(gx1 + wet + 22) + '" y="' + r2(g.y1 + 12) + '" font-size="12" text-anchor="start" fill="var(--dia-tenue)">[' + X(g.texto) + "]</text>");
+    g.ramas.forEach(function(rm){
+      partes.push('<line x1="' + r2(gx1) + '" y1="' + r2(rm.y) + '" x2="' + r2(gx2) + '" y2="' + r2(rm.y) + '" stroke="var(--dia-grupo-borde)" stroke-width="1" stroke-dasharray="4 4"/>');
+      if(rm.texto) partes.push('<text x="' + r2(gx1 + 10) + '" y="' + r2(rm.y + 14) + '" font-size="12" text-anchor="start" fill="var(--dia-tenue)">[' + X(rm.texto) + "]</text>");
+    });
+  });
+
+  /* lineas de vida */
+  actores.forEach(function(a){
+    partes.push('<line x1="' + r2(a.x) + '" y1="' + r2(PAD + altoCab) + '" x2="' + r2(a.x) + '" y2="' + r2(yPie) +
+                '" stroke="var(--dia-linea)" stroke-width="1" stroke-dasharray="4 5" opacity=".75"/>');
+    a.barras.forEach(function(b){
+      partes.push('<rect x="' + r2(a.x - 5) + '" y="' + r2(b.y1) + '" width="10" height="' + r2(Math.max(10, b.y2 - b.y1)) +
+                  '" fill="var(--dia-relleno)" stroke="var(--dia-borde)" stroke-width="1.2"/>');
+    });
+  });
+
+  partes = partes.concat(dibujos);
+
+  /* cabeceras y pies */
+  actores.forEach(function(a){
+    [PAD, yPie].forEach(function(yy){
+      partes.push('<rect x="' + r2(a.x - a.w / 2) + '" y="' + r2(yy) + '" width="' + r2(a.w) + '" height="' + r2(a.h) +
+                  '" rx="5" fill="var(--dia-relleno)" stroke="var(--dia-borde)" stroke-width="1.4"/>');
+      partes.push(textoSvg(a.lineas, a.x, yy + a.h / 2, { tam: 12.5, alto: 16, negrita: true, color: "var(--dia-texto)" }));
+    });
+  });
+
+  var cuerpo = partes.join("\n");
+  if(desplaza) cuerpo = '<g transform="translate(' + r2(desplaza) + ',0)">' + cuerpo + "</g>";
+  return envolver(idd, ancho, alto, cuerpo, "Diagrama de secuencia");
+}
+
+/* ==========================================================================
+   5. TARTA
+   ========================================================================== */
+var COLORES_TARTA = ["#3b82f6","#f97316","#10b981","#a855f7","#ef4444","#14b8a6","#eab308","#ec4899","#6366f1","#84cc16","#06b6d4","#f43f5e"];
+
+function dibujarTarta(texto){
+  var lineas = texto.replace(/\r\n?/g, "\n").split("\n");
+  var titulo = "", datos = [];
+  lineas.forEach(function(L){
+    L = L.replace(/%%[^\n]*$/, "").trim();
+    if(!L) return;
+    var mt = L.match(/^pie(?:\s+showData)?(?:\s+title\s+(.*))?$/i);
+    if(mt){ if(mt[1]) titulo = mt[1].trim(); return; }
+    var mt2 = L.match(/^title\s+(.*)$/i);
+    if(mt2){ titulo = mt2[1].trim(); return; }
+    var m = L.match(/^"?([^":]+?)"?\s*:\s*([\d.]+)$/);
+    if(m) datos.push({ etiqueta: m[1].trim(), valor: parseFloat(m[2]) || 0 });
+  });
+  if(!datos.length) return null;
+  var total = datos.reduce(function(s, d){ return s + d.valor; }, 0) || 1;
+
+  var R = 96, cx = R + 20, cy = R + 20 + (titulo ? 28 : 0);
+  var anchoLeyenda = 0;
+  datos.forEach(function(d){
+    d.pct = d.valor / total;
+    d.txt = d.etiqueta + "  " + (Math.round(d.pct * 1000) / 10) + "%";
+    anchoLeyenda = Math.max(anchoLeyenda, medir(d.txt, 12.5) + 30);
+  });
+  var ancho = cx + R + 34 + anchoLeyenda + 20;
+  var alto = Math.max(cy + R + 24, 60 + datos.length * 22 + (titulo ? 28 : 0));
+  var partes = [], ang = -Math.PI / 2;
+
+  datos.forEach(function(d, k){
+    var color = COLORES_TARTA[k % COLORES_TARTA.length];
+    var barrido = d.pct * Math.PI * 2;
+    if(datos.length === 1 || d.pct >= 0.9999){
+      partes.push('<circle cx="' + r2(cx) + '" cy="' + r2(cy) + '" r="' + R + '" fill="' + color + '" stroke="var(--dia-fondo)" stroke-width="2"/>');
+    }else{
+      var x1 = cx + R * Math.cos(ang), y1 = cy + R * Math.sin(ang);
+      var x2 = cx + R * Math.cos(ang + barrido), y2 = cy + R * Math.sin(ang + barrido);
+      partes.push('<path d="M' + r2(cx) + "," + r2(cy) + " L" + r2(x1) + "," + r2(y1) +
+                  " A" + R + "," + R + " 0 " + (barrido > Math.PI ? 1 : 0) + ",1 " + r2(x2) + "," + r2(y2) +
+                  ' z" fill="' + color + '" stroke="var(--dia-fondo)" stroke-width="2"/>');
+    }
+    ang += barrido;
+    var ly = 34 + (titulo ? 28 : 0) + k * 22;
+    var lx = cx + R + 30;
+    partes.push('<rect x="' + r2(lx) + '" y="' + r2(ly) + '" width="13" height="13" rx="3" fill="' + color + '"/>');
+    partes.push('<text x="' + r2(lx + 20) + '" y="' + r2(ly + 10.5) + '" font-size="12.5" text-anchor="start" fill="var(--dia-texto)">' + X(d.txt) + "</text>");
+  });
+  if(titulo){
+    partes.unshift('<text x="' + r2(ancho / 2) + '" y="26" font-size="14.5" font-weight="600" text-anchor="middle" fill="var(--dia-texto)">' + X(titulo) + "</text>");
+  }
+  return envolver("t" + (++nDiagramas), ancho, alto, partes.join("\n"), "Grafico de tarta");
+}
+
+/* ==========================================================================
+   6. ENVOLTORIO COMUN
+   ========================================================================== */
+function envolver(id, w, h, cuerpo, etiqueta){
+  var defs =
+    '<defs>' +
+    '<marker id="' + id + '-flecha" viewBox="0 0 10 10" refX="9.4" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">' +
+      '<path d="M0,0.6 L10,5 L0,9.4 z" fill="var(--dia-linea)"/></marker>' +
+    '<marker id="' + id + '-flecha-i" viewBox="0 0 10 10" refX="9.4" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">' +
+      '<path d="M0,0.6 L10,5 L0,9.4 z" fill="var(--dia-linea)"/></marker>' +
+    '<marker id="' + id + '-circulo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">' +
+      '<circle cx="5" cy="5" r="4" fill="var(--dia-fondo)" stroke="var(--dia-linea)" stroke-width="1.4"/></marker>' +
+    '<marker id="' + id + '-circulo-i" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto">' +
+      '<circle cx="5" cy="5" r="4" fill="var(--dia-fondo)" stroke="var(--dia-linea)" stroke-width="1.4"/></marker>' +
+    '<marker id="' + id + '-cruz" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto">' +
+      '<path d="M2,2 L8,8 M8,2 L2,8" stroke="var(--dia-linea)" stroke-width="1.8" fill="none"/></marker>' +
+    '<marker id="' + id + '-cruz-i" viewBox="0 0 10 10" refX="1.5" refY="5" markerWidth="8" markerHeight="8" orient="auto">' +
+      '<path d="M2,2 L8,8 M8,2 L2,8" stroke="var(--dia-linea)" stroke-width="1.8" fill="none"/></marker>' +
+    "</defs>";
+  return '<svg class="diagrama-svg" viewBox="0 0 ' + r2(w) + " " + r2(h) + '" width="' + Math.round(w) +
+         '" height="' + Math.round(h) + '" role="img" aria-label="' + X(etiqueta) + '" xmlns="http://www.w3.org/2000/svg" ' +
+         'font-family="' + DIA_FUENTE_SVG.replace(/"/g, "&quot;") + '" font-size="' + DIA_TAM + '">' +
+         defs + cuerpo + "</svg>";
+}
+
+/* ---------- puerta de entrada ---------- */
+function dibujarDiagrama(texto){
+  var t = String(texto == null ? "" : texto).replace(/\r\n?/g, "\n");
+  var cab = "";
+  var ls = t.split("\n");
+  for(var i = 0; i < ls.length; i++){
+    var L = ls[i].replace(/%%[^\n]*$/, "").trim();
+    if(L){ cab = L; break; }
+  }
+  try{
+    if(/^(?:graph|flowchart)\b/i.test(cab)) return dibujarFlujo(t, false);
+    if(/^stateDiagram(?:-v2)?\b/i.test(cab)) return dibujarFlujo(t, true);
+    if(/^sequenceDiagram\b/i.test(cab)) return dibujarSecuencia(t);
+    if(/^pie\b/i.test(cab)) return dibujarTarta(t);
+  }catch(e){ return null; }
+  return null;
+}
+/* ==========================================================================
+   FORMULAS
+   Traduce un subconjunto amplio de LaTeX a MathML, que los navegadores de hoy
+   dibujan solos. Ni librerias ni tipografias que descargar.
+   ========================================================================== */
+var GRIEGAS = {
+  alpha:"α", beta:"β", gamma:"γ", delta:"δ", epsilon:"ϵ", varepsilon:"ε", zeta:"ζ", eta:"η",
+  theta:"θ", vartheta:"ϑ", iota:"ι", kappa:"κ", lambda:"λ", mu:"μ", nu:"ν", xi:"ξ", pi:"π",
+  varpi:"ϖ", rho:"ρ", varrho:"ϱ", sigma:"σ", varsigma:"ς", tau:"τ", upsilon:"υ", phi:"ϕ",
+  varphi:"φ", chi:"χ", psi:"ψ", omega:"ω",
+  Gamma:"Γ", Delta:"Δ", Theta:"Θ", Lambda:"Λ", Xi:"Ξ", Pi:"Π", Sigma:"Σ", Upsilon:"Υ",
+  Phi:"Φ", Psi:"Ψ", Omega:"Ω"
+};
+
+var SIMBOLOS = {
+  times:"×", div:"÷", pm:"±", mp:"∓", cdot:"⋅", ast:"∗", star:"⋆", circ:"∘", bullet:"∙",
+  leq:"≤", le:"≤", geq:"≥", ge:"≥", neq:"≠", ne:"≠", approx:"≈", equiv:"≡", sim:"∼",
+  simeq:"≃", cong:"≅", propto:"∝", ll:"≪", gg:"≫", doteq:"≐", asymp:"≍",
+  subset:"⊂", supset:"⊃", subseteq:"⊆", supseteq:"⊇", in:"∈", notin:"∉", ni:"∋",
+  cup:"∪", cap:"∩", setminus:"∖", emptyset:"∅", varnothing:"∅",
+  forall:"∀", exists:"∃", nexists:"∄", neg:"¬", lnot:"¬", land:"∧", wedge:"∧", lor:"∨", vee:"∨",
+  rightarrow:"→", to:"→", longrightarrow:"⟶", leftarrow:"←", gets:"←", longleftarrow:"⟵",
+  leftrightarrow:"↔", Rightarrow:"⇒", implies:"⟹", Leftarrow:"⇐", Leftrightarrow:"⇔",
+  iff:"⟺", mapsto:"↦", uparrow:"↑", downarrow:"↓", nearrow:"↗", searrow:"↘",
+  infty:"∞", partial:"∂", nabla:"∇", angle:"∠", perp:"⊥", parallel:"∥", triangle:"△",
+  cdots:"⋯", ldots:"…", dots:"…", vdots:"⋮", ddots:"⋱", therefore:"∴", because:"∵",
+  prime:"′", degree:"°", aleph:"ℵ", hbar:"ℏ", ell:"ℓ", Re:"ℜ", Im:"ℑ", wp:"℘",
+  oplus:"⊕", ominus:"⊖", otimes:"⊗", oslash:"⊘", odot:"⊙", checkmark:"✓",
+  langle:"⟨", rangle:"⟩", lfloor:"⌊", rfloor:"⌋", lceil:"⌈", rceil:"⌉",
+  euro:"€", pounds:"£", copyright:"©", S:"§", P:"¶", surd:"√", top:"⊤", bot:"⊥",
+  models:"⊨", vdash:"⊢", dagger:"†", ddagger:"‡", flat:"♭", sharp:"♯", natural:"♮",
+  imath:"ı", jmath:"ȷ", lVert:"‖", rVert:"‖", lvert:"|", rvert:"|",
+  "%":"%", "$":"$", "&":"&", "#":"#", "_":"_", "{":"{", "}":"}"
+};
+
+var GRANDES = { sum:"∑", prod:"∏", coprod:"∐", bigcup:"⋃", bigcap:"⋂", bigoplus:"⨁",
+                bigotimes:"⨂", bigvee:"⋁", bigwedge:"⋀" };
+var INTEGRALES = { int:"∫", iint:"∬", iiint:"∭", oint:"∮", oiint:"∯" };
+var FUNCIONES = ["arccos","arcsin","arctan","arg","cos","cosh","cot","coth","csc","deg","det",
+  "dim","exp","gcd","hom","inf","ker","lg","lim","liminf","limsup","ln","log","max","min",
+  "Pr","sec","sin","sinh","sup","tan","tanh","mod","bmod"];
+var CON_LIMITES = { lim:1, limsup:1, liminf:1, max:1, min:1, sup:1, inf:1, det:1, gcd:1 };
+
+var VARIANTES = {
+  mathbb:"double-struck", mathbf:"bold", mathbfit:"bold-italic", mathcal:"script",
+  mathfrak:"fraktur", mathit:"italic", mathrm:"normal", mathsf:"sans-serif",
+  mathtt:"monospace", mathscr:"script", bm:"bold-italic", boldsymbol:"bold-italic",
+  textbf:"bold", textit:"italic", texttt:"monospace", textrm:"normal", textsf:"sans-serif"
+};
+
+var ACENTOS = {
+  hat:"^", widehat:"^", check:"ˇ", tilde:"~", widetilde:"~", acute:"´", grave:"`",
+  dot:"˙", ddot:"¨", breve:"˘", bar:"‾", overline:"‾", vec:"→", overrightarrow:"→"
+};
+
+var ESPACIOS = { ",":"0.167em", ":":"0.222em", ";":"0.278em", "!":"-0.167em",
+                 quad:"1em", qquad:"2em", " ":"0.25em" };
+
+var DELIMS = { "(":"(", ")":")", "[":"[", "]":"]", "|":"|", "/":"/",
+               "\\{":"{", "\\}":"}", "\\|":"‖", "\\langle":"⟨", "\\rangle":"⟩",
+               "\\lfloor":"⌊", "\\rfloor":"⌋", "\\lceil":"⌈", "\\rceil":"⌉",
+               "\\vert":"|", "\\Vert":"‖", "\\.":"" };
+
+var ENTORNOS = {
+  matrix: ["", ""], pmatrix: ["(", ")"], bmatrix: ["[", "]"], Bmatrix: ["{", "}"],
+  vmatrix: ["|", "|"], Vmatrix: ["‖", "‖"], cases: ["{", ""], smallmatrix: ["", ""],
+  aligned: ["", ""], align: ["", ""], gathered: ["", ""], array: ["", ""]
+};
+
+/* ---------- reparto en fichas ---------- */
+function fichasTex(s){
+  var out = [], i = 0, n = s.length;
+  while(i < n){
+    var c = s.charAt(i);
+    if(c === "\\"){
+      var m = /^\\([A-Za-z]+|\\|.)/.exec(s.slice(i));
+      if(!m){ i++; continue; }
+      out.push({ t: "cmd", v: m[1] });
+      i += m[0].length;
+    }else if(c === " " || c === "\t" || c === "\n"){
+      out.push({ t: "esp", v: " " });
+      i++;
+    }else if(c >= "0" && c <= "9"){
+      var m2 = /^[0-9]+(?:[.,][0-9]+)?/.exec(s.slice(i));
+      out.push({ t: "num", v: m2[0] });
+      i += m2[0].length;
+    }else{
+      out.push({ t: "car", v: c });
+      i++;
+    }
+  }
+  return out;
+}
+
+function texAMathml(tex, bloque){
+  var f = fichasTex(String(tex)), i = 0;
+
+  function fin(){ return i >= f.length; }
+  function mira(){ return f[i]; }
+  function esCierre(tk){
+    if(!tk) return true;
+    if(tk.t === "car" && tk.v === "}") return true;
+    if(tk.t === "cmd" && (tk.v === "right" || tk.v === "end" || tk.v === "\\")) return true;
+    return false;
+  }
+
+  /* un solo trozo: una ficha, un grupo entre llaves o un mandato con argumentos */
+  function trozo(){
+    while(!fin() && mira().t === "esp") i++;
+    if(fin()) return "";
+    var tk = f[i];
+
+    if(tk.t === "car" && tk.v === "{"){
+      i++;
+      var dentro = secuencia();
+      if(!fin() && mira().t === "car" && mira().v === "}") i++;
+      return "<mrow>" + dentro + "</mrow>";
+    }
+    if(tk.t === "num"){ i++; return "<mn>" + X(tk.v) + "</mn>"; }
+    if(tk.t === "car"){
+      i++;
+      var c = tk.v;
+      if(/[A-Za-z]/.test(c)) return "<mi>" + X(c) + "</mi>";
+      if(c === "'") return "<mo>′</mo>";
+      if(c === "-") return "<mo>−</mo>";
+      if(c === "*") return "<mo>∗</mo>";
+      if(DELIMS[c] !== undefined) return '<mo stretchy="false">' + X(c) + "</mo>";
+      return "<mo>" + X(c) + "</mo>";
+    }
+    /* mandatos */
+    i++;
+    var c2 = tk.v;
+
+    if(GRIEGAS[c2]) return "<mi>" + GRIEGAS[c2] + "</mi>";
+    if(SIMBOLOS[c2]) return "<mo>" + SIMBOLOS[c2] + "</mo>";
+    if(ESPACIOS[c2]) return '<mspace width="' + ESPACIOS[c2] + '"/>';
+    if(c2 === "\\") return "";
+
+    if(GRANDES[c2] || INTEGRALES[c2]){
+      var simbolo = GRANDES[c2] || INTEGRALES[c2];
+      var conLim = !!GRANDES[c2] && bloque;
+      return operadorGrande('<mo largeop="true">' + simbolo + "</mo>", conLim);
+    }
+    if(FUNCIONES.indexOf(c2) >= 0){
+      var base = "<mi>" + X(c2) + "</mi>";
+      if(CON_LIMITES[c2]) return operadorGrande(base, bloque);
+      return base;
+    }
+    if(c2 === "frac" || c2 === "dfrac" || c2 === "tfrac" || c2 === "cfrac"){
+      var a = trozo(), b = trozo();
+      return "<mfrac>" + (a || "<mrow></mrow>") + (b || "<mrow></mrow>") + "</mfrac>";
+    }
+    if(c2 === "binom" || c2 === "dbinom"){
+      var b1 = trozo(), b2 = trozo();
+      return '<mrow><mo stretchy="true">(</mo><mfrac linethickness="0">' + b1 + b2 +
+             '</mfrac><mo stretchy="true">)</mo></mrow>';
+    }
+    if(c2 === "sqrt"){
+      while(!fin() && mira().t === "esp") i++;
+      if(!fin() && mira().t === "car" && mira().v === "["){
+        i++;
+        var indice = secuencia("]");
+        if(!fin() && mira().t === "car" && mira().v === "]") i++;
+        return "<mroot>" + trozo() + "<mrow>" + indice + "</mrow></mroot>";
+      }
+      return "<msqrt>" + trozo() + "</msqrt>";
+    }
+    if(c2 === "text" || c2 === "textnormal" || c2 === "mbox"){
+      return "<mtext>" + X(textoCrudo()) + "</mtext>";
+    }
+    if(VARIANTES[c2]){
+      var v = VARIANTES[c2];
+      if(c2.indexOf("text") === 0) return '<mtext mathvariant="' + v + '">' + X(textoCrudo()) + "</mtext>";
+      return '<mstyle mathvariant="' + v + '">' + trozo() + "</mstyle>";
+    }
+    if(ACENTOS[c2]){
+      var esBarra = c2 === "bar" || c2 === "overline";
+      return "<mover" + (esBarra ? "" : ' accent="true"') + ">" + trozo() +
+             "<mo>" + ACENTOS[c2] + "</mo></mover>";
+    }
+    if(c2 === "underline"){ return '<munder accentunder="true">' + trozo() + "<mo>‾</mo></munder>"; }
+    if(c2 === "operatorname"){ return "<mi>" + X(textoCrudo()) + "</mi>"; }
+    if(c2 === "left"){
+      var da = leerDelim();
+      var cuerpo = secuencia();
+      var db = "";
+      if(!fin() && mira().t === "cmd" && mira().v === "right"){ i++; db = leerDelim(); }
+      return "<mrow>" + (da ? '<mo stretchy="true">' + X(da) + "</mo>" : "") + cuerpo +
+             (db ? '<mo stretchy="true">' + X(db) + "</mo>" : "") + "</mrow>";
+    }
+    if(c2 === "begin"){
+      var nombre = textoCrudo().replace(/[*]$/, "");
+      return entorno(nombre);
+    }
+    if(c2 === "limits" || c2 === "nolimits" || c2 === "displaystyle" ||
+       c2 === "textstyle" || c2 === "scriptstyle" || c2 === "!" ) return "";
+    if(DELIMS["\\" + c2] !== undefined) return '<mo stretchy="false">' + X(DELIMS["\\" + c2]) + "</mo>";
+
+    return "<mi>" + X(c2) + "</mi>";
+  }
+
+  /* sub y superindices que van pegados al trozo anterior */
+  function operadorGrande(base, bajoEncima){
+    var abajo = "", arriba = "";
+    for(var vueltas = 0; vueltas < 2; vueltas++){
+      while(!fin() && mira().t === "esp") i++;
+      if(fin()) break;
+      var tk = mira();
+      if(tk.t === "cmd" && (tk.v === "limits" || tk.v === "nolimits")){ i++; vueltas--; continue; }
+      if(tk.t !== "car" || (tk.v !== "_" && tk.v !== "^")) break;
+      i++;
+      if(tk.v === "_") abajo = trozo(); else arriba = trozo();
+    }
+    if(abajo && arriba) return (bajoEncima ? "<munderover>" : "<msubsup>") + base + abajo + arriba + (bajoEncima ? "</munderover>" : "</msubsup>");
+    if(abajo) return (bajoEncima ? "<munder>" : "<msub>") + base + abajo + (bajoEncima ? "</munder>" : "</msub>");
+    if(arriba) return (bajoEncima ? "<mover>" : "<msup>") + base + arriba + (bajoEncima ? "</mover>" : "</msup>");
+    return base;
+  }
+
+  function leerDelim(){
+    while(!fin() && mira().t === "esp") i++;
+    if(fin()) return "";
+    var tk = f[i];
+    if(tk.t === "cmd"){ i++; return DELIMS["\\" + tk.v] !== undefined ? DELIMS["\\" + tk.v] : ""; }
+    i++;
+    if(tk.v === ".") return "";
+    return DELIMS[tk.v] !== undefined ? DELIMS[tk.v] : tk.v;
+  }
+
+  function textoCrudo(){
+    while(!fin() && mira().t === "esp") i++;
+    if(fin() || mira().t !== "car" || mira().v !== "{") {
+      if(!fin()){ var t1 = f[i]; i++; return t1.v; }
+      return "";
+    }
+    i++;
+    var s = "", hondo = 1;
+    while(!fin()){
+      var tk = f[i];
+      if(tk.t === "car" && tk.v === "{"){ hondo++; s += "{"; i++; continue; }
+      if(tk.t === "car" && tk.v === "}"){ hondo--; i++; if(!hondo) break; s += "}"; continue; }
+      s += tk.t === "cmd" ? "\\" + tk.v : tk.v;
+      i++;
+    }
+    return s;
+  }
+
+  function entorno(nombre){
+    var marco = ENTORNOS[nombre] || ["", ""];
+    if(nombre === "array"){ textoCrudo(); }   /* se descarta la fila de alineaciones */
+    var filas = [[]], actual = [];
+    function cerrarCelda(){ filas[filas.length - 1].push("<mtd>" + actual.join("") + "</mtd>"); actual = []; }
+    while(!fin()){
+      var tk = mira();
+      if(tk.t === "cmd" && tk.v === "end"){ i++; textoCrudo(); break; }
+      if(tk.t === "cmd" && tk.v === "\\"){ i++; cerrarCelda(); filas.push([]); continue; }
+      if(tk.t === "car" && tk.v === "&"){ i++; cerrarCelda(); continue; }
+      if(tk.t === "esp"){ i++; continue; }
+      actual.push(conIndices());
+    }
+    cerrarCelda();
+    var cuerpo = filas.filter(function(fila){ return fila.length && fila.join("") !== "<mtd></mtd>"; })
+                      .map(function(fila){ return "<mtr>" + fila.join("") + "</mtr>"; }).join("");
+    var alineado = nombre === "cases" || nombre.indexOf("align") === 0;
+    var tabla = "<mtable" + (alineado ? ' columnalign="left"' : "") + ">" + cuerpo + "</mtable>";
+    if(!marco[0] && !marco[1]) return tabla;
+    return "<mrow>" + (marco[0] ? '<mo stretchy="true">' + X(marco[0]) + "</mo>" : "") + tabla +
+           (marco[1] ? '<mo stretchy="true">' + X(marco[1]) + "</mo>" : "") + "</mrow>";
+  }
+
+  function conIndices(){
+    var base = trozo();
+    var abajo = "", arriba = "";
+    for(var vueltas = 0; vueltas < 2; vueltas++){
+      while(!fin() && mira().t === "esp") i++;
+      if(fin()) break;
+      var tk = mira();
+      if(tk.t !== "car" || (tk.v !== "_" && tk.v !== "^")) break;
+      i++;
+      if(tk.v === "_"){ if(abajo) break; abajo = trozo(); }
+      else { if(arriba) break; arriba = trozo(); }
+    }
+    if(abajo && arriba) return "<msubsup>" + base + abajo + arriba + "</msubsup>";
+    if(abajo) return "<msub>" + base + abajo + "</msub>";
+    if(arriba) return "<msup>" + base + arriba + "</msup>";
+    return base;
+  }
+
+  function secuencia(parar){
+    var trozos = [];
+    while(!fin()){
+      var tk = mira();
+      if(esCierre(tk)) break;
+      if(parar && tk.t === "car" && tk.v === parar) break;
+      if(tk.t === "esp"){ i++; continue; }
+      var antes = i;
+      trozos.push(conIndices());
+      if(i === antes) i++;   /* red de seguridad: nunca quedarse quieto */
+    }
+    return trozos.join("");
+  }
+
+  var cuerpo = "<mrow>" + secuencia() + "</mrow>";
+  if(bloque) cuerpo = '<mstyle displaystyle="true">' + cuerpo + "</mstyle>";
+  return '<math xmlns="http://www.w3.org/1998/Math/MathML"' +
+         (bloque ? ' display="block"' : "") + ' class="formula' + (bloque ? " formula-bloque" : "") + '">' +
+         cuerpo + "</math>";
+}
+
+function formula(tex, bloque){
+  try{ return texAMathml(tex, bloque); }
+  catch(e){ return '<code class="formula-cruda">' + X(tex) + "</code>"; }
+}
 
 var RE_ITEM = /^( {0,8})([-+*]|\d{1,9}[.)])([ \t]+|$)(.*)$/;
 var RE_HTML = /^ {0,3}<(\/?)(details|summary|div|section|article|aside|header|footer|nav|figure|figcaption|table|thead|tbody|tfoot|tr|td|th|caption|colgroup|col|dl|dt|dd|p|blockquote|pre|hr|iframe|video|audio|canvas|svg|form|fieldset|legend|center|main|address|ul|ol|li|style|script|h[1-6])(\s|\/?>)/i;
@@ -1219,6 +2558,7 @@ function mdAHtml(fuente){
   var toc = [];
   var ids = {};
   var meta = {};
+  var metaOrden = [];
   var hayTOC = false;
 
   function g(html){ G.push(html); return Z + (G.length - 1) + Z; }
@@ -1266,6 +2606,14 @@ function mdAHtml(fuente){
       if(/^ [\s\S]* $/.test(c) && c.trim() !== "") c = c.slice(1, -1);
       return g("<code>" + esc(c) + "</code>");
     });
+
+    /* formulas entre dolares: $E = mc^2$ */
+    if(meta.matematicas !== "no"){
+      t = t.replace(/(^|[^\\$])\$([^\s$][^$\n]*?)\$(?![\w$])/g, function(m, antes, cuerpo){
+        if(/\s$/.test(cuerpo)) return m;
+        return antes + g(formula(cuerpo, false));
+      });
+    }
 
     /* caracteres escapados con barra invertida */
     t = t.replace(/\\([\\`*_{}\[\]()<>#+\-.!|~^=$:@\/"'])/g, function(m, c){ return g(esc(c)); });
@@ -1452,6 +2800,34 @@ function mdAHtml(fuente){
       /* indice automatico */
       if(RE_TOC.test(L)){ out.push(Z + "TOC" + Z); hayTOC = true; i++; continue; }
 
+      /* formula suelta entre dobles dolares */
+      if(meta.matematicas !== "no" && /^ {0,3}\$\$/.test(L)){
+        var restoF = L.replace(/^ {0,3}\$\$/, ""), bufF = [];
+        var cerradaF = /\$\$[ \t]*$/.test(restoF) && restoF.replace(/\$\$[ \t]*$/, "").trim() !== "";
+        if(cerradaF){
+          bufF.push(restoF.replace(/\$\$[ \t]*$/, ""));
+          i++;
+        }else{
+          if(restoF.trim()) bufF.push(restoF);
+          i++;
+          while(i < ls.length){
+            if(/\$\$[ \t]*$/.test(ls[i])){
+              var colaF = ls[i].replace(/\$\$[ \t]*$/, "");
+              if(colaF.trim()) bufF.push(colaF);
+              i++;
+              cerradaF = true;
+              break;
+            }
+            bufF.push(ls[i]);
+            i++;
+          }
+        }
+        if(cerradaF || bufF.length){
+          out.push('<div class="formula-caja no-romper">' + formula(bufF.join("\n").trim(), true) + "</div>");
+          continue;
+        }
+      }
+
       /* bloque de codigo con vallas */
       m = L.match(RE_VALLA);
       if(m && (m[2].length >= 3)){
@@ -1465,9 +2841,20 @@ function mdAHtml(fuente){
           buf.push(ls[i].replace(reSangria, ""));
           i++;
         }
+        var codigo = buf.join("\n");
+        var etiqueta = leng.toLowerCase().replace(/^lang(uage)?-/, "");
+        if(etiqueta === "mermaid" || etiqueta === "diagrama" || etiqueta === "grafico" || etiqueta === "gr\u00e1fico"){
+          var svg = dibujarDiagrama(codigo);
+          if(svg){
+            out.push('<figure class="diagrama no-romper">' + svg +
+                     '<button type="button" class="ver-codigo no-print" aria-expanded="false">c\u00f3digo</button>' +
+                     '<pre class="diagrama-fuente" hidden><code>' + esc(codigo) + "</code></pre></figure>");
+            continue;
+          }
+        }
         out.push("<pre" + (leng ? ' data-lenguaje="' + escAtr(leng) + '"' : "") + "><code" +
-                 (leng ? ' class="lenguaje-' + escAtr(leng) + '"' : "") + ">" +
-                 esc(buf.join("\n")) + "</code></pre>");
+                 (leng ? ' class="lenguaje-' + escAtr(etiqueta) + '"' : "") + ">" +
+                 (hayLenguaje(etiqueta) ? resaltar(codigo, etiqueta) : esc(codigo)) + "</code></pre>");
         continue;
       }
 
@@ -1617,10 +3004,34 @@ function mdAHtml(fuente){
   /* metadatos del principio */
   var fm = src.match(/^---[ \t]*\n([\s\S]*?)\n---[ \t]*(?:\n|$)/);
   if(fm){
-    fm[1].split("\n").forEach(function(l){
-      var mm = l.match(/^([A-Za-z0-9_-]+)[ \t]*:[ \t]*(.*)$/);
-      if(mm) meta[mm[1].toLowerCase()] = mm[2].replace(/^["']|["']$/g, "").trim();
-    });
+    var lineasFM = fm[1].split("\n");
+    for(var f1 = 0; f1 < lineasFM.length; f1++){
+      var lf = lineasFM[f1];
+      if(!lf.trim() || /^\s*#/.test(lf)) continue;
+      var mm = lf.match(/^([A-Za-z0-9_.\-]+)[ \t]*:[ \t]*(.*)$/);
+      if(!mm) continue;
+      var clave = mm[1], valor = mm[2].trim(), sueltos = [];
+      if(valor === "" || valor === "|" || valor === ">" || valor === "|-" || valor === ">-"){
+        var enBloque = (valor !== "");
+        while(f1 + 1 < lineasFM.length){
+          var sig = lineasFM[f1 + 1];
+          if(sig.trim() === ""){ if(!enBloque) break; f1++; continue; }
+          if(!/^[ \t]/.test(sig)) break;
+          f1++;
+          var t = sig.trim();
+          sueltos.push(enBloque ? t : t.replace(/^-[ \t]*/, ""));
+        }
+        valor = sueltos.join(enBloque ? " " : ", ");
+      }
+      valor = valor.replace(/^["']|["']$/g, "").trim();
+      var yaEsta = meta.hasOwnProperty(clave.toLowerCase());
+      meta[clave.toLowerCase()] = valor;
+      if(yaEsta){
+        for(var f2 = 0; f2 < metaOrden.length; f2++){
+          if(metaOrden[f2].k.toLowerCase() === clave.toLowerCase()){ metaOrden[f2].v = valor; break; }
+        }
+      }else metaOrden.push({ k: clave, v: valor });
+    }
     src = src.slice(fm[0].length);
   }
 
@@ -1677,124 +3088,227 @@ function mdAHtml(fuente){
     cuerpo += pie + "</ol></section>";
   }
 
-  return { html: abrirTodo(cuerpo), meta: meta, toc: toc };
+  return { html: abrirTodo(cuerpo), meta: meta, metaOrden: metaOrden, toc: toc };
 }
 
 /* ==========================================================================
-   INTERFAZ: pintar, editar, descargar, imprimir, tema
+   INTERFAZ: pintar, editar, plantillas, guardar, imprimir, instalar
    ========================================================================== */
 var $ = function(s){ return document.querySelector(s); };
-var elFuente = $("#fuente");
-var elDoc = $("#doc");
-var elEd = $("#ed");
-var fuenteActual = elFuente ? elFuente.textContent : "";
+var elFuente = $("#fuente"), elDoc = $("#doc"), elEd = $("#ed");
 
-function escAtrUI(s){
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+/* Modo archivo: la copia .html descargada se comporta como el documento suelto
+   (sin almacenamiento, sin service worker y sin catálogo remoto). */
+var MODO_ARCHIVO = document.documentElement.getAttribute("data-standalone") === "1" ||
+                   location.protocol === "file:";
+
+var CLAVE_DOC = "mdcrgm.doc", CLAVE_NOMBRE = "mdcrgm.nombre",
+    CLAVE_TEMA = "mdcrgm.tema", CLAVE_MIAS = "mdcrgm.mias";
+
+var BIENVENIDA = elFuente ? elFuente.textContent : "";
+var fuenteActual = BIENVENIDA, textoBase = BIENVENIDA, nombreSugerido = "";
+
+/* ---------- almacenamiento ---------- */
+function leer(c){ try{ return localStorage.getItem(c); }catch(e){ return null; } }
+function escribir(c, v){ try{ localStorage.setItem(c, v); }catch(e){} }
+function borrar(c){ try{ localStorage.removeItem(c); }catch(e){} }
+function guardarDoc(){
+  if(MODO_ARCHIVO) return;
+  escribir(CLAVE_DOC, fuenteActual);
+  escribir(CLAVE_NOMBRE, nombreSugerido);
 }
 
-function portada(meta){
+/* ---------- utilidades ---------- */
+function escUI(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+var temporizadorAviso = null;
+function aviso(texto, etiqueta, accion){
+  var caja = $("#aviso"), boton = $("#avisoBoton");
+  $("#avisoTexto").textContent = texto;
+  clearTimeout(temporizadorAviso);
+  if(etiqueta && accion){
+    boton.hidden = false;
+    boton.textContent = etiqueta;
+    boton.onclick = function(){ caja.hidden = true; accion(); };
+  }else{
+    boton.hidden = true;
+    boton.onclick = null;
+    temporizadorAviso = setTimeout(function(){ caja.hidden = true; }, 3800);
+  }
+  caja.hidden = false;
+}
+
+/* ---------- portada y metadatos ---------- */
+function quitarTildes(s){
+  return String(s).normalize ? String(s).normalize("NFD").replace(new RegExp("[\\u0300-\\u036f]", "g"), "") : String(s);
+}
+var CLAVES_DOC = { titulo:1, title:1, subtitulo:1, subtitle:1, autor:1, author:1, fecha:1, date:1 };
+function portada(meta, orden){
   var t  = meta.titulo || meta.title || "";
   var st = meta.subtitulo || meta.subtitle || "";
   var au = meta.autor || meta.author || "";
   var fe = meta.fecha || meta.date || "";
-  if(!t && !st && !au && !fe) return "";
-  var h = '<header class="portada">';
-  if(t)  h += '<h1 class="portada-titulo">' + escAtrUI(t) + "</h1>";
-  if(st) h += '<p class="portada-subtitulo">' + escAtrUI(st) + "</p>";
+  var otras = (orden || []).filter(function(p){ return !CLAVES_DOC[p.k.toLowerCase()]; });
+  if(!t && !st && !au && !fe && !otras.length) return "";
+  var h = '<header class="portada' + (!t && !st ? " solo-meta" : "") + '">';
+  if(t)  h += '<h1 class="portada-titulo">' + escUI(t) + "</h1>";
+  if(st) h += '<p class="portada-subtitulo">' + escUI(st) + "</p>";
   if(au || fe){
-    h += '<p class="portada-datos">' +
-         (au ? "<span>" + escAtrUI(au) + "</span>" : "") +
-         (fe ? "<span>" + escAtrUI(fe) + "</span>" : "") + "</p>";
+    h += '<p class="portada-datos">' + (au ? "<span>" + escUI(au) + "</span>" : "") +
+         (fe ? "<span>" + escUI(fe) + "</span>" : "") + "</p>";
+  }
+  if(otras.length){
+    h += '<dl class="portada-meta">';
+    otras.forEach(function(p){ h += "<dt>" + escUI(p.k) + "</dt><dd>" + escUI(p.v) + "</dd>"; });
+    h += "</dl>";
   }
   return h + "</header>";
 }
 
+/* ---------- pintar ---------- */
+function prepararDiagramas(){
+  Array.prototype.forEach.call(elDoc.querySelectorAll("figure.diagrama"), function(fig){
+    var boton = fig.querySelector(".ver-codigo"), fuente = fig.querySelector(".diagrama-fuente");
+    if(!boton || !fuente || boton.dataset.listo) return;
+    boton.dataset.listo = "1";
+    boton.addEventListener("click", function(){
+      var abierto = !fuente.hidden;
+      fuente.hidden = abierto;
+      boton.setAttribute("aria-expanded", String(!abierto));
+      boton.textContent = abierto ? "c\u00f3digo" : "dibujo";
+      boton.style.opacity = abierto ? "" : "1";
+    });
+  });
+}
+
+/* la barra de botones se aparta sola mientras se lee y vuelve al subir */
+function barraQueSeAparta(){
+  var barra = document.getElementById("barra");
+  if(!barra) return;
+  var ultimo = 0;
+  function mostrar(){ barra.classList.remove("escondida"); }
+  function mirar(y){
+    if(y < 110 || y < ultimo - 5) mostrar();
+    else if(y > ultimo + 8 && !barra.contains(document.activeElement)) barra.classList.add("escondida");
+    ultimo = y;
+  }
+  window.addEventListener("scroll", function(){
+    mirar(window.pageYOffset || document.documentElement.scrollTop || 0);
+  }, { passive: true });
+  if(elDoc) elDoc.addEventListener("scroll", function(){ mirar(elDoc.scrollTop); }, { passive: true });
+  document.addEventListener("mousemove", function(e){ if(e.clientY < 96) mostrar(); });
+  document.addEventListener("focusin", mostrar);
+  document.addEventListener("keydown", mostrar);
+  window.addEventListener("beforeprint", mostrar);
+}
+
 function botonesCopiar(){
-  var pres = elDoc.querySelectorAll("pre");
-  Array.prototype.forEach.call(pres, function(pre){
+  Array.prototype.forEach.call(elDoc.querySelectorAll("pre"), function(pre){
     if(pre.querySelector(".copiar")) return;
     var b = document.createElement("button");
-    b.type = "button";
-    b.className = "copiar no-print";
-    b.textContent = "copiar";
+    b.type = "button"; b.className = "copiar no-print"; b.textContent = "copiar";
     b.addEventListener("click", function(){
-      var txt = pre.querySelector("code") ? pre.querySelector("code").textContent : pre.textContent;
-      copiar(txt);
+      var c = pre.querySelector("code");
+      copiar(c ? c.textContent : pre.textContent);
       b.textContent = "copiado";
       setTimeout(function(){ b.textContent = "copiar"; }, 1200);
     });
     pre.appendChild(b);
   });
 }
-
 function copiar(txt){
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(txt)["catch"](function(){ copiarViejo(txt); });
-  }else{
-    copiarViejo(txt);
-  }
+  }else copiarViejo(txt);
 }
 function copiarViejo(txt){
   var a = document.createElement("textarea");
-  a.value = txt;
-  a.style.position = "fixed";
-  a.style.opacity = "0";
-  document.body.appendChild(a);
-  a.select();
+  a.value = txt; a.style.position = "fixed"; a.style.opacity = "0";
+  document.body.appendChild(a); a.select();
   try{ document.execCommand("copy"); }catch(e){}
   document.body.removeChild(a);
 }
 
 function pintar(md){
   var r;
-  try{
-    r = mdAHtml(md);
-  }catch(e){
+  try{ r = mdAHtml(md); }
+  catch(e){
     elDoc.innerHTML = '<div class="alerta precaucion"><p class="alerta-titulo">Error al convertir el texto</p><p>' +
-                      escAtrUI(e && e.message ? e.message : e) + "</p></div>";
+                      escUI(e && e.message ? e.message : e) + "</p></div>";
     return;
   }
-  elDoc.innerHTML = portada(r.meta) + r.html;
-  var t = r.meta.titulo || r.meta.title;
-  document.title = t ? t : "Documento Markdown";
+  elDoc.innerHTML = portada(r.meta, r.metaOrden) + r.html;
+  var t = r.meta.titulo || r.meta.title || r.meta.name || "";
+  document.title = t ? t + " · Markdown" : "Markdown · crgm";
   botonesCopiar();
+  prepararDiagramas();
 }
 
+function fijarTexto(txt, nombre){
+  fuenteActual = String(txt);
+  textoBase = fuenteActual;
+  if(nombre !== undefined) nombreSugerido = nombre || "";
+  if(elEd) elEd.value = fuenteActual;
+  guardarDoc();
+  pintar(fuenteActual);
+  window.scrollTo(0, 0);
+  if(elDoc.parentNode) elDoc.scrollTop = 0;
+}
+function hayCambios(){ return fuenteActual.trim() !== textoBase.trim(); }
+function confirmarReemplazo(){
+  if(!hayCambios()) return true;
+  return window.confirm("Vas a reemplazar el documento actual y tienes cambios sin descargar. ¿Seguimos?");
+}
+
+/* ---------- descargas ---------- */
 function descargar(nombre, texto, tipo){
   var b = new Blob([texto], { type: tipo + ";charset=utf-8" });
   var u = URL.createObjectURL(b);
   var a = document.createElement("a");
-  a.href = u;
-  a.download = nombre;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href = u; a.download = nombre;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
 }
-
-function nombreArchivo(){
-  var t = document.title.replace(/[\\\/:*?"<>|]+/g, "").trim();
-  return (t || "documento").toLowerCase().replace(/\s+/g, "-").slice(0, 60);
+function baseNombre(){
+  if(nombreSugerido) return nombreSugerido.replace(/\.(md|markdown|mdown|mkd|txt|html?)$/i, "");
+  var t = (document.title || "").replace(/ · Markdown$/, "").replace(/[\\\/:*?"<>|]+/g, "").trim();
+  return (t && t !== "Markdown · crgm" ? t : "documento").toLowerCase().replace(/\s+/g, "-").slice(0, 60);
+}
+function guardarHtml(){
+  var clon = document.documentElement.cloneNode(true);
+  clon.setAttribute("data-standalone", "1");
+  ["link[rel=manifest]", "link[rel~=apple-touch-icon]", "link[rel='alternate icon']", "link[rel=icon]"].forEach(function(sel){
+    Array.prototype.forEach.call(clon.querySelectorAll(sel), function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+  });
+  var f = clon.querySelector("#fuente");
+  if(f) f.textContent = "\n" + fuenteActual.replace(/<\/(script)/gi, "<\\/$1") + "\n";
+  var d = clon.querySelector("#doc"); if(d) d.innerHTML = "";
+  var le = clon.querySelector("#ladoEditor"); if(le) le.hidden = true;
+  var ta = clon.querySelector("#ed"); if(ta) ta.textContent = "";
+  var be = clon.querySelector("#btnEditar"); if(be) be.innerHTML = "<b>&#9998;</b><span>Editar</span>";
+  var velo = clon.querySelector("#velo"); if(velo) velo.hidden = true;
+  var av = clon.querySelector("#aviso"); if(av) av.hidden = true;
+  clon.querySelector("body").className = "";
+  descargar(baseNombre() + ".html", "<!doctype html>\n" + clon.outerHTML, "text/html");
 }
 
-/* --- editar en el navegador --- */
+/* ---------- editor ---------- */
 var abierto = false, temporizador = null;
 function alternarEditor(){
   abierto = !abierto;
   document.body.classList.toggle("editando", abierto);
   $("#ladoEditor").hidden = !abierto;
-  $("#btnEditar").innerHTML = abierto ? "&#10007; Cerrar" : "&#9998; Editar";
-  if(abierto){
-    elEd.value = fuenteActual;
-    elEd.focus();
-  }
+  $("#btnEditar").innerHTML = abierto ? "<b>&#10007;</b><span>Cerrar</span>" : "<b>&#9998;</b><span>Editar</span>";
+  if(abierto){ elEd.value = fuenteActual; elEd.focus(); }
 }
 if(elEd){
   elEd.addEventListener("input", function(){
     fuenteActual = elEd.value;
     clearTimeout(temporizador);
-    temporizador = setTimeout(function(){ pintar(fuenteActual); }, 180);
+    temporizador = setTimeout(function(){ pintar(fuenteActual); guardarDoc(); }, 200);
   });
   elEd.addEventListener("keydown", function(e){
     if(e.key === "Tab"){
@@ -1806,63 +3320,284 @@ if(elEd){
   });
 }
 
-/* --- tema --- */
-var CLAVE = "plantilla-md-tema";
+/* ---------- tema ---------- */
 function ponerTema(t){
   if(t) document.documentElement.setAttribute("data-tema", t);
   else document.documentElement.removeAttribute("data-tema");
 }
-try{
-  var guardado = localStorage.getItem(CLAVE);
-  if(guardado) ponerTema(guardado);
-}catch(e){}
+ponerTema(leer(CLAVE_TEMA));
 function alternarTema(){
   var actual = document.documentElement.getAttribute("data-tema");
-  var oscuroAhora = actual ? actual === "oscuro"
+  var oscuro = actual ? actual === "oscuro"
     : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  var nuevo = oscuroAhora ? "claro" : "oscuro";
+  var nuevo = oscuro ? "claro" : "oscuro";
   ponerTema(nuevo);
-  try{ localStorage.setItem(CLAVE, nuevo); }catch(e){}
+  escribir(CLAVE_TEMA, nuevo);
 }
 
-/* --- guardar una copia de esta pagina con el texto de ahora --- */
-function guardarHtml(){
-  var clon = document.documentElement.cloneNode(true);
-  var f = clon.querySelector("#fuente");
-  if(f) f.textContent = "\n" + fuenteActual.replace(/<\/(script)/gi, "<\\/$1") + "\n";
-  var d = clon.querySelector("#doc");
-  if(d) d.innerHTML = "";
-  var le = clon.querySelector("#ladoEditor");
-  if(le){ le.hidden = true; }
-  var ta = clon.querySelector("#ed");
-  if(ta){ ta.textContent = ""; ta.removeAttribute("value"); }
-  var be = clon.querySelector("#btnEditar");
-  if(be) be.innerHTML = "&#9998; Editar";
-  clon.querySelector("body").className = "";
-  descargar(nombreArchivo() + ".html", "<!doctype html>\n" + clon.outerHTML, "text/html");
+/* ---------- catálogo de plantillas ---------- */
+var CATALOGO = null, catActual = null, filtro = "";
+function misPlantillas(){
+  try{ return JSON.parse(leer(CLAVE_MIAS) || "[]"); }catch(e){ return []; }
+}
+function guardarMias(lista){ escribir(CLAVE_MIAS, JSON.stringify(lista)); }
+
+function cargarCatalogo(){
+  if(CATALOGO) return Promise.resolve(CATALOGO);
+  if(MODO_ARCHIVO) return Promise.resolve({ categorias: [], plantillas: [] });
+  return fetch("plantillas/indice.json").then(function(r){
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(j){ CATALOGO = j; return j; });
 }
 
-/* --- botones y atajos --- */
+function abrirGaleria(){
+  $("#velo").hidden = false;
+  cargarCatalogo().then(function(){
+    if(!catActual) catActual = (CATALOGO.categorias[0] || {}).id || "mias";
+    pintarGaleria();
+    var b = $("#buscar"); if(b) b.focus();
+  })["catch"](function(e){
+    $("#tarjetas").innerHTML = '<p class="vacio">No se pudo cargar el catálogo (' + escUI(e.message) + ').</p>';
+  });
+}
+function cerrarGaleria(){ $("#velo").hidden = true; }
+
+function todasLasPlantillas(){
+  var mias = misPlantillas().map(function(p){
+    return { id: p.id, cat: "mias", titulo: p.titulo, desc: p.desc || "Plantilla tuya",
+             nombre: p.nombre || "", texto: p.texto, mia: true };
+  });
+  return (CATALOGO ? CATALOGO.plantillas : []).concat(mias);
+}
+
+function pintarGaleria(){
+  var cats = (CATALOGO ? CATALOGO.categorias : []).concat(
+    [{ id: "mias", nombre: "Mis plantillas", icono: "★", descripcion: "Las que guardas tú, en este navegador" }]);
+  var todas = todasLasPlantillas();
+  var q = filtro.trim().toLowerCase();
+
+  var nav = "";
+  if(q){
+    nav = '<p>Resultados</p>';
+  }else{
+    nav = cats.map(function(c){
+      var n = todas.filter(function(p){ return p.cat === c.id; }).length;
+      return '<button type="button" data-cat="' + escUI(c.id) + '" aria-current="' + (c.id === catActual) + '">' +
+             '<i>' + escUI(c.icono || "") + "</i>" + escUI(c.nombre) +
+             '<span class="cuenta">' + n + "</span></button>";
+    }).join("");
+  }
+  $("#categorias").innerHTML = nav;
+
+  var nombreCat = {};
+  cats.forEach(function(c){ nombreCat[c.id] = c.nombre; });
+  var lista = todas.filter(function(p){
+    if(q){
+      var texto = [p.titulo, p.desc || "", p.destino || "", p.nombre || "", nombreCat[p.cat] || ""].join(" ");
+      return quitarTildes(texto.toLowerCase()).indexOf(quitarTildes(q)) >= 0;
+    }
+    return p.cat === catActual;
+  });
+
+  var html = "";
+  if(!q && catActual === "mias"){
+    html += '<button type="button" class="tarjeta" data-guardar="1">' +
+            "<h3>&#65291; Guardar este documento</h3>" +
+            "<p>Convierte lo que tienes escrito ahora en una plantilla tuya, guardada en este navegador.</p></button>";
+  }
+  html += lista.map(function(p){
+    return '<button type="button" class="tarjeta" data-id="' + escUI(p.id) + '">' +
+           "<h3>" + escUI(p.titulo) + "</h3>" +
+           "<p>" + escUI(p.desc || "") + "</p>" +
+           (p.destino && p.destino !== "—" ? "<code>" + escUI(p.destino) + "</code>" : "") +
+           (p.mia ? '<span class="quitar" data-quitar="' + escUI(p.id) + '">quitar</span>' : "") +
+           "</button>";
+  }).join("");
+  if(!lista.length && !(!q && catActual === "mias")){
+    html = '<p class="vacio">' + (q ? "Nada encaja con esa búsqueda." : "Aquí no hay nada todavía.") + "</p>";
+  }
+  $("#tarjetas").innerHTML = html;
+}
+
+function usarPlantilla(id){
+  var p = todasLasPlantillas().filter(function(x){ return x.id === id; })[0];
+  if(!p) return;
+  var traer = p.mia ? Promise.resolve(p.texto)
+                    : fetch("plantillas/" + p.archivo).then(function(r){
+                        if(!r.ok) throw new Error("HTTP " + r.status);
+                        return r.text();
+                      });
+  traer.then(function(txt){
+    if(!confirmarReemplazo()) return;
+    fijarTexto(txt, p.nombre || (p.id + ".md"));
+    cerrarGaleria();
+    aviso("Plantilla cargada: " + p.titulo);
+  })["catch"](function(e){ aviso("No se pudo cargar: " + e.message); });
+}
+
+/* ---------- eventos ---------- */
+$("#categorias").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-cat]");
+  if(!b) return;
+  catActual = b.getAttribute("data-cat");
+  pintarGaleria();
+});
+$("#tarjetas").addEventListener("click", function(e){
+  var quitar = e.target.closest("[data-quitar]");
+  if(quitar){
+    e.stopPropagation();
+    var idq = quitar.getAttribute("data-quitar");
+    if(window.confirm("¿Quitar esta plantilla tuya?")){
+      guardarMias(misPlantillas().filter(function(p){ return p.id !== idq; }));
+      pintarGaleria();
+    }
+    return;
+  }
+  var tarjeta = e.target.closest(".tarjeta");
+  if(!tarjeta) return;
+  if(tarjeta.getAttribute("data-guardar")){
+    var titulo = window.prompt("Nombre de la plantilla:", (document.title || "").replace(/ · Markdown$/, ""));
+    if(!titulo) return;
+    var lista = misPlantillas();
+    lista.push({ id: "mia-" + lista.length + "-" + titulo.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 24),
+                 titulo: titulo, desc: "Guardada por ti", nombre: nombreSugerido, texto: fuenteActual });
+    guardarMias(lista);
+    pintarGaleria();
+    aviso("Guardada en «Mis plantillas»");
+    return;
+  }
+  usarPlantilla(tarjeta.getAttribute("data-id"));
+});
+$("#buscar").addEventListener("input", function(){ filtro = this.value; pintarGaleria(); });
+$("#cerrarDialogo").addEventListener("click", cerrarGaleria);
+$("#velo").addEventListener("click", function(e){ if(e.target === this) cerrarGaleria(); });
+
 $("#btnEditar").addEventListener("click", alternarEditor);
+$("#btnPlantillas").addEventListener("click", abrirGaleria);
 $("#btnTema").addEventListener("click", alternarTema);
 $("#btnImprimir").addEventListener("click", function(){ window.print(); });
-$("#btnMd").addEventListener("click", function(){ descargar(nombreArchivo() + ".md", fuenteActual.replace(/^\n+/, ""), "text/markdown"); });
+$("#btnMd").addEventListener("click", function(){
+  descargar((nombreSugerido && /\.[a-z]+$/i.test(nombreSugerido) ? nombreSugerido : baseNombre() + ".md"),
+            fuenteActual.replace(/^\n+/, ""), "text/markdown");
+});
 $("#btnHtml").addEventListener("click", guardarHtml);
-
-document.addEventListener("keydown", function(e){
-  if((e.ctrlKey || e.metaKey) && (e.key === "e" || e.key === "E")){
-    e.preventDefault();
-    alternarEditor();
-  }
+$("#btnNuevo").addEventListener("click", function(){
+  if(!confirmarReemplazo()) return;
+  fijarTexto("---\ntitulo: \nautor: \nfecha: \n---\n\n", "documento.md");
+  if(!abierto) alternarEditor();
+});
+$("#btnAbrir").addEventListener("click", function(){ $("#archivo").click(); });
+$("#archivo").addEventListener("change", function(){
+  var f = this.files && this.files[0];
+  this.value = "";
+  if(!f) return;
+  if(!confirmarReemplazo()) return;
+  var fr = new FileReader();
+  fr.onload = function(){ fijarTexto(String(fr.result), f.name); aviso("Abierto: " + f.name); };
+  fr.readAsText(f);
 });
 
-/* --- en marcha --- */
-pintar(fuenteActual);
+/* arrastrar y soltar un .md sobre la página */
+["dragover", "drop"].forEach(function(ev){
+  document.addEventListener(ev, function(e){
+    e.preventDefault();
+    if(ev !== "drop") return;
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if(!f || !/\.(md|markdown|mdown|mkd|txt)$/i.test(f.name)) return;
+    if(!confirmarReemplazo()) return;
+    var fr = new FileReader();
+    fr.onload = function(){ fijarTexto(String(fr.result), f.name); aviso("Abierto: " + f.name); };
+    fr.readAsText(f);
+  });
+});
 
-/* por si alguien quiere trastear desde la consola del navegador */
-window.plantilla = { convertir: mdAHtml, pintar: pintar, editor: alternarEditor,
-                     guardarHtml: guardarHtml, tema: alternarTema,
-                     texto: function(){ return fuenteActual; } };
+document.addEventListener("keydown", function(e){
+  var ctrl = e.ctrlKey || e.metaKey;
+  if(ctrl && (e.key === "e" || e.key === "E")){ e.preventDefault(); alternarEditor(); }
+  else if(ctrl && (e.key === "k" || e.key === "K")){ e.preventDefault(); abrirGaleria(); }
+  else if(e.key === "Escape" && !$("#velo").hidden){ cerrarGaleria(); }
+});
+
+/* ---------- instalar como aplicación ---------- */
+var promesaInstalar = null;
+window.addEventListener("beforeinstallprompt", function(e){
+  e.preventDefault();
+  promesaInstalar = e;
+  $("#btnInstalar").hidden = false;
+});
+$("#btnInstalar").addEventListener("click", function(){
+  if(!promesaInstalar) return;
+  promesaInstalar.prompt();
+  promesaInstalar.userChoice.then(function(){
+    promesaInstalar = null;
+    $("#btnInstalar").hidden = true;
+  });
+});
+window.addEventListener("appinstalled", function(){ $("#btnInstalar").hidden = true; });
+
+/* ---------- service worker ---------- */
+if(!MODO_ARCHIVO && "serviceWorker" in navigator &&
+   (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      reg.addEventListener("updatefound", function(){
+        var nuevo = reg.installing;
+        if(!nuevo) return;
+        nuevo.addEventListener("statechange", function(){
+          if(nuevo.state === "installed" && navigator.serviceWorker.controller){
+            aviso("Hay una versión nueva de la aplicación", "Actualizar", function(){
+              nuevo.postMessage({ tipo: "ACTUALIZAR" });
+            });
+          }
+        });
+      });
+    })["catch"](function(){});
+    var recargando = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function(){
+      if(recargando) return;
+      recargando = true;
+      location.reload();
+    });
+  });
+}
+
+/* ---------- arranque ---------- */
+if(MODO_ARCHIVO){
+  $("#btnPlantillas").hidden = true;
+}else{
+  var guardadoDoc = leer(CLAVE_DOC);
+  if(guardadoDoc && guardadoDoc.trim()){
+    fuenteActual = guardadoDoc;
+    textoBase = guardadoDoc;
+    nombreSugerido = leer(CLAVE_NOMBRE) || "";
+  }
+}
+
+var parametros = new URLSearchParams(location.search);
+pintar(fuenteActual);
+if(elEd) elEd.value = fuenteActual;
+
+if(!MODO_ARCHIVO && parametros.has("nuevo")){
+  fijarTexto("---\ntitulo: \nautor: \nfecha: \n---\n\n", "documento.md");
+  alternarEditor();
+  history.replaceState(null, "", location.pathname);
+}else if(!MODO_ARCHIVO && parametros.get("plantilla")){
+  var pedida = parametros.get("plantilla");
+  history.replaceState(null, "", location.pathname);
+  cargarCatalogo().then(function(){ usarPlantilla(pedida); })["catch"](function(){});
+}else if(!MODO_ARCHIVO && parametros.has("plantillas")){
+  history.replaceState(null, "", location.pathname);
+  abrirGaleria();
+}
+
+barraQueSeAparta();
+
+window.plantilla = {
+  convertir: mdAHtml, pintar: pintar, editor: alternarEditor, galeria: abrirGaleria,
+  guardarHtml: guardarHtml, tema: alternarTema, fijar: fijarTexto,
+  texto: function(){ return fuenteActual; }, modoArchivo: MODO_ARCHIVO
+};
 
 })();
 </script>
