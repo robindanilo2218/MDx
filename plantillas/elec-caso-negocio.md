@@ -10,7 +10,7 @@ fecha:
 Dos líneas. Si dirección solo lee esto, tiene que poder decidir.
 
 - Se pide [qué se compra o se reemplaza: transformador, tablero, monitoreo en línea o banco de capacitores, con capacidad y ubicación] antes de [fecha límite y por qué esa fecha].
-- Costo total [monto y moneda]: [monto] de equipo, [monto] de montaje, [monto] de ingeniería y pruebas. Beneficio anual [monto]. Se recupera en [meses].
+- Costo total [monto y moneda]: [monto] de equipo, [monto] de montaje, [monto] de ingeniería y pruebas. Beneficio anual neto [monto]. Se recupera en [meses].
 
 ## El problema, con evidencia
 
@@ -21,7 +21,7 @@ Una fila por prueba, con fecha y con quién la firmó. Sin eso, esto es una opin
 | Historial de fallas | [n disparos y h de paro en 24 meses] | [fecha] | [nombre] | [orden de trabajo n] |
 | Termografía | [delta T del punto caliente contra su referencia; severidad según la tabla de la norma de termografía que apliques] | [fecha] | [nombre] | [informe n] |
 | Pruebas eléctricas | [aislamiento, índice de polarización, resistencia de contactos, contra la medición anterior] | [fecha] | [nombre] | [protocolo n] |
-| Aceite y gases disueltos | [valores y tendencia, interpretados con la guía de DGA vigente] | [fecha] | [laboratorio] | [informe n] |
+| Aceite y gases disueltos | [valores y tendencia, contra la guía de interpretación de gases disueltos que uses] | [fecha] | [laboratorio] | [informe n] |
 | Edad y repuestos | [años en servicio contra la vida esperada del fabricante; parte descontinuada y semanas de entrega] | [fecha] | [proveedor] | [carta del fabricante] |
 | Carga | [carga medida contra la placa y kW nuevos que suma el proyecto de ampliación] | [fecha] | [nombre] | [registro del analizador] |
 | Calidad de la energía | [factor de potencia y distorsión medidos en el punto de acople común, contra los límites de la edición vigente de IEEE 519] | [fecha] | [nombre] | [estudio n] |
@@ -68,18 +68,18 @@ Todas se cotizan igual, incluida la de no hacer nada. Si una opción no se estud
 
 Fórmulas a la vista y supuestos aparte, para que finanzas pueda cambiarlos sin rehacer el documento.
 
-- Pérdida evitada al año = probabilidad anual de falla × horas de paro por falla × costo de la hora de paro.
+- Pérdida evitada al año = (probabilidad anual de falla hoy − probabilidad que queda con la opción) × horas de paro por falla × costo de la hora de paro.
 - Ahorro de energía al año = kWh que se dejan de perder al año × precio del kWh.
-- Pérdidas del transformador al año = ((pérdidas en vacío en kW × 8760 h) + (pérdidas con carga en kW × factor de carga al cuadrado × horas con carga)) × precio del kWh.
+- Costo anual de las pérdidas del transformador = ((pérdidas en vacío en kW × 8760 h) + (pérdidas con carga a plena carga en kW × factor de carga al cuadrado × horas en servicio)) × precio del kWh. Las dos pérdidas salen del protocolo de fábrica, no de la placa.
 - Ahorro por factor de potencia al año = penalización facturada al mes × 12. Copia la fórmula y el factor mínimo de tu tarifa; no supongas el umbral.
-- Beneficio anual = ahorro de energía + penalizaciones que se evitan + pérdida evitada + correctivo que se deja de gastar.
-- Periodo de recuperación en años = inversión ÷ beneficio anual.
+- Beneficio anual neto = ahorro de energía + penalizaciones que se evitan + pérdida evitada + correctivo que se deja de gastar − lo que cuesta de más operar y mantener la opción nueva contra la opción 0.
+- Periodo de recuperación en años = inversión ÷ beneficio anual neto. Multiplícalo por 12 si lo pides en meses.
 - Costo del ciclo de vida = inversión + suma anual de (operación + mantenimiento + energía perdida + paros esperados) traída a valor presente + retiro − valor residual.
 
 | Concepto | Opción 0 | Opción 1 | Opción 2 | Opción 3 |
 | --- | ---: | ---: | ---: | ---: |
 | Inversión | 0 | [monto] | [monto] | [monto] |
-| Beneficio anual | 0 | [monto] | [monto] | [monto] |
+| Beneficio anual neto | 0 | [monto] | [monto] | [monto] |
 | Periodo de recuperación | — | [años] | [años] | [años] |
 | Costo del ciclo de vida a [n] años | [monto] | [monto] | [monto] | [monto] |
 

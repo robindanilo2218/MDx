@@ -42,7 +42,7 @@ Una hoja, sin adjuntos. Si un número no cabe aquí, no es un indicador de direc
 | Hallazgos termográficos abiertos (n.º) | [ ] | [ ] | [ ] | [ ] |
 | Consumo (kWh) / kWh por unidad producida | [ ] / [ ] | [ ] / [ ] | [ ] / [ ] | [ ] |
 | Factor de potencia | [ ] | [ ] | [ ] | [ ] |
-| Trabajos con tensión con permiso firmado (%) | [ ] | 100 | [ ] | [ ] |
+| Trabajos con tensión: ejecutados (n.º) / con permiso firmado (%) | [ ] / [ ] | [a la baja] / 100 | [ ] / [ ] | [ ] |
 | Incidentes eléctricos (n.º) | [ ] | 0 | [ ] | [ ] |
 | Horas de formación por técnico (h) | [ ] | [ ] | [ ] | [ ] |
 
@@ -65,10 +65,10 @@ Trampas:
 - **Horas de paro.** Quien clasifica la causa decide tu indicador. Pacta la clasificación por escrito y lleva los casos dudosos a acta, no a discusión de pasillo.
 
 > [!WARNING]
-> La disponibilidad sola no describe nada. Un 99 % puede esconder una sola falla de ocho horas en el activo que más factura, y un 95 % puede ser polvo de paros cortos que no duelen. Va siempre acompañada de horas de paro, MTBF del activo crítico y trabajo de emergencia.
+> La disponibilidad sola no describe nada. Un porcentaje alto puede esconder una única falla larga en el activo que más factura, y uno bajo puede ser polvo de paros cortos que no duelen. Va siempre acompañada de horas de paro, MTBF del activo crítico y trabajo de emergencia.
 
 > [!WARNING]
-> El MTBF con pocas fallas es aritmética frágil, no señal: si el mes cerró con dos fallas, una tercera te baja el indicador un tercio sin que nada haya cambiado en la planta. Fija tu umbral mínimo de fallas por periodo, escríbelo aquí — [número mínimo de fallas para publicar el MTBF] — y por debajo de él publica el conteo de fallas y amplía la ventana a doce meses móviles.
+> El MTBF con pocas fallas es aritmética frágil, no señal: si el mes cerró con dos fallas, una tercera te baja el indicador un tercio sin que nada haya cambiado en la planta. Fija tu umbral mínimo de fallas por periodo, escríbelo aquí — [número mínimo de fallas para publicar el MTBF] — y por debajo de él publica el conteo de fallas y amplía la ventana móvil hasta juntar fallas suficientes: [meses de ventana móvil que uses].
 
 ## Trabajo de la cuadrilla
 
@@ -108,13 +108,13 @@ Lo que anuncia la falla antes de que ocurra, y lo que la factura eléctrica ya e
 
 | Indicador | Qué mide | Fórmula | De dónde sale | Meta |
 | --- | --- | --- | --- | --- |
-| Hallazgos termográficos abiertos | Defectos vistos y todavía sin corregir | Conteo de hallazgos con acción pendiente al cierre del mes, más la antigüedad del más viejo | Informe de la ruta termográfica con foto, carga y referencia | [cero abiertos en la clase más severa] |
+| Hallazgos termográficos abiertos | Defectos vistos y todavía sin corregir | Conteo de hallazgos con acción pendiente al cierre del mes, más la antigüedad del más viejo | Informe de la ruta termográfica con foto, carga y referencia | [cero abiertos en la clase más severa de tu informe termográfico] |
 | Consumo | Energía usada y energía por producto | kWh del mes y kWh ÷ unidades producidas | Medidor de la subestación y parte de producción | [contra el kWh/unidad del último año] |
 | Factor de potencia | Cuánta corriente mueves sin cobrarla como trabajo | Factor de potencia = kW ÷ kVA, o el valor que factura la empresa eléctrica | Analizador de red o factura del suministro | [el mínimo que te exige tu tarifa: míralo en el contrato de suministro, no lo supongas] |
 
 Trampas:
 
-- **Termografía.** Una inspección con la máquina en vacío no ve nada: la guía de Fluke pide al menos un 40 % de carga para que el defecto caliente. Programa la ruta con carga representativa y guarda la imagen de referencia del primer año. Los umbrales de acción por aumento de temperatura los tomas de la tabla de acciones sugeridas de la ANSI/NETA MTS vigente, [con el criterio de referencia que uses: ambiente, componente similar o máximo del fabricante]. No inventes el umbral y no lo copies de un blog.
+- **Termografía.** Una inspección con la máquina en vacío no ve nada: la guía de Fluke pide al menos un 40 % de carga para que el defecto caliente. Programa la ruta con carga representativa, guarda la imagen de referencia de cada equipo crítico y asóciale su temperatura de alarma. Los umbrales de acción por aumento de temperatura no los pones tú: sácalos de la especificación que sigas — [ANSI/NETA MTS vigente, criterio del fabricante o el que fije tu procedimiento] — y anota contra qué comparas: [ambiente, componente gemelo con la misma carga o máximo del fabricante]. No inventes el umbral y no lo copies de un blog.
 - **Consumo.** Sin normalizar por producción, el consumo baja cuando la planta produce menos, y eso no es un logro tuyo.
 - **Factor de potencia.** El promedio del mes esconde las horas malas: mira el perfil horario y las horas penalizadas. Antes de agrandar un banco de capacitores, mide la distorsión armónica: un banco puede entrar en resonancia con los armónicos de los variadores. El límite aplicable es [el que fije la IEEE 519 vigente para tu nivel de tensión y tu relación de cortocircuito en el punto de acople común].
 
@@ -124,7 +124,7 @@ Estos tres no se negocian y no se compensan con los demás. Van en la misma hoja
 
 | Indicador | Qué mide | Fórmula | De dónde sale | Meta |
 | --- | --- | --- | --- | --- |
-| Trabajos con tensión con permiso | Si la excepción está justificada, autorizada por escrito y ejecutada por personal calificado | Permisos firmados ÷ trabajos con tensión ejecutados × 100 | Libro de permisos y órdenes de trabajo | 100 %, sin excepción |
+| Trabajos con tensión con permiso | Si la excepción está justificada, autorizada por escrito y ejecutada por personal calificado | Permisos firmados ÷ trabajos con tensión ejecutados × 100. Publica al lado el conteo de trabajos con tensión | Libro de permisos y órdenes de trabajo | 100 %, sin excepción |
 | Incidentes eléctricos | Contacto, arco, quemadura y casi-accidente reportados | Conteo del mes, separando incidente y casi-accidente | Reporte de seguridad e investigación de causa | 0 incidentes; los casi-accidentes se esperan y se investigan |
 | Formación | Horas de formación eléctrica por técnico | Horas de formación ÷ número de técnicos de la cuadrilla | Registro de capacitación con firma y evaluación | [horas por técnico al año ÷ 12] |
 
@@ -162,8 +162,8 @@ Una decisión por fila. Si un número no pide nada, sobra del tablero.
 *De dónde sale este formato. Borra esta sección al usar la plantilla.*
 
 - [SMRP Best Practices](https://smrp.org/Body-of-Knowledge/Best-Practices) — más de 70 métricas con definición, fórmula, ejemplo de cálculo, valores de referencia y advertencias.
-- [IEEE 493, Gold Book, edición 2007](https://standards.ieee.org/ieee/493/3402/) — datos de fiabilidad de equipo y costo de la interrupción; IEEE la marca inactiva, úsala como dato, no como norma.
-- [NFPA 70E, Standard for Electrical Safety in the Workplace](https://www.nfpa.org/product/nfpa-70e-standard/p0070ecode) — ficha oficial: confirma el título y cuál es la edición vigente; los valores están en el articulado, no en la página.
+- [IEEE 493-2007, sistemas eléctricos industriales y comerciales fiables](https://standards.ieee.org/ieee/493/3402/) — datos de fiabilidad de equipo y costo de la interrupción; IEEE la marca inactiva desde 2021, úsala como dato, no como norma.
+- [NFPA 70E, Standard for Electrical Safety in the Workplace](https://www.nfpa.org/product/nfpa-70e-standard/p0070ecode) — ficha oficial: confirma el título de la norma; la edición vigente y los valores están en el articulado, no en la página.
 - [OSHA 1910.333](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar antes de trabajar es la regla, y solo persona calificada toca partes no desenergizadas.
 - [IEEE 519, Harmonic Control in Electric Power Systems](https://standards.ieee.org/ieee/519/10677/) — edición 2022: los límites de distorsión de tensión y corriente se aplican en el punto de acople común.
 - [Thermal imaging in preventive maintenance programs](https://www.fluke.com/en/learn/blog/thermal-imaging/preventive-maintenance) — Fluke: imagen de referencia, alarma de temperatura y mínimo de 40 % de carga para que el defecto se vea.

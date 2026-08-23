@@ -30,7 +30,7 @@ Sustituye la norma por la que te aplique: NFPA 70E y NEC (NFPA 70) en buena part
 
 ## Inventario de activos eléctricos
 
-Una fila por familia. Criticidad A: su falla para la planta o pone gente en riesgo. B: degrada producción o se libra con respaldo. C: molesta, no para nada.
+Una fila por familia. La clase A, B o C la copias del análisis de criticidad, no la decides aquí: en esta tabla solo le asignas estrategia.
 
 | Familia | Cantidad | Identificación o tag | Tensión | Criticidad | Estrategia |
 | --- | ---: | --- | ---: | :---: | --- |
@@ -49,7 +49,7 @@ Una fila por familia. Criticidad A: su falla para la planta o pone gente en ries
 
 ## Estrategia y por qué esa y no otra
 
-La estrategia se defiende con historial de fallas y costo de paro, no con costumbre.
+La estrategia se defiende con historial de fallas y costo de paro, no con costumbre. Escribe el porqué que vas a repetir delante de dirección.
 
 | Estrategia | Familias | Por qué esa |
 | --- | --- | --- |
@@ -57,7 +57,6 @@ La estrategia se defiende con historial de fallas y costo de paro, no con costum
 | Preventivo por tiempo u horas | [variadores, capacitores, SPT, plantas de emergencia, canalizaciones] | [el deterioro va con el tiempo y el calor, y la norma o el fabricante fijan la rutina] |
 | Correctivo planificado | [motores no críticos, iluminación] | [cambiar sale más barato que inspeccionar y hay repuesto en almacén] |
 | Rediseño o reemplazo | [activos con fallas repetidas] | [si reincide tras dos intervenciones correctas, el problema es el diseño] |
-
 
 ## Calendario anual
 
@@ -72,7 +71,7 @@ La frecuencia sale de la criticidad, de la condición encontrada y del entorno d
 | May | [análisis de aceite y relación de transformación] | [transformadores] | [anual] | [contratista] | [parcial] |
 | Jun | [limpieza de variadores, filtros y ventiladores] | [variadores] | [semestral] | [propio] | [parcial] |
 | Jul | [descarga de UPS e impedancia de baterías] | [UPS] | [semestral] | [contratista] | [no] |
-| Ago | [prueba con carga real de planta de emergencia] | [plantas] | [mensual y anual con carga] | [propio] | [no] |
+| Ago | [prueba con carga real de planta de emergencia] | [plantas] | [la de tu norma de plantas de emergencia (NFPA 110 u otra) y la del fabricante] | [propio] | [no] |
 | Sep | [medición de red y revisión de bancos de capacitores] | [capacitores] | [anual] | [propio] | [parcial] |
 | Oct | [termografía de repaso y cierre de hallazgos abiertos] | [todas] | [semestral] | [propio] | [no] |
 | Nov | [inspección de canalizaciones y campaña de iluminación] | [canalizaciones] | [anual] | [propio] | [no] |
@@ -96,7 +95,7 @@ Desenergizar es la regla. Trabajar con tensión es la excepción y exige justifi
 - [ ] Señalizar y delimitar la zona, y no retirar la delimitación hasta cerrar el permiso.
 
 > [!CAUTION]
-> Un candado por punto de corte no es bloqueo: cada persona expuesta pone el suyo y solo esa persona lo retira. Las fronteras de aproximación, la energía incidente y la categoría de EPP salen de la tabla correspondiente de la NFPA 70E vigente y del estudio de arco eléctrico de esta planta, nunca de una plantilla ni de otra instalación.
+> Un solo candado en el punto de corte no basta: va candado y etiqueta en cada medio de desconexión, cada persona expuesta pone el suyo y solo esa persona lo retira. Las fronteras de aproximación, la energía incidente y la categoría de EPP salen de la tabla correspondiente de la NFPA 70E vigente y del estudio de arco eléctrico de esta planta, nunca de una plantilla ni de otra instalación.
 
 ## Recursos e instrumentos
 
@@ -110,7 +109,7 @@ Personal propio: [n] técnicos electricistas y [n] certificados para media tensi
 | Telurómetro para resistencia de puesta a tierra | [operativo] | [fecha] | [fecha] |
 | TTR para relación de transformación | [alquilado] | [fecha] | [fecha] |
 
-La ruta termográfica se planifica en bloques de equipo de dos a tres horas, con imagen de referencia por activo y con el sistema a por lo menos el 40 % de carga: por debajo de eso el calor no aparece y la inspección no sirve.
+La ruta termográfica se planifica en bloques de equipo de dos a tres horas, con imagen de referencia por activo y con el sistema a por lo menos el 40 % de carga: por debajo de eso el calor no aparece y la inspección no sirve. Se hace con el equipo energizado: es trabajo con tensión y lleva análisis de riesgo, permiso y el EPP que fije el estudio de arco de la planta. Donde haya ventanas infrarrojas, se inspecciona sin abrir puertas.
 
 ## Presupuesto
 
@@ -162,9 +161,9 @@ Cuándo se toca este documento y con qué evidencia se justifica cada cambio.
 
 *De dónde sale este formato. Borra esta sección al usar la plantilla.*
 
-- [NFPA 70B, Standard for Electrical Equipment Maintenance](https://www.nfpa.org/product/nfpa-70b-standard-for-electrical-equipment-maintenance/p0070bcode) — la norma que exige un programa de mantenimiento eléctrico documentado.
-- [NFPA 70E, Standard for Electrical Safety in the Workplace](https://www.nfpa.org/product/nfpa-70e-standard-for-electrical-safety-in-the-workplace/p0070ecode) — de aquí salen EPP, fronteras y el permiso de trabajo energizado.
-- [OSHA 1910.333, Selection and use of work practices](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar es la regla; candado, etiqueta y verificación son obligatorios.
-- [ANSI/NETA MTS, Maintenance Testing Specifications](https://www.netaworld.org/standards/ansi-neta-mts) — qué prueba lleva cada equipo y con qué criterio de aceptación.
-- [Frequency of Maintenance, NETA](https://www.netaworld.org/standards/frequency-maintenance) — el programa ideal se basa en confiabilidad, equipo por equipo.
-- [Fluke, Thermal Imaging in Preventive Maintenance Programs](https://www.fluke.com/en-us/learn/blog/thermal-imaging/preventive-maintenance) — bloques de inspección, imagen de referencia y el mínimo de 40 % de carga.
+- [NFPA 70B, Standard for Electrical Equipment Maintenance](https://www.nfpa.org/product/nfpa-70b-standard-for-electrical-equipment-maintenance/p0070bcode) — ficha oficial de la norma: ahí compruebas cuál es la edición vigente antes de citarla.
+- [OSHA 1910.333, Selection and use of work practices](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar antes de trabajar, candado y etiqueta en cada medio de desconexión y ausencia de tensión verificada por persona calificada.
+- [OSHA, Establishing Boundaries Around Arc Flash Hazards](https://www.osha.gov/sites/default/files/publications/OSHA4474.pdf) — las tres fronteras, quién puede cruzar cada una y por qué cambian con la tensión y el equipo.
+- [ANSI/NETA MTS, Maintenance Testing Specifications](https://www.netaworld.org/standards/ansi-neta-mts) — qué ensayo de campo lleva cada equipo y con qué tolerancia se acepta.
+- [Frequency of Maintenance, NETA](https://www.netaworld.org/standards/frequency-maintenance) — el programa ideal se basa en confiabilidad y es propio de cada planta y cada equipo.
+- [Fluke, Thermal Imaging in Preventive Maintenance Programs](https://www.fluke.com/en-us/learn/blog/thermal-imaging/preventive-maintenance) — bloques de dos a tres horas, imagen de referencia por activo y el mínimo del 40 % de carga.

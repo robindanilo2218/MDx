@@ -7,7 +7,7 @@ fecha:
 
 ## Datos del trabajo y del equipo
 
-Se llena antes de cada trabajo no rutinario, se lee en voz alta en la charla previa y se firma en el sitio. Si cambia el alcance, el equipo o la cuadrilla, se llena otra hoja. Lo que no sepas, búscalo antes de empezar: un hueco aquí es un riesgo sin medir.
+Se llena antes del trabajo, se lee en voz alta en la charla previa y se firma en el sitio. Si cambia el alcance, el equipo o la cuadrilla, se llena otra hoja. Un hueco sin rellenar es un riesgo sin medir.
 
 | Campo | Dato |
 | --- | --- |
@@ -20,7 +20,7 @@ Se llena antes de cada trabajo no rutinario, se lee en voz alta en la charla pre
 | Corriente de cortocircuito disponible | [kA en ese punto, del estudio de cortocircuito; si no la tienes, escribe que no la tienes] |
 | Protección aguas arriba y su ajuste | [interruptor o fusible que despeja esa falla, TAG, curva y ajuste actual] |
 | Tiempo de despeje | [ms o s del estudio de coordinación; de este dato depende la energía incidente] |
-| Otras fuentes de tensión y energía almacenada | [respaldo, UPS, generador, retroalimentación de otro tablero, control a 120 V, capacitores, bus de CD del variador, resortes del interruptor] |
+| Otras fuentes de tensión y energía almacenada | [respaldo, UPS, generador, retroalimentación de otro tablero, tensión de control auxiliar, capacitores, bus de CD del variador, resortes del interruptor] |
 | Estudio y etiqueta de arco | [fecha del estudio vigente; la etiqueta del equipo existe y es legible / ilegible / no hay] |
 
 Sustituye la norma por la que te aplique: NFPA 70E y NEC (NFPA 70) en buena parte de América, IEC 60364 en el ámbito internacional, y la local que te obligue: NOM-001-SEDE y NOM-029-STPS (México), RETIE (Colombia), normas de la CNEE (Guatemala), AEA/IRAM (Argentina).
@@ -47,17 +47,17 @@ flowchart TD
 | --- | --- |
 | Motivo | [desenergizar crea un peligro mayor / es inviable por diseño del equipo o del proceso] |
 | Por qué no sirve reprogramar con paro | [explícalo; la producción por sí sola no es motivo] |
-| Permiso de trabajo energizado N.º | [número, fecha y vigencia] |
+| Permiso de trabajo energizado N.º | [número y vigencia; el permiso y los puntos de bloqueo viven en la hoja de LOTO, no aquí] |
 | Quién autoriza | [nombre y cargo; no puede ser quien ejecuta] |
 
 > [!WARNING]
-> "Se acaba rápido", "siempre lo hemos hecho así" y "no nos dan el paro" no son justificaciones. Sin permiso firmado y sin este análisis, la tarea se reprograma aunque cueste producción.
+> La prisa, la costumbre y la falta de ventana de paro no son justificaciones. Lo único que se admite es que desenergizar cree un peligro mayor o sea inviable por el diseño del equipo. Sin permiso firmado y sin este análisis, la tarea se reprograma aunque cueste producción.
 
 Cinco reglas de oro, en este orden y sin saltarse ninguna. Se marcan a medida que se ejecutan:
 
-- [ ] 1. Cortar todas las fuentes de tensión, incluidas las de respaldo y las de control.
-- [ ] 2. Bloquear los dispositivos de corte y señalizar con tarjeta: un candado por cada persona que entra.
-- [ ] 3. Verificar ausencia de tensión, fase a fase y fase a tierra, con el método vivo-muerto-vivo: se prueba el instrumento en una fuente conocida, se mide el punto de trabajo y se vuelve a probar el instrumento.
+- [ ] 1. Cortar todas las fuentes de tensión, incluidas las de respaldo, las alternas y las de control.
+- [ ] 2. Bloquear cada medio de corte y etiquetarlo: un candado por cada persona que entra.
+- [ ] 3. Verificar ausencia de tensión en el punto exacto que vas a tocar, fase a fase y fase a tierra. La hace persona calificada, con el EPP puesto y con el método probado, comprobado, probado: instrumento en una fuente conocida, medición del punto de trabajo y otra vez el instrumento en la fuente conocida.
 - [ ] 4. Poner a tierra y en cortocircuito donde el procedimiento lo exija.
 - [ ] 5. Señalizar y delimitar la zona, y cubrir las partes con tensión que queden cerca.
 
@@ -86,13 +86,13 @@ Es otro peligro y necesita otro EPP. El guante aislante no protege de una quemad
 | Maniobra a distancia | [pértiga, mando remoto, operar con la puerta cerrada, salir de la línea de expulsión de gases] |
 
 > [!CAUTION]
-> El EPP de arco no se elige a ojo ni por costumbre: sale de la etiqueta del equipo o del estudio de arco eléctrico de la planta, calculado con IEEE 1584. Ese estudio se rehace cuando cambia la instalación, y un cambio aguas arriba no se ve por fuera del tablero.[^1]
+> El EPP de arco no se elige a ojo ni por costumbre. La energía incidente se calcula con IEEE 1584 y queda escrita en el estudio y en la etiqueta del equipo; con esa cifra eliges el EPP según la norma que te aplique. Ese estudio se rehace cuando cambia la instalación, y un cambio aguas arriba no se ve por fuera del tablero.[^1]
 
-[^1]: IEEE 1584 calcula la corriente de arco, la energía incidente y la frontera de arco a partir de la corriente de falla disponible y del tiempo que tarda la protección en despejarla. Cambia el transformador, el alimentador, un ajuste de protección o entra generación propia, y la etiqueta impresa deja de ser cierta aunque el equipo se vea igual.
+[^1]: IEEE 1584 calcula la corriente de arco, la energía incidente y la frontera de arco a partir de la corriente de falla disponible y del tiempo que tarda la protección en despejarla. Cambia el transformador, el alimentador, un ajuste de protección o entra generación propia, y la etiqueta impresa deja de ser cierta aunque el equipo se vea igual. La guía calcula la exposición; no recomienda EPP.
 
 ## Análisis paso a paso
 
-Una fila por tarea, en el orden en que se ejecuta. Si una fila no tiene control concreto y verificador con nombre, esa tarea no se hace.
+Una fila por tarea, en el orden en que se ejecuta. Para elegir cada control baja por esta escalera y párate en el primer escalón que resuelva: eliminar el peligro (desenergizar), sustituirlo (menos tensión, mando a distancia), controlarlo por ingeniería (barrera, enclavamiento, ventana de inspección), fijar procedimiento, permiso y formación, y en último lugar el EPP, que no evita el accidente: solo limita el daño. Si una fila no tiene control concreto y verificador con nombre, esa tarea no se hace.
 
 | # | Tarea | Qué puede salir mal | Consecuencia | Control | Quién verifica |
 | :---: | --- | --- | --- | --- | --- |
@@ -106,7 +106,7 @@ Se revisan delante de todos en la charla previa. Herramienta dudosa se retira, n
 
 | Elemento | Identificación | Qué se revisa | Estado |
 | --- | --- | --- | --- |
-| Herramienta aislada | [juego N.º, marcado 1000 V conforme a IEC 60900] | [sin cortes, sin quemaduras, aislamiento adherido] | [apto / retirado] |
+| Herramienta aislada | [juego N.º; marcado hasta 1000 V CA conforme a IEC 60900, que es su límite: en media tensión se trabaja con pértiga y equipo para esa tensión] | [sin cortes, sin quemaduras, aislamiento adherido] | [apto / retirado] |
 | Guantes, mantas y cubiertas aislantes | [clase y número de serie] | [inspección visual, prueba de aire en guantes, sin perforaciones ni grasa; prueba dieléctrica vigente] | [apto / retirado] |
 | Detector e instrumento de medida | [modelo y categoría de medición] | [puntas sanas, fusibles correctos, calibración vigente] | [apto / retirado] |
 | Puesta a tierra temporal, pértiga y extintor | [calibre y capacidad acordes a la corriente de falla; longitud de la pértiga; clase del extintor] | [sin hilos rotos, mordazas limpias, pértiga seca y sin fisuras, extintor con presión vigente] | [apto / retirado] |
@@ -162,7 +162,7 @@ Calificado no es antiguo: es quien fue formado para reconocer las partes vivas, 
 *De dónde sale este formato. Borra esta sección al usar la plantilla.*
 
 - [OSHA 1910.333 — Selection and use of work practices](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar es la regla; las excepciones son peligro adicional o inviabilidad, y solo persona calificada trabaja con tensión.
-- [NFPA 70E: Electrical job safety planning and job briefing (EC&M)](https://www.ecmweb.com/safety/article/21249990/nfpa-70e-electrical-job-safety-planning-and-job-briefing) — los cinco elementos del plan de trabajo seguro y cuándo hay que rehacer la charla previa.
+- [OSHA — Hazard prevention and control](https://www.osha.gov/safety-management/hazard-prevention) — la escalera de controles: primero eliminar, sustituir y la ingeniería; el EPP siempre al final.
 - [IEEE 1584, Guide for Performing Arc-Flash Hazard Calculations](https://standards.ieee.org/ieee/1584/5802/) — los modelos con los que se calculan la energía incidente y la frontera de arco.
 - [OSHA 1910.335 — Safeguards for personnel protection](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.335) — EPP inspeccionado, herramientas aisladas, señales, barreras no conductoras y vigía cuando no bastan.
 - [IEC 60900:2018, Live working — Hand tools for use up to 1 000 V AC and 1 500 V DC](https://webstore.iec.ch/en/publication/27266) — la norma de las herramientas aisladas: categorías, ensayos y marcado.

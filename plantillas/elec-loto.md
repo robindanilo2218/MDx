@@ -62,7 +62,7 @@ Recórrelas una por una con el unifilar en la mano. La que mata es la que nadie 
 | Tipo de energía | Dónde aparece | Cómo se aísla y se comprueba | Confirmado por |
 | --- | --- | --- | --- |
 | Eléctrica de fuerza | Acometida, interruptor principal, celda de media tensión, arrancador | Interruptor o seccionador abierto y bloqueado, con corte visible cuando el equipo lo permita | [nombre] |
-| Eléctrica de control | Mando de 24 V, PLC, enclavamientos, circuito de disparo | Interruptor de control propio; fusibles retirados y guardados con el permiso | [nombre] |
+| Eléctrica de control | Circuito de mando con su propia tensión, PLC, enclavamientos, bobina de disparo | Interruptor de control propio; fusibles retirados y guardados con el permiso | [nombre] |
 | Emergencia, transferencia y UPS | Planta de emergencia, transferencia automática, UPS de sala de control, banco de baterías y cargador | Bloqueo también del lado de emergencia, transferencia en manual, bypass y apertura del banco | [nombre] |
 | Retorno por variador | Bus de CC, frenado regenerativo, motor arrastrado por la carga o por el proceso | Aísla entrada y salida del variador y frena la carga: un motor girando genera tensión | [nombre] |
 | Capacitores cargados | Banco de compensación, filtros, bus de CC del variador y del arrancador suave | Espera de descarga y descarga forzada — [tiempo que indique la placa o el manual del equipo] | [nombre] |
@@ -90,7 +90,7 @@ El paso que no se delega. Lo ejecuta persona calificada, con el EPP puesto, en e
 3. Vuelve a probar el instrumento en la misma fuente conocida. Si ahora falla, la medición no vale y se repite todo.
 
 - Instrumento y puntas de la categoría y la tensión del punto — [CAT y tensión nominal del instrumento que usas]. Un piloto apagado, un voltímetro de tablero en cero o un enclavamiento no son verificación de nada.
-- La OSHA exige comprobar el instrumento antes y después de la prueba por encima de 600 V. La NFPA 70E lo exige también por debajo: [mira el apartado de verificación de ausencia de tensión de la edición vigente para el umbral que aplica].
+- La OSHA obliga a comprobar el instrumento inmediatamente antes e inmediatamente después de la prueba cuando el circuito supera 600 V nominales — 29 CFR 1910.333(b)(2)(iv)(B). Por debajo de esa tensión, hazlo igual: probado, comprobado, probado no depende del umbral legal. Confirma qué te exige tu norma en [el apartado de verificación de ausencia de tensión de la NFPA 70E vigente, o la norma local que te obligue].
 - Puesta a tierra y en cortocircuito donde la tensión, la longitud del circuito o el riesgo de realimentación lo exijan; en media y alta tensión no se discute. Juego dimensionado para la corriente de falla — [sección y capacidad según el estudio de cortocircuito y la norma que apliques]. Se conecta primero al punto de tierra y después a los conductores, con pértiga y EPP, y se retira en orden inverso; se anota en la tabla de puntos, porque un juego olvidado se convierte en la falla del arranque.
 
 > [!CAUTION]
@@ -129,7 +129,7 @@ Orden inverso al aislamiento. Cada casilla la marca quien la miró, no quien la 
 | Avisar a la persona antes de que vuelva al equipo | [quién le avisa y dónde queda registrado] |
 
 > [!WARNING]
-> Cortar un candado ajeno es un evento que se registra, se investiga y se firma. Si ocurre más de una vez al año, el problema no es el candado: es el procedimiento de cambio de turno, y ahí se corrige.
+> Cortar un candado ajeno es un evento que se registra, se investiga y se firma. Si se repite, el problema no es el candado: es el procedimiento de cambio de turno, y ahí se corrige.
 
 ## Trabajo con tensión: la excepción
 
@@ -162,8 +162,8 @@ Las cifras de fronteras, de energía incidente y de EPP no están en esta planti
 *De dónde sale este formato. Borra esta sección al usar la plantilla.*
 
 - [OSHA 1910.147, The control of hazardous energy (lockout/tagout)](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.147) — la secuencia de aplicación, la liberación de energía residual, la verificación y las reglas de retirada del bloqueo.
-- [OSHA STD 01-05-019, Inspection Procedures and Interpretive Guidance](https://www.osha.gov/enforcement/directives/std-01-05-019) — bloqueo en grupo con caja de candados, la prohibición de poner el candado de otro y la inspección anual del procedimiento.
+- [OSHA STD 01-05-019, Inspection Procedures and Interpretive Guidance](https://www.osha.gov/enforcement/directives/std-01-05-019) — bloqueo en grupo con caja de candados y la prohibición expresa de firmar o retirar el dispositivo de otra persona.
 - [OSHA 1910.333, Selection and use of work practices](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar es la regla, solo persona calificada trabaja con tensión y el instrumento se comprueba antes y después por encima de 600 V.
-- [NFPA 70E, Standard for Electrical Safety in the Workplace](https://www.nfpa.org/product/nfpa-70e-standard/p0070ecode) — la norma de seguridad eléctrica en el trabajo de la que salen el permiso, las fronteras y el EPP.
-- [About absence of voltage testing](https://www.fluke.com/en-us/learn/blog/electrical/absence-of-voltage-testing) — Fluke: el método probado-comprobado-probado y por qué un instrumento averiado marca cero en un circuito vivo.
+- [Guide to assessing risk: energized electrical work permits](https://www.fluke.com/en-us/learn/blog/safety/energized-electrical-work-permits) — qué exige la NFPA 70E en un permiso de trabajo con tensión: fronteras, riesgo de arco, EPP y firma de la dirección; si se puede desenergizar, se desenergiza.
+- [About absence of voltage testing](https://www.fluke.com/en-us/learn/blog/electrical/absence-of-voltage-testing) — el método probado-comprobado-probado y por qué un instrumento averiado marca cero en un circuito vivo.
 - [NOM-029-STPS-2011, mantenimiento de las instalaciones eléctricas](https://dof.gob.mx/nota_detalle.php?codigo=5227363&fecha=29%2F12%2F2011) — la norma mexicana: autorización escrita, bloqueo con candados, comprobación de ausencia de tensión y puesta a tierra temporal.

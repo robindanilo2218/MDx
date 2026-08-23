@@ -36,7 +36,7 @@ Sustituye la norma por la que te aplique: NFPA 70E y NEC (NFPA 70) en buena part
 
 Cinco reglas de oro, en orden y sin saltarse ninguna:
 
-- [ ] 1. Cortar todas las fuentes de tensión, incluidas las de respaldo y las de control.
+- [ ] 1. Cortar todas las fuentes de tensión, incluidas las de respaldo y las de control, y descargar o confinar la energía almacenada: capacitores, bus de CD del variador, resortes y aire.
 - [ ] 2. Bloquear los dispositivos de corte y señalizar: un candado por cada persona que entra.
 - [ ] 3. Verificar ausencia de tensión en el punto de trabajo, fase a fase y fase a tierra.
 - [ ] 4. Poner a tierra y en cortocircuito donde el procedimiento lo exija.
@@ -47,7 +47,7 @@ Cinco reglas de oro, en orden y sin saltarse ninguna:
 
 ## Trabajo con tensión, solo si no hay otra salida
 
-Desenergizar es la regla. Trabajar con tensión es la excepción y se justifica por escrito, nunca de palabra.
+Desenergizar es la regla. Trabajar con tensión es la excepción y se justifica por escrito, nunca de palabra. La justificación completa, las fronteras y el EPP van en el permiso energizado; en la OT solo queda el número y quién firmó.
 
 | Punto | Respuesta |
 | --- | --- |
@@ -62,8 +62,8 @@ Desenergizar es la regla. Trabajar con tensión es la excepción y se justifica 
 
 Tres frases: qué se interviene, hasta dónde llega esta OT y qué queda fuera para que nadie lo dé por hecho.
 
-Trabajo: [descripción concreta, con el modo de operación en que se hace]
-Fuera de alcance: [lo que no se toca en esta salida]
+- **Trabajo:** [descripción concreta, con el modo de operación en que se hace]
+- **Fuera de alcance:** [lo que no se toca en esta salida]
 
 ## Materiales, repuestos e instrumentos
 
@@ -115,8 +115,8 @@ Sin horas reales no hay costo, ni disponibilidad, ni indicadores. MTTR = horas d
 
 Primero el estado real al llegar, después la intervención con los valores de ajuste finales. La tabla de causa solo aplica a correctivos.
 
-Se encontró: [qué estaba flojo, quemado, sucio, fuera de ajuste]
-Se hizo: [la intervención y cómo quedó]
+- **Se encontró:** [qué estaba flojo, quemado, sucio, fuera de ajuste]
+- **Se hizo:** [la intervención y cómo quedó]
 
 | Componente que falló | Modo de falla | Causa | Evidencia |
 | --- | --- | --- | --- |
@@ -131,7 +131,7 @@ Lo que quedó sin hacer no va a un cuaderno: se convierte hoy en otra OT con nú
 
 | Pendiente | Por qué no se hizo | OT generada | Prioridad |
 | --- | --- | --- | :---: |
-| [cambiar barraje flojo del CCM] | [faltó repuesto] | [OT-2026-0000] | [2] |
+| [cambiar barraje flojo del CCM] | [faltó repuesto] | [OT-2026-0000] | [la de tu escala] |
 
 ## Pruebas, entrega y cierre
 
@@ -156,7 +156,7 @@ Mientras falte una firma, la OT sigue abierta aunque el equipo ya esté girando.
 
 ## Por qué importa cerrar bien esta OT
 
-Una OT cerrada con "se revisó y quedó operando" no tiene horas, ni repuesto, ni modo de falla. Con eso no se calcula MTBF ni MTTR, no sabes cuál activo te está costando más, y la misma falla vuelve porque nadie identificó la causa. Diez años de texto suelto son diez años de historial perdido. Escribe en esta OT lo que necesitarías leer si te llamaran de madrugada a atender este mismo equipo.
+Una OT cerrada con "se revisó y quedó operando" no tiene horas, ni repuesto, ni modo de falla: con eso no se calcula MTBF ni MTTR, no sabes qué activo te cuesta más y la misma falla vuelve porque nadie escribió la causa. Escribe aquí lo que necesitarías leer si te llamaran de madrugada a atender este mismo equipo.
 
 ## Referencias
 
@@ -165,6 +165,6 @@ Una OT cerrada con "se revisó y quedó operando" no tiene horas, ni repuesto, n
 - [OSHA 1910.147 — Control of hazardous energy (lockout/tagout)](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.147) — exige procedimientos escritos de bloqueo, capacitación y verificación del aislamiento.
 - [OSHA 1910.333 — Selection and use of work practices](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar es la regla; con tensión solo si se documenta que es inviable o más peligroso.
 - [NOM-029-STPS-2011, mantenimiento de instalaciones eléctricas (DOF)](https://dof.gob.mx/nota_detalle.php?codigo=5227363&fecha=29/12/2011) — plan de trabajo por actividad, autorización escrita, bloqueo y verificación de ausencia de tensión.
-- [Energized electrical work permits (Fluke)](https://www.fluke.com/en-us/learn/blog/safety/energized-electrical-work-permits) — qué lleva el permiso de trabajo energizado: riesgo de choque y de arco, protección de los no calificados y firma de la gerencia.
+- [Energized electrical work permits (Fluke)](https://www.fluke.com/en-us/learn/blog/safety/energized-electrical-work-permits) — qué lleva el permiso de trabajo energizado: riesgo de choque y de arco, protección de los no calificados y aprobación de la gerencia para reparar.
 - [About absence of voltage testing (Fluke)](https://www.fluke.com/en-us/learn/blog/electrical/absence-of-voltage-testing) — el ensayo vivo-muerto-vivo y por qué se prueba el instrumento antes y después.
 - [Work order completion (Reliabilityweb)](https://reliabilityweb.com/tips/article/work_order_completion_maintenance_tip) — qué exige cerrar bien una OT: horas por especialidad, códigos de falla, pruebas posteriores y OT de seguimiento.

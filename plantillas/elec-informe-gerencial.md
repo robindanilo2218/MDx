@@ -37,7 +37,7 @@ Que suban los casi-accidentes reportados es buena señal: la cuadrilla está hab
 | --- | --- | --- | --- | --- |
 |  |  |  | [n.º de permiso] |  |
 
-Sustituye la norma por la que te aplique: NFPA 70E y NEC (NFPA 70) en buena parte de América, IEC 60364 en el ámbito internacional, y la local que te obligue: NOM-001-SEDE (México), RETIE (Colombia), normas de la CNEE (Guatemala), AEA/IRAM (Argentina).
+Sustituye la norma por la que te aplique: NFPA 70E y NEC (NFPA 70) en buena parte de América, NFPA 70B para el programa de mantenimiento, IEC 60364 en el ámbito internacional, y la local que te obligue: NOM-001-SEDE (México), RETIE (Colombia), normas de la CNEE (Guatemala), AEA/IRAM (Argentina).
 
 ## Indicadores del mes
 
@@ -56,7 +56,7 @@ Pocos y siempre los mismos. Cambiar la lista cada mes es la forma más rápida d
 
 > Datos extraídos de [CMMS o fuente] el [fecha de extracción]. Horas programadas contadas según [criterio de turnos].
 
-**Cómo se calculan.** La misma fórmula que el tablero de indicadores, palabra por palabra. Si un número no cuadra con esa hoja, el que está mal es este informe.
+**Cómo se calculan.** La misma fórmula que tu tablero de indicadores, palabra por palabra. Si un número no cuadra con esa hoja, el que está mal es este informe.
 
 - Disponibilidad = (horas programadas − horas de paro) ÷ horas programadas × 100
 - MTBF = horas en operación ÷ número de fallas, y MTTR = horas de reparación ÷ número de reparaciones
@@ -99,9 +99,9 @@ Termografía, análisis de motores y calidad de energía. Un hallazgo sin orden 
 | Análisis de motores | [n] | [n] | [n] | [n] |  |
 | Calidad de energía | [n] | [n] | [n] | [n] |  |
 
-- **Termografía.** [n] tableros, [n] centros de control de motores y [n] subestaciones. Mide en carga: la guía de termografía de Fluke pide al menos un 40 % de la carga típica, porque por debajo el defecto no calienta. Anota la carga de cada medición y clasifica la severidad con el criterio de la ANSI/NETA MTS vigente o de tu procedimiento escrito.
-- **Análisis de motores.** [n] motores con resistencia de aislamiento, índice de polarización o análisis de firma de corriente. Compara contra el histórico del mismo motor, no contra un valor de tabla suelto; los límites de aceptación salen de la norma de ensayo que apliques y de la ficha del fabricante.
-- **Calidad de energía.** [n] mediciones en [puntos de medición]. Distorsión armónica de tensión y corriente, factor de potencia, desbalance y huecos, contrastados contra el límite que te aplique en el punto de acoplamiento común según la IEEE 519 vigente o la norma del operador de red local.
+- **Termografía.** [n] tableros, [n] centros de control de motores y [n] subestaciones. Mide en carga, en el pico o con al menos el 40 % — cifra que Fluke atribuye a la NFPA 70B, confírmala en tu edición — porque el calor de una conexión floja crece con el cuadrado de la carga. Anota la carga de cada medición y clasifica la severidad con [el criterio de severidad térmica de tu procedimiento escrito o de la ANSI/NETA MTS vigente].
+- **Análisis de motores.** [n] motores con resistencia de aislamiento, índice de polarización o análisis de firma de corriente. Compara contra el histórico del mismo motor y contra [el mínimo de aislamiento e índice de polarización de la norma de ensayo que apliques y de la ficha del motor], nunca contra un valor de tabla suelto. Tensión de prueba y tiempo de ensayo, los del procedimiento del fabricante.
+- **Calidad de energía.** [n] mediciones en [puntos de medición], con fecha y duración. Distorsión armónica de tensión y corriente, factor de potencia, desbalance y huecos, contrastados contra [el límite que te aplique en el punto de acoplamiento común: IEEE 519 vigente o la norma del operador de red local].
 
 ## Consumo y costo de energía
 
@@ -154,7 +154,7 @@ Lo que respalda el informe. Aquí van los amperios, no arriba.
 - [ ] Extracción del CMMS con las órdenes del periodo y facturas de energía — [archivo]
 - [ ] Estudio de arco eléctrico y diagrama unifilar, con su fecha de vigencia — [archivo]
 
-[^1]: Reliabilityweb fija en 80 % o más el objetivo de trabajo planificado sobre el total, y señala que los programas de referencia generan cerca del 50 % de sus horas de mantenimiento a partir de inspecciones predictivas. Ajusta la meta a lo que tu planta pueda sostener y déjala fija todo el año.
+[^1]: Reliabilityweb fija en 80 % o más el objetivo de trabajo planificado sobre el total, y señala que los programas de referencia generan en promedio la mitad de su trabajo a partir de inspecciones predictivas y de las correcciones que salen de ellas. Ajusta la meta a lo que tu planta pueda sostener y déjala fija todo el año.
 
 ## Referencias
 
@@ -162,7 +162,7 @@ Lo que respalda el informe. Aquí van los amperios, no arriba.
 
 - [29 CFR 1910.333, Selection and use of work practices](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar es la regla: bloqueo, verificación de ausencia de tensión, descarga de capacitores y puesta a tierra.
 - [Guide to Assessing Risk: Energized Electrical Work Permits (Fluke)](https://www.fluke.com/en-us/learn/blog/safety/energized-electrical-work-permits) — qué lleva un permiso de trabajo con tensión; el artículo que cita es de la NFPA 70E de 2018, compruébalo en tu edición.
-- [IEEE Std 519-2022, Harmonic Control in Electric Power Systems](https://standards.ieee.org/ieee/519/10677/) — dónde se miden los armónicos y de quién es la responsabilidad en el punto de acoplamiento común.
-- [Thermal Imaging Cameras for Electrical Inspections (Fluke)](https://www.fluke.com/en-us/learn/blog/thermal-imaging/electrical-systems) — por qué la ruta termográfica se hace en carga y contra qué se compara un punto caliente.
+- [IEEE Std 519-2022, Harmonic Control in Electric Power Systems](https://standards.ieee.org/ieee/519/10677/) — los límites de distorsión se aplican en el punto de acoplamiento común; las cifras están dentro de la norma, no en esa página.
+- [Thermal Imaging Cameras for Electrical Inspections (Fluke)](https://www.fluke.com/en-us/learn/blog/thermal-imaging/electrical-systems) — de dónde sale el 40 % de carga mínima y contra qué se compara un punto caliente.
 - [ANSI/NETA Standards Update (NETA World Journal)](https://netaworldjournal.org/2026/05/taniabrammer/specifications-standards/ansi-neta-standards-update-30/) — qué edición de MTS, ATS y ECS está vigente antes de citar una frecuencia de ensayo.
 - [What to Measure, 11 Key PdM Metrics (Reliabilityweb)](https://reliabilityweb.com/tips/article/what_to_measure_-11_key_pdm_metrics) — las métricas de predictivo que aguantan una reunión de dirección.

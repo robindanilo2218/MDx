@@ -7,7 +7,7 @@ fecha:
 
 ## Para qué sirve este análisis
 
-Tres frases: qué se clasifica, qué decisión de dinero depende del resultado y quién la firma.
+Cierra el alcance antes de puntuar: qué se clasifica, qué decisión de dinero depende del resultado y quién la firma.
 
 - Alcance: [subestación, área o proceso; di también qué queda fuera].
 - Activos incluidos: [transformadores, tableros, motores, variadores, bancos de capacitores, UPS, planta de emergencia].
@@ -20,7 +20,7 @@ Sin producción y sin almacén la puntuación sale sesgada. Cierra los nombres a
 
 | Papel | Quién | Qué aporta |
 | --- | --- | --- |
-| Facilita | [nombre] | Método, escalas y actas |
+| Facilitador | [nombre] | Método, escalas y actas |
 | Mantenimiento eléctrico | [nombre] | Historial de fallas y tiempo real de reparación |
 | Producción u operación | [nombre] | Costo de la parada y respaldo que de verdad existe |
 | Almacén y compras | [nombre] | Existencia y tiempo de reposición del repuesto |
@@ -38,6 +38,13 @@ Si falta más de un renglón, para el ejercicio y recoge el dato: puntuar sin da
 - [ ] Lista de repuestos por activo, con existencia y tiempo de reposición del proveedor
 - [ ] Requisitos legales o de cliente que apliquen al activo — [permiso ambiental, auditoría, contrato]
 
+## Seguridad al levantar los datos en campo
+
+Recoger TAG, placas y estado no justifica abrir nada energizado. Al tablero solo entra personal calificado y acompañado; quien únicamente levanta datos se queda fuera de la zona delimitada. Lo que no se lee con el tablero cerrado se lee en el paro, con el equipo desenergizado y verificado. Esta sección se firma antes de bajar a planta.
+
+> [!WARNING]
+> Desenergizar es la regla. Trabajar con tensión es la excepción y exige justificación escrita, análisis de riesgo, permiso autorizado y personal calificado; nunca por prisa ni por comodidad del levantamiento. Antes de tocar cualquier parte, aplica las cinco reglas de oro: cortar todas las fuentes, bloquear y señalizar el medio de corte, verificar ausencia de tensión con instrumento probado antes y después, poner a tierra y en cortocircuito, y delimitar la zona de trabajo. El EPP y las distancias las fija la NFPA 70E vigente o la norma local que te aplique; toma los valores de sus tablas, no de esta plantilla.
+
 ## Escala de consecuencia (1 a 5)
 
 Puntúa cada activo en los seis criterios. Los umbrales entre corchetes los fijas tú antes de la primera reunión y no se tocan a mitad del ejercicio.
@@ -51,11 +58,11 @@ Puntúa cada activo en los seis criterios. Los umbrales entre corchetes los fija
 | Efecto en calidad | Ninguno | Desviación que se corrige en línea | Reproceso de [lote o turno] | Producto no conforme que se desecha | Lote perdido o reclamo formal del cliente |
 | Respaldo disponible | Redundancia con transferencia automática | Respaldo manual en minutos | Respaldo parcial, opera al [% de carga] | Sin respaldo, repuesto en almacén | Sin respaldo y repuesto a [semanas] de reposición |
 
-El tiempo de reposición del repuesto se puntúa aquí y en ningún otro lado. Un activo sin respaldo cuyo repuesto tarda [12 semanas] no puede quedar en la parte baja de la escala.
+El tiempo de reposición del repuesto se puntúa aquí y en ningún otro lado. Un activo sin respaldo cuyo repuesto tarda meses no puede quedar en la parte baja de la escala.
 
 ## Escala de frecuencia de falla (1 a 5)
 
-Puntúa con historial, no con memoria. Si no hay historial, escribe "sin dato", deja por escrito la marca provisional que acuerde el equipo y programa la recolección antes de la siguiente revisión.
+Puntúa con historial, no con memoria. Los periodos entre corchetes los ajustas al historial que de verdad tengas. Si no hay historial, escribe "sin dato", deja por escrito la marca provisional que acuerde el equipo y programa la recolección antes de la siguiente revisión.
 
 | Puntaje | Frecuencia observada | De dónde sale el dato |
 | :---: | --- | --- |
@@ -93,7 +100,7 @@ Corte usado en esta plantilla: A de 15 a 25, B de 8 a 14, C de 1 a 7. Si tu plan
 - **Clase C, verde.** Correctivo planificado o funcionamiento hasta la falla, con reposición rápida. No lleva repuesto dedicado ni ronda especial.
 
 > [!CAUTION]
-> Regla de veto: si la consecuencia de seguridad de las personas o la ambiental puntúa 5, el activo es clase A aunque el producto dé bajo. Un equipo que falla una vez cada diez años y mata a alguien no es un activo verde.
+> Regla de veto: si la consecuencia de seguridad de las personas o la ambiental puntúa 5, el activo es clase A aunque la multiplicación dé bajo. Un equipo que falla una vez cada diez años y mata a alguien no es un activo verde.
 
 ## Tabla de activos
 
@@ -101,10 +108,10 @@ Una fila por activo. Seg, Prod, Amb, Costo, Cal y Resp son los seis criterios de
 
 | Activo | TAG | F | Seg | Prod | Amb | Costo | Cal | Resp | C | F × C | Clase |
 | --- | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| [Transformador principal 13.8 kV] | [TR-01] |  |  |  |  |  |  |  |  |  |  |
-| [Tablero de distribución 480 V] | [TD-02] |  |  |  |  |  |  |  |  |  |  |
-| [Motor de bomba de proceso] | [M-114] |  |  |  |  |  |  |  |  |  |  |
-| [Banco de capacitores] | [BC-01] |  |  |  |  |  |  |  |  |  |  |
+| [Transformador principal, tensión y potencia] | [TR-01] |  |  |  |  |  |  |  |  |  |  |
+| [Tablero general, tensión de barra] | [TD-02] |  |  |  |  |  |  |  |  |  |  |
+| [Motor de bomba de proceso, kW] | [M-114] |  |  |  |  |  |  |  |  |  |  |
+| [Banco de capacitores, kvar] | [BC-01] |  |  |  |  |  |  |  |  |  |  |
 
 > Puntuado el [fecha], por [nombres de los que firman], con el historial hasta [mes y año de corte].
 
@@ -112,17 +119,17 @@ Una fila por activo. Seg, Prod, Amb, Costo, Cal y Resp son los seis criterios de
 
 Ajusta la lista a tus equipos. Los intervalos no se inventan en esta reunión: salen del fabricante y de la norma.
 
-| Clase | Estrategia | Ejemplos en instalación eléctrica | Repuesto | Se revisa |
+| Clase | Estrategia | Ejemplos en instalación eléctrica | Repuesto | Se repuntúa |
 | --- | --- | --- | --- | --- |
-| A | Condición y predictivo, con redundancia donde se pueda | Termografía, descargas parciales, análisis de aceite, firma de corriente del motor, registro de calidad de energía | Propio, en sitio, con rotación | Cada [6 meses] |
-| B | Preventivo programado más inspección | Torque y limpieza en paro, prueba de aislamiento, prueba funcional de protecciones | Compartido por familia de equipos | Cada [12 meses] |
-| C | Correctivo planificado o hasta la falla | Inspección visual en la ronda | Sin repuesto dedicado | Cada [24 meses] |
+| A | Condición y predictivo, con redundancia donde se pueda | Termografía, descargas parciales, análisis de aceite, firma de corriente del motor, registro de calidad de energía | Propio, en sitio, con rotación | [cada 6 meses] |
+| B | Preventivo programado más inspección | Apriete al par del fabricante y limpieza en paro, prueba de aislamiento, prueba funcional de protecciones | Compartido por familia de equipos | [cada 12 meses] |
+| C | Correctivo planificado o hasta la falla | Inspección visual en la ronda | Sin repuesto dedicado | [cada 24 meses] |
 
-Los intervalos y alcances de mantenimiento sácalos del manual del fabricante, del capítulo de intervalos de la NFPA 70B vigente y de la ANSI/NETA MTS vigente para los ensayos de campo. Ahí la frecuencia se ajusta con la condición del equipo, los datos históricos y la criticidad del sistema, no con el calendario del año pasado. Sustituye la norma por la que te aplique: NFPA 70E y NEC (NFPA 70) en buena parte de América, IEC 60364 en el ámbito internacional, y la local que te obligue: NOM-001-SEDE (México), RETIE (Colombia), normas de la CNEE (Guatemala), AEA/IRAM (Argentina).
+Los intervalos y alcances de mantenimiento sácalos del manual del fabricante, del capítulo de intervalos de la NFPA 70B vigente y de la ANSI/NETA MTS vigente para los ensayos de campo. Ahí el intervalo y el regreso a servicio se deciden con juicio de ingeniería: recomendación del fabricante, condición del equipo, datos históricos y criticidad del sistema. No con el calendario del año pasado. Sustituye la norma por la que te aplique: NFPA 70E y NEC (NFPA 70) en buena parte de América, IEC 60364 en el ámbito internacional, y la local que te obligue: NOM-001-SEDE (México), RETIE (Colombia), normas de la CNEE (Guatemala), AEA/IRAM (Argentina).
 
 ## Cuándo se vuelve a revisar la clasificación
 
-La práctica habitual revisa la clasificación entre seis meses y dos años. Además de esa cadencia, cualquiera de estos disparadores obliga a repuntuar el activo en la siguiente reunión.
+La cadencia la fijaste en la columna "Se repuntúa" de la tabla anterior; respétala aunque no haya pasado nada. Además, cualquiera de estos disparadores obliga a repuntuar el activo en la siguiente reunión, sin esperar a la fecha.
 
 - [ ] Falla con parada de planta, lesión o evento ambiental
 - [ ] Cambio de proceso, de carga o de horario de operación
@@ -135,18 +142,11 @@ La práctica habitual revisa la clasificación entre seis meses y dos años. Ade
 
 Los cinco que arruinan el ejercicio. Léelos en voz alta antes de empezar a puntuar.
 
-1. **Poner todo en A.** Si más del [20 %] de los activos queda en A, el análisis no priorizó nada: sube el corte o revisa la escala de consecuencia.
+1. **Poner todo en A.** Si más del [tope que fijes, en % de activos] queda en A, el análisis no priorizó nada: sube el corte o revisa la escala de consecuencia.
 2. **Puntuar sin datos.** "Ese siempre falla" no es una frecuencia. Sin historial, se marca "sin dato" y se recoge.
-3. **Olvidar el tiempo de reposición del repuesto.** Un activo con respaldo pero con repuesto a [12 semanas] se queda sin respaldo desde el momento en que falla el primero.
-4. **Confundir criticidad con condición o con precio.** Un equipo viejo y sucio no es crítico por eso, y una bobina de [USD 40] puede parar la línea entera.
-5. **Hacerlo una vez y archivarlo.** Una clasificación que no se revisa deja de describir la planta en [un año].
-
-## Seguridad al levantar los datos en campo
-
-Recoger TAG, placas y estado no justifica abrir nada energizado. Al tablero solo entra personal calificado y acompañado; quien únicamente levanta datos se queda fuera de la zona delimitada. Esta sección se firma antes de bajar a planta.
-
-> [!WARNING]
-> Desenergizar es la regla. Trabajar con tensión es la excepción y exige justificación escrita, análisis de riesgo, permiso autorizado y personal calificado; nunca por prisa ni por comodidad del levantamiento. Antes de tocar cualquier parte, aplica las cinco reglas de oro: cortar todas las fuentes, bloquear y señalizar el medio de corte, verificar ausencia de tensión con instrumento probado antes y después, poner a tierra y en cortocircuito, y delimitar la zona de trabajo. El EPP y las distancias las fija la NFPA 70E vigente o la norma local que te aplique; toma los valores de sus tablas, no de esta plantilla.
+3. **Olvidar el tiempo de reposición del repuesto.** Un activo con respaldo, pero con el repuesto a meses de distancia, se queda sin respaldo en cuanto falla el primero.
+4. **Confundir criticidad con condición o con precio.** Un equipo viejo y sucio no es crítico por eso, y una bobina de contactor barata puede parar la línea entera.
+5. **Hacerlo una vez y archivarlo.** Una clasificación que no se revisa deja de describir la planta en un año.
 
 ## Próximos pasos
 
@@ -166,4 +166,4 @@ Recoger TAG, placas y estado no justifica abrir nada energizado. Al tablero solo
 - [Understanding Criticality: Myths and Pitfalls to Avoid](https://reliabilityweb.com/en/articles/criticality-analysis) — de ahí salen los errores típicos: precio no es criticidad, condición no es criticidad y el análisis no se hace una sola vez.
 - [SAE JA1011 — Evaluation Criteria for RCM Processes](https://saemobilus.sae.org/standards/ja1011_200908-evaluation-criteria-reliability-centered-maintenance-rcm-processes) — los criterios de evaluación que debe cumplir un proceso para llamarse RCM.
 - [Equipment Deficiencies and Return to Service under NFPA 70B](https://netaworldjournal.org/2026/05/matthewrobinson/summer-2026-training-talk/equipment-deficiencies-and-return-to-service-under-nfpa-70b/) — NETA World Journal: condición del equipo, datos históricos y criticidad del sistema deciden el intervalo y el regreso a servicio.
-- [OSHA 29 CFR 1910.333](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar antes de trabajar es la regla; las únicas excepciones son riesgo adicional o inviabilidad demostrada.
+- [OSHA 29 CFR 1910.333](https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.333) — desenergizar antes de trabajar es la regla; las excepciones son riesgo adicional o inviabilidad demostrada por diseño u operación.

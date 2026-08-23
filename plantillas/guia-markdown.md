@@ -977,8 +977,150 @@ pie title Cómo se reparte la jornada
 
 Los porcentajes se calculan solos, no hace falta que los números sumen 100.
 
+### Gantt
+
+Un calendario de tareas. Cada línea es `Nombre : etiquetas, id, cuándo empieza, cuánto dura`. La fecha va como `2026-03-02`, la duración como `3d` (también `w` semanas, `h` horas). En vez de una fecha puedes escribir `after otroId` y encadenar la tarea a la anterior.
+
+````md
+```mermaid
+gantt
+    title Parada de planta
+    dateFormat YYYY-MM-DD
+    section Preparación
+    Permiso de trabajo    :done, per, 2026-03-02, 2d
+    Bloqueo y etiquetado  :active, blo, after per, 1d
+    section Ejecución
+    Termografía           :crit, ter, after blo, 3d
+    Informe               :inf, after ter, 2d
+    Entrega               :milestone, ent, after inf, 0d
+```
+````
+
+```mermaid
+gantt
+    title Parada de planta
+    dateFormat YYYY-MM-DD
+    section Preparación
+    Permiso de trabajo    :done, per, 2026-03-02, 2d
+    Bloqueo y etiquetado  :active, blo, after per, 1d
+    section Ejecución
+    Termografía           :crit, ter, after blo, 3d
+    Informe               :inf, after ter, 2d
+    Entrega               :milestone, ent, after inf, 0d
+```
+
+Las etiquetas cambian el color: `done` lo terminado, `active` lo que está en marcha, `crit` lo crítico y `milestone` dibuja un rombo en vez de una barra. Si el día de hoy cae dentro del calendario, se marca con una raya.
+
+### Clases
+
+Cajas con sus atributos y sus métodos, y las líneas que las relacionan.
+
+````md
+```mermaid
+classDiagram
+    class Activo {
+        +String tag
+        -int horas
+        +arrancar() bool
+    }
+    class Motor {
+        +float potencia
+    }
+    Activo <|-- Motor
+    Activo "1" --> "*" OrdenTrabajo : genera
+    Motor *-- Rodamiento
+```
+````
+
+```mermaid
+classDiagram
+    class Activo {
+        +String tag
+        -int horas
+        +arrancar() bool
+    }
+    class Motor {
+        +float potencia
+    }
+    Activo <|-- Motor
+    Activo "1" --> "*" OrdenTrabajo : genera
+    Motor *-- Rodamiento
+```
+
+Lo que lleva paréntesis se coloca abajo, como método; lo demás, arriba. `<|--` es herencia, `*--` composición, `o--` agregación, `-->` asociación y `..>` dependencia. Entre comillas antes y después de la línea van las cardinalidades. `<<interface>> Nombre` pone el rótulo encima del nombre.
+
+### Entidad-relación
+
+El mapa de una base de datos: entidades, sus campos y cuántos van con cuántos.
+
+````md
+```mermaid
+erDiagram
+    CLIENTE ||--o{ PEDIDO : hace
+    PEDIDO ||--|{ LINEA : contiene
+    CLIENTE {
+        string nif PK
+        string nombre
+    }
+    PEDIDO {
+        int numero PK
+        date fecha
+    }
+```
+````
+
+```mermaid
+erDiagram
+    CLIENTE ||--o{ PEDIDO : hace
+    PEDIDO ||--|{ LINEA : contiene
+    CLIENTE {
+        string nif PK
+        string nombre
+    }
+    PEDIDO {
+        int numero PK
+        date fecha
+    }
+```
+
+Las puntas dicen la cantidad: `||` exactamente uno, `|o` cero o uno, `}|` uno o varios y `}o` cero o varios. Dentro de las llaves, cada campo es `tipo nombre` y detrás puede ir `PK`, `FK` o `UK`.
+
+### Mapa mental
+
+Una idea en el centro y las ramas que salen de ella. Manda la sangría: cada nivel, dos espacios más.
+
+````md
+```mermaid
+mindmap
+  root((Mantenimiento))
+    Preventivo
+      Rutas de inspección
+      Lubricación
+    Correctivo
+      Avería
+      Reparación
+    Predictivo
+      Vibraciones
+```
+````
+
+```mermaid
+mindmap
+  root((Mantenimiento))
+    Preventivo
+      Rutas de inspección
+      Lubricación
+    Correctivo
+      Avería
+      Reparación
+    Predictivo
+      Vibraciones
+```
+
+Las ramas se reparten solas a un lado y a otro, cada una con su color. `((así))` hace la burbuja redonda, `(así)` la esquina suave y `[así]` el rectángulo.
+
 > [!NOTE]
-> Se dibujan estos cinco tipos: flujo, secuencia, estados, tarta y los que se escriben como `flowchart`. Otros tipos de Mermaid (Gantt, clases, ER, mapas mentales) se muestran como bloque de código en lugar de fallar. La palabra `diagrama` funciona igual que `mermaid` si prefieres escribirla en español.
+> Se dibujan ocho tipos: flujo (`graph` o `flowchart`), secuencia, estados, tarta, Gantt, clases, entidad-relación y mapa mental. Cualquier otro tipo de Mermaid se muestra como bloque de código en lugar de fallar. La palabra `diagrama` funciona igual que `mermaid` si prefieres escribirla en español.
 
 ## 22. Fórmulas matemáticas
 
@@ -1097,7 +1239,42 @@ Dentro de una celda de tabla también valen las clases: escribe `<span class="ve
 | Migración | <span class="naranja">En riesgo</span> |
 | Facturación | <span class="rojo">Parado</span> |
 
-## 24. Chuleta rápida
+## 24. Formularios: recuadros que se rellenan
+
+Un documento puede pedir datos sin que haga falta abrir el editor. Se escribe la etiqueta entre
+dos corchetes y aparece un recuadro: pulsas encima, escribes, y lo escrito se guarda dentro del
+propio texto.
+
+```md
+Responsable: [[Nombre y apellidos]]
+Fecha: [[Fecha de la visita =fecha]]
+Turno: [[Turno =Mañana/Tarde/Noche]]
+```
+
+Responsable: [[Nombre y apellidos]] · Fecha: [[Fecha de la visita =fecha]] · Turno: [[Turno =Mañana/Tarde/Noche]]
+
+Después de la etiqueta, un espacio y `=` con el tipo: `=fecha`, `=hora`, `=numero`, `=larga`,
+`=firma`, o varias opciones separadas por barras. Sin tipo, es texto corto.
+
+Un valor que ya viene escrito va detrás de dos puntos dobles — `[[Ciudad::Panamá]]` — nunca detrás
+de una barra, porque la barra corta la fila de una tabla.
+
+Las casillas `[ ]` y `[x]` también se marcan con el ratón, tanto en una lista como dentro de una
+celda:
+
+| Punto | Bien | Mal |
+| --- | :-: | :-: |
+| Nivel de aceite | [ ] | [ ] |
+| Fugas | [ ] | [ ] |
+
+Cuando un documento tiene recuadros aparece arriba el botón **Rellenar**, que los resalta, activa
+los huecos sencillos como `[este]` y trae un botón para vaciarlo todo y volver a usar la hoja.
+Un formulario vacío se imprime con renglones para escribirlo a mano.
+
+Hay una categoría entera de hojas ya hechas — actas, permisos, inspecciones — en el catálogo de
+plantillas, y una que explica el formato paso a paso: **Cómo se hace un formulario**.
+
+## 25. Chuleta rápida
 
 | Para... | Se escribe |
 | --- | --- |
@@ -1121,6 +1298,9 @@ Dentro de una celda de tabla también valen las clases: escribe `<span class="ve
 | Salto de línea | dos espacios al final de la línea |
 | Índice automático | `[TOC]` |
 | Comentario invisible | `<!-- texto -->` |
+| Recuadro para rellenar | `[[Etiqueta]]` |
+| Recuadro con tipo | `[[Fecha =fecha]]` o `[[Estado =Bueno/Malo]]` |
+| Recuadro ya escrito | `[[Ciudad::Panamá]]` |
 | Cambio de página | `<div class="salto-pagina"></div>` |
 
 ---
