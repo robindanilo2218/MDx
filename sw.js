@@ -3,7 +3,7 @@
    Sube el numero de VERSION cada vez que cambies index.html o las plantillas:
    asi el navegador se entera de que hay algo nuevo.
    ========================================================================== */
-var VERSION = "v3";
+var VERSION = "v6";
 var CACHE = "mdcrgm-" + VERSION;
 
 var CONCHA = [
@@ -74,6 +74,43 @@ var CONCHA = [
   "plantillas/apa-ensayo.md",
   "plantillas/apa-anteproyecto.md",
   "plantillas/apa-citas.md",
+  "plantillas/elec-plan-maestro.md",
+  "plantillas/elec-criticidad.md",
+  "plantillas/elec-kpis.md",
+  "plantillas/elec-informe-gerencial.md",
+  "plantillas/elec-caso-negocio.md",
+  "plantillas/elec-loto.md",
+  "plantillas/elec-analisis-riesgo.md",
+  "plantillas/elec-orden-trabajo.md",
+  "plantillas/elec-procedimiento-equipo.md",
+  "plantillas/elec-paro-programado.md",
+  "plantillas/elec-contingencia.md",
+  "plantillas/elec-termografia.md",
+  "plantillas/elec-calidad-energia.md",
+  "plantillas/elec-rca-falla.md",
+  "plantillas/elec-ficha-activo.md",
+  "plantillas/elec-repuestos-criticos.md",
+  "plantillas/elec-competencias.md",
+  "plantillas/elec-contratistas.md",
+  "plantillas/elec-auditoria.md",
+  "plantillas/elec-eficiencia-energetica.md",
+  "plantillas/elec-hoja-ruta-digital.md",
+  "plantillas/elec-ia-contexto-planta.md",
+  "plantillas/elec-ia-analisis-fallas.md",
+  "plantillas/elec-ia-asistente.md",
+  "plantillas/form-como-se-hace.md",
+  "plantillas/form-acta-reunion.md",
+  "plantillas/form-acta-entrega.md",
+  "plantillas/form-permiso-horas.md",
+  "plantillas/form-permiso-dias.md",
+  "plantillas/form-revision-herramienta.md",
+  "plantillas/form-inspeccion-generador.md",
+  "plantillas/form-inspeccion-subestacion.md",
+  "plantillas/form-permiso-trabajo.md",
+  "plantillas/form-entrega-epp.md",
+  "plantillas/form-bitacora-turno.md",
+  "plantillas/form-reporte-incidente.md",
+  "plantillas/form-checklist-vehiculo.md",
 ];
 
 self.addEventListener("install", function(e){
