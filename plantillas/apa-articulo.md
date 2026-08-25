@@ -15,13 +15,14 @@ fecha:
 .documento{ font-family:"Times New Roman", Times, Tinos, Liberation Serif, Georgia, serif; font-size:12pt }
 .documento p, .documento li{ line-height:2 }
 .documento p{ text-indent:1.27cm; text-align:left; margin:0 }
-.documento h1, .documento h2, .documento h3, .documento h4{
+.documento h1, .documento h2, .documento h3, .documento h4, .documento h5{
   font-family:inherit; font-size:12pt; line-height:2; border:0; margin:0; padding:0;
 }
 .documento h1{ text-align:center; font-weight:700 }
 .documento h2{ text-align:left;   font-weight:700 }
 .documento h3{ text-align:left;   font-weight:700; font-style:italic }
 .documento h4{ text-align:left;   font-weight:700; text-indent:1.27cm }
+.documento h5{ text-align:left;   font-weight:700; font-style:italic; text-indent:1.27cm }
 .documento blockquote{ margin:0 0 0 1.27cm; padding:0; border:0; background:none }
 .documento blockquote p{ text-indent:0 }
 .documento .portada p{ text-indent:0; text-align:center }
@@ -187,6 +188,8 @@ Apellido, A. A. (2023). Título del artículo en minúscula salvo la primera pal
 
 Apellido, B. B. y Apellido, C. C. (2021). *Título del libro en cursiva* (2.ª ed.). Editorial.
 
+The jamovi project. (2024). *jamovi* (Versión 2.5) [Software]. https://www.jamovi.org
+
 </div>
 
 > [!TIP]
@@ -212,6 +215,9 @@ orden en que se mencionan en el texto. Y hay que mencionarlos: "(ver Apéndice A
 
 # Cómo se marcan los niveles de título
 
+*Esta sección y la siguiente ("Formato general del documento") son ayuda para quien redacta,
+no contenido del trabajo: bórralas las dos antes de entregar.*
+
 APA 7 tiene cinco niveles. En este documento se escriben con almohadillas, y la hoja de
 estilo se encarga del resto.
 
@@ -220,8 +226,13 @@ estilo se encarga del resto.
 | 1 | Centrado, **negrita**, empieza en párrafo nuevo | `#` |
 | 2 | A la izquierda, **negrita**, párrafo nuevo | `##` |
 | 3 | A la izquierda, ***negrita cursiva***, párrafo nuevo | `###` |
-| 4 | Sangrado, **negrita**, termina en punto, el texto sigue en la misma línea | `####` |
-| 5 | Sangrado, ***negrita cursiva***, termina en punto, el texto sigue en la misma línea | `#####` |
+| 4 | Sangrado, **negrita**, termina en punto, párrafo en el renglón siguiente¹ | `####` |
+| 5 | Sangrado, ***negrita cursiva***, termina en punto, párrafo en el renglón siguiente¹ | `#####` |
+
+¹ En papel, los niveles 4 y 5 llevan el párrafo pegado a continuación, en el mismo renglón
+del título. Este Markdown no puede unir un encabezado con el párrafo de abajo en la misma
+línea, así que aquí el título ocupa su propio renglón — es la única diferencia frente al
+papel, y ningún evaluador la penaliza por sí sola.
 
 Reglas que se olvidan siempre:
 
@@ -233,9 +244,11 @@ Reglas que se olvidan siempre:
 
 # Formato general del documento
 
-APA 7 pide: **interlineado doble** en todo el trabajo (también en las referencias y en las
-notas de las tablas), **sangría de primera línea de 1,27 cm** en cada párrafo, **márgenes de
-2,54 cm** en los cuatro lados y el **número de página arriba a la derecha** en todas.
+APA 7 pide: **interlineado doble** en el cuerpo del trabajo y en las referencias, **sangría
+de primera línea de 1,27 cm** en cada párrafo, **márgenes de 2,54 cm** en los cuatro lados y
+el **número de página arriba a la derecha** en todas. Las notas de tablas y figuras van a
+espacio sencillo o 1,5: así caben sin desbordar la celda, y la propia norma lo permite por
+legibilidad.
 
 > [!IMPORTANT]
 > Nada de eso se escribe en el Markdown, y no hace falta que lo hagas: el bloque `<style>`

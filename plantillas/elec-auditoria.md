@@ -132,7 +132,7 @@ Aquí se ve si todo lo anterior es un sistema o una casualidad.
 - [ ] Plan de mantenimiento eléctrico escrito, con tareas, frecuencias y responsable por equipo, y frecuencias justificadas por condición, criticidad y ambiente, no por costumbre — [cobertura sobre el total de equipos; criterio usado]
 - [ ] Órdenes de trabajo cerradas con lo que se hizo, lo que se midió y lo que quedó pendiente; historial por equipo accesible con fallas, pruebas y cambios de componentes — [porcentaje cerrado con datos; hasta qué año llega el historial]
 - [ ] Repuestos críticos definidos y existencia real contrastada contra el inventario del sistema — [faltantes encontrados]
-- [ ] Indicadores calculados y revisados con dirección: MTBF = horas en operación ÷ número de fallas; disponibilidad = horas disponibles ÷ horas requeridas × 100; cumplimiento del plan = tareas hechas a tiempo ÷ tareas programadas × 100 — [valores del último periodo]
+- [ ] Indicadores calculados y revisados con dirección: MTBF = horas en operación ÷ número de fallas; disponibilidad = (horas programadas − horas de paro por causa eléctrica) ÷ horas programadas × 100; cumplimiento del plan = tareas hechas a tiempo ÷ tareas programadas × 100 — [valores del último periodo]
 - [ ] Auditoría del programa de seguridad eléctrica al día: la NFPA 70E pide auditar el programa cada tres años como máximo y el trabajo en campo cada año, y dejar constancia escrita de cada auditoría — [fecha de la última; hallazgos cerrados]
 
 ## Hallazgos

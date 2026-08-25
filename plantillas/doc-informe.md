@@ -17,6 +17,7 @@ Por qué se hace este informe y qué pasó antes.
 
 | Indicador | Periodo actual | Periodo anterior | Variación |
 | --- | ---: | ---: | ---: |
+| Ingresos mensuales | 48.200 € | 45.100 € | +6,9 % |
 |  |  |  |  |
 |  |  |  |  |
 
@@ -34,6 +35,7 @@ Qué explica los números. Separa lo que sabes de lo que supones:
 
 | Riesgo | Probabilidad | Impacto | Qué haríamos |
 | --- | :---: | :---: | --- |
+| Retraso del proveedor principal | Media | Alto | Buscar proveedor alterno y adelantar el pedido |
 |  |  |  |  |
 
 ## Recomendación

@@ -3,7 +3,7 @@ titulo: "ADR 001: [decisión en una frase]"
 fecha: 
 ---
 
-**Estado:** propuesta · **aceptada** · sustituida por ADR-XXX · descartada
+**Estado:** [propuesta / aceptada / sustituida por ADR-XXX / descartada]
 
 <!-- Un ADR (registro de decisión de arquitectura) es un archivo por decisión,
      numerado, que no se edita: si cambias de idea, escribes otro que lo sustituye.

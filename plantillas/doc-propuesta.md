@@ -31,9 +31,9 @@ Esta segunda lista evita el 90% de los malentendidos: escríbela con cuidado.
 
 | Fase | Qué se entrega | Plazo |
 | --- | --- | --- |
-| 1. Descubrimiento |  | semana 1 |
-| 2. Construcción |  | semanas 2-5 |
-| 3. Puesta en marcha |  | semana 6 |
+| 1. Descubrimiento | Documento con el alcance definitivo y el cronograma detallado | semana 1 |
+| 2. Construcción | Entorno funcionando con lo acordado, listo para pruebas | semanas 2-5 |
+| 3. Puesta en marcha | Sistema en producción, con documentación y formación al equipo | semana 6 |
 
 ## Qué necesitamos de ti
 
@@ -46,6 +46,7 @@ Sin esto, los plazos no se sostienen.
 
 | Concepto | Importe |
 | --- | ---: |
+| Diseño e implementación | 4.500 € |
 |  |  |
 | **Total** |  |
 

@@ -15,13 +15,14 @@ fecha:
 .documento{ font-family:"Times New Roman", Times, Tinos, Liberation Serif, Georgia, serif; font-size:12pt }
 .documento p, .documento li{ line-height:2 }
 .documento p{ text-indent:1.27cm; text-align:left; margin:0 }
-.documento h1, .documento h2, .documento h3, .documento h4{
+.documento h1, .documento h2, .documento h3, .documento h4, .documento h5{
   font-family:inherit; font-size:12pt; line-height:2; border:0; margin:0; padding:0;
 }
 .documento h1{ text-align:center; font-weight:700 }
 .documento h2{ text-align:left;   font-weight:700 }
 .documento h3{ text-align:left;   font-weight:700; font-style:italic }
 .documento h4{ text-align:left;   font-weight:700; text-indent:1.27cm }
+.documento h5{ text-align:left;   font-weight:700; font-style:italic; text-indent:1.27cm }
 .documento blockquote{ margin:0 0 0 1.27cm; padding:0; border:0; background:none }
 .documento blockquote p{ text-indent:0 }
 .documento .portada p{ text-indent:0; text-align:center }
@@ -55,8 +56,9 @@ fecha:
 Tres movimientos, en este orden y sin adornos:
 
 **Qué pasa.** El hecho observable, con datos y con fuente. "El 43 % de los estudiantes de
-primer ingreso abandona antes del segundo año (MINEDUC, 2023)." Nada de "desde siempre el ser
-humano".
+primer ingreso abandona antes del segundo año (Ministerio de Educación [MINEDUC], 2023)."
+Nada de "desde siempre el ser humano". La sigla completa va la primera vez que se cita esa
+fuente; de ahí en adelante, ya basta con "(MINEDUC, 2023)".
 
 **Por qué es un problema.** A quién perjudica y con qué consecuencia medible. Si nadie sale
 perjudicado, no hay problema que investigar.
@@ -348,6 +350,8 @@ Apellido, B. B. y Apellido, C. C. (2021). *Título del libro en cursiva* (2.ª e
 
 Institución. (2023). *Título del informe en cursiva*. https://ejemplo.org/informe
 
+The jamovi project. (2024). *jamovi* (Versión 2.5) [Software]. https://www.jamovi.org
+
 </div>
 
 > [!TIP]
@@ -370,6 +374,8 @@ Uno por página, en el orden en que se mencionan en el texto. Menciónalos: "(ve
 <div class="salto-pagina"></div>
 
 # Antes de entregar
+
+*Esta lista es para ti, no para quien evalúa: bórrala antes de entregar el anteproyecto.*
 
 - [ ] La pregunta general, el objetivo general y la hipótesis hablan de **las mismas
       variables** y de la misma población

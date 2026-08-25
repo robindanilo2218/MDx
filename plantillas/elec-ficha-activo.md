@@ -156,7 +156,7 @@ Lo que no cabe en las tablas y hay que decirle al siguiente. El valor de esta ho
 
 - [Maña del equipo: la celda no cierra si el enclavamiento de la puerta está flojo, se ajusta antes de maniobrar]; [acceso, herramienta especial o contacto que hace falta, y dónde está].
 - Se actualiza al cerrar cada OT, no al final del mes ni la víspera de la auditoría. Lo que no sepas se escribe "sin dato" y se programa quién lo levanta: inventar un valor de placa o una fecha es peor que dejar el hueco.
-- Con estas tablas salen los números que pide dirección: disponibilidad = horas en servicio ÷ horas del periodo; MTBF = horas en operación ÷ número de fallas; MTTR = horas de reparación ÷ número de reparaciones.
+- Con estas tablas salen los números que pide dirección: disponibilidad = (horas programadas − horas de paro por causa eléctrica) ÷ horas programadas × 100; MTBF = horas en operación ÷ número de fallas; MTTR = horas de reparación ÷ número de reparaciones.
 
 ## Referencias
 

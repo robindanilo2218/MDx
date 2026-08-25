@@ -77,9 +77,9 @@ Una fila por punto. Si un punto no está aquí, no está bloqueado, aunque algui
 
 | Equipo / TAG | Punto de aislamiento | Tipo de energía | Dispositivo de bloqueo | Candado n.º | Etiqueta n.º | Quién | Hora |
 | --- | --- | --- | --- | :---: | :---: | --- | :---: |
-| [M-114 bomba] | [arrancador CCM-2, celda 4] | [eléctrica de fuerza] | [pinza multicandado] | [ ] | [ ] | [nombre] | [ ] |
-| [M-114 bomba] | [mando 24 V, tablero PLC] | [eléctrica de control] | [bloqueo de interruptor] | [ ] | [ ] | [nombre] | [ ] |
-|  |  |  |  |  |  |  |  |
+| [M-114 bomba] | [arrancador CCM-2, celda 4] | [eléctrica de fuerza] | [pinza multicandado] | [[Candado n.º =numero]] | [[Etiqueta n.º =numero]] | [[Quién]] | [[Hora =hora]] |
+| [M-114 bomba] | [mando 24 V, tablero PLC] | [eléctrica de control] | [bloqueo de interruptor] | [[Candado n.º =numero]] | [[Etiqueta n.º =numero]] | [[Quién]] | [[Hora =hora]] |
+| [[Equipo / TAG]] | [[Punto de aislamiento]] | [[Tipo de energía]] | [[Dispositivo de bloqueo]] | [[Candado n.º =numero]] | [[Etiqueta n.º =numero]] | [[Quién]] | [[Hora =hora]] |
 
 ## Verificación de ausencia de tensión, tierra y cortocircuito
 
@@ -102,8 +102,8 @@ Cada persona pone su candado y cada persona quita el suyo. Nadie firma por otro 
 
 | Nombre | Empresa | Candado n.º | Firma al poner | Hora | Firma al quitar | Hora |
 | --- | --- | :---: | --- | :---: | --- | :---: |
-|  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |
+| [[Nombre]] | [[Empresa]] | [[Candado n.º =numero]] | [[Firma al poner =firma]] | [[Hora =hora]] | [[Firma al quitar =firma]] | [[Hora =hora]] |
+| [[Nombre]] | [[Empresa]] | [[Candado n.º =numero]] | [[Firma al poner =firma]] | [[Hora =hora]] | [[Firma al quitar =firma]] | [[Hora =hora]] |
 
 ## Retirada del bloqueo y reenergización
 

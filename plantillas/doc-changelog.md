@@ -32,6 +32,10 @@ Versionado según [SemVer](https://semver.org/lang/es/).
 
 - El parámetro `orden` de la API; usa `ordenar_por`. Se retirará en la 2.0.
 
+### Eliminado
+
+- El endpoint `/api/v1/legacy-export`, sin uso desde la 1.0.
+
 ### Corregido
 
 - Las fechas se mostraban en la zona horaria del servidor y no en la del usuario.

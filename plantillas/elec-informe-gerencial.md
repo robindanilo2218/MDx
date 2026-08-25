@@ -58,7 +58,7 @@ Pocos y siempre los mismos. Cambiar la lista cada mes es la forma más rápida d
 
 **Cómo se calculan.** La misma fórmula que tu tablero de indicadores, palabra por palabra. Si un número no cuadra con esa hoja, el que está mal es este informe.
 
-- Disponibilidad = (horas programadas − horas de paro) ÷ horas programadas × 100
+- Disponibilidad = (horas programadas − horas de paro por causa eléctrica) ÷ horas programadas × 100
 - MTBF = horas en operación ÷ número de fallas, y MTTR = horas de reparación ÷ número de reparaciones
 - Cumplimiento del preventivo = órdenes preventivas cerradas dentro de la ventana ÷ órdenes preventivas programadas × 100
 - Backlog = horas de trabajo pendiente ÷ horas disponibles de la cuadrilla en una semana

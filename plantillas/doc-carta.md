@@ -5,18 +5,18 @@ fecha:
 
 <div style="text-align:right">
 
-**[Tu nombre]**
-[Dirección]
-[Ciudad, código postal]
+**[Tu nombre]**<br>
+[Dirección]<br>
+[Ciudad, código postal]<br>
 [Correo] · [Teléfono]
 
 </div>
 
 [Ciudad], [fecha]
 
-**[Nombre del destinatario]**
-[Cargo]
-[Empresa]
+**[Nombre del destinatario]**<br>
+[Cargo]<br>
+[Empresa]<br>
 [Dirección]
 
 **Asunto:** [en cinco palabras]
@@ -35,7 +35,7 @@ Atentamente,
 
 <br><br>
 
-**[Tu nombre]**
+**[Tu nombre]**<br>
 [Cargo]
 
 <!-- Adjuntos: -->

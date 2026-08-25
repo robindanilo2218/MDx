@@ -15,13 +15,14 @@ fecha:
 .documento{ font-family:"Times New Roman", Times, Tinos, Liberation Serif, Georgia, serif; font-size:12pt }
 .documento p, .documento li{ line-height:2 }
 .documento p{ text-indent:1.27cm; text-align:left; margin:0 }
-.documento h1, .documento h2, .documento h3, .documento h4{
+.documento h1, .documento h2, .documento h3, .documento h4, .documento h5{
   font-family:inherit; font-size:12pt; line-height:2; border:0; margin:0; padding:0;
 }
 .documento h1{ text-align:center; font-weight:700 }
 .documento h2{ text-align:left;   font-weight:700 }
 .documento h3{ text-align:left;   font-weight:700; font-style:italic }
 .documento h4{ text-align:left;   font-weight:700; text-indent:1.27cm }
+.documento h5{ text-align:left;   font-weight:700; font-style:italic; text-indent:1.27cm }
 .documento blockquote{ margin:0 0 0 1.27cm; padding:0; border:0; background:none }
 .documento blockquote p{ text-indent:0 }
 .documento .portada p{ text-indent:0; text-align:center }
@@ -130,6 +131,9 @@ https://ejemplo.org/ruta
 <div class="salto-pagina"></div>
 
 # El párrafo académico, en cuatro movimientos
+
+*Esta sección y la siguiente ("Formato") son ayuda para quien redacta, no contenido del
+ensayo: bórralas las dos antes de entregar.*
 
 Todo párrafo del desarrollo tiene la misma anatomía. Si te falta uno de los cuatro, el
 párrafo cojea.

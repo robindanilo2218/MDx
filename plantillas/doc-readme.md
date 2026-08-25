@@ -11,17 +11,17 @@ Dos o tres frases sobre el problema que resuelve. Si hay una captura o un ejempl
 ```bash
 git clone https://ejemplo.com/proyecto.git
 cd proyecto
-npm install
+[comando de instalación]   # ejemplo con Node: npm install
 ```
 
-**Requisitos:** Node 20 o superior.
+**Requisitos:** [lenguaje y versión mínima] (ejemplo: Node 20 o superior).
 
 ## Uso
 
 El caso más común, completo y copiable:
 
 ```bash
-npm run dev
+[comando para levantar el proyecto]   # ejemplo con Node: npm run dev
 ```
 
 Y el resultado que se espera ver.
@@ -36,9 +36,9 @@ Y el resultado que se espera ver.
 ## Desarrollo
 
 ```bash
-npm test          # pruebas
-npm run check     # tipos y estilo
-npm run build     # construir
+[comando de pruebas]        # ejemplo con Node: npm test
+[comando de verificación]   # ejemplo con Node: npm run check     — tipos y estilo
+[comando de construcción]   # ejemplo con Node: npm run build
 ```
 
 ## Estructura

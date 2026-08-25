@@ -3,8 +3,8 @@ titulo: Acta de la reunión de [tema]
 fecha: 
 ---
 
-**Asistentes:** …
-**Ausentes:** …
+**Asistentes:** …<br>
+**Ausentes:** …<br>
 **Duración:** …
 
 ## Objetivo
@@ -29,6 +29,8 @@ Para qué se convocó, en una frase.
 Qué se planteó, qué se dijo y en qué quedó.
 
 ### [Tema 2]
+
+Qué se planteó, qué se dijo y en qué quedó.
 
 ## Sin resolver
 
