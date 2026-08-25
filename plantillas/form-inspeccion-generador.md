@@ -175,10 +175,10 @@ Crítica es la que deja al edificio sin respaldo. Esa se avisa por teléfono el 
 - [ ] La sala quedó limpia y cerrada.
 - [ ] Se registró la inspección en el CMMS con el número [[N.º de OT]].
 
-| Quien inspecciona | Supervisor de mantenimiento | Recibe operaciones |
-| --- | --- | --- |
-| [[Firma =firma]] | [[Firma =firma]] | [[Firma =firma]] |
-| [[Nombre]] | [[Nombre]] | [[Nombre]] |
+| Quien inspecciona | Supervisor de mantenimiento | Recibe operaciones | Propietario del activo / cliente |
+| --- | --- | --- | --- |
+| [[Firma =firma]] | [[Firma =firma]] | [[Firma =firma]] | [[Firma =firma]] |
+| [[Nombre]] | [[Nombre]] | [[Nombre]] | [[Nombre]] |
 
 ---
 

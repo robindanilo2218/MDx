@@ -78,7 +78,7 @@ Qué tiene que pasar cuando la entrada no es la de siempre. Decídelo aquí, no 
 
 ## Cómo la pruebas tú
 
-1. **Valida el formato.** `skills-ref validate ./mi-habilidad-evaluable` comprueba el front matter y el nombrado.
+1. **Valida el formato.** Front matter con los campos que toca, el nombre en la carpeta y no en `name`, y la ruta correcta según sea skill de proyecto o personal.
 2. **Prepara la línea base.** Cada caso se ejecuta dos veces en condiciones idénticas — mismo modelo, mismas herramientas: una con la habilidad y otra sin ella (o contra la versión anterior guardada). Sin línea base no sabes si la habilidad aporta algo.
 3. **Contexto limpio en cada ejecución.** Sesión nueva o subagente, para que Claude siga solo lo que dice este archivo y no restos de cuando la escribiste.
 4. **Califica.** Cada criterio, PASS o FAIL, citando el trozo de la salida que lo demuestra. Sin beneficio de la duda. Lo mecánico, mejor con un script que a ojo.

@@ -20,6 +20,7 @@ fecha:
 | Conductor u operador | [[Nombre]] |
 | Licencia n.º y vigencia | [[Licencia]] — vence [[Vence =fecha]] |
 | Kilometraje u horómetro | [[Lectura =numero]] |
+| Próximo servicio programado | [[Próximo servicio =fecha]] |
 | Destino o trabajo del día | [[A dónde va]] |
 
 ## Documentos
@@ -47,6 +48,7 @@ fecha:
 | Espejos y vidrios | [ ] | [ ] | [[Observación]] |
 | Limpiaparabrisas | [ ] | [ ] | [[Observación]] |
 | Cinturones de seguridad | [ ] | [ ] | [[Observación]] |
+| Amarre o cinturones portaequipos de la carga — si aplica | [ ] | [ ] | [[Observación]] |
 | Carrocería y puertas | [ ] | [ ] | [[Observación]] |
 
 ## Con el motor en marcha

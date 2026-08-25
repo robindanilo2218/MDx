@@ -46,6 +46,8 @@ fecha: 21 de agosto de 2026
 
 Se admiten `titulo`, `subtitulo`, `autor` y `fecha` (también en inglés: `title`, `subtitle`, `author`, `date`). La portada de arriba está generada con ese bloque.
 
+También se admite `idioma` (o `lang`, `language`, `locale`): pone el documento en ese idioma para que el traductor del navegador parta de ahí y no traduzca el código ni los diagramas. Por ejemplo `idioma: en` para un documento en inglés.
+
 ## 3. Encabezados
 
 ### Estilo almohadilla

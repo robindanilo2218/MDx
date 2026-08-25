@@ -199,10 +199,10 @@ Solo si se hizo con carga. Sin carga, la termografía no dice nada.
 - [ ] El recinto quedó limpio y sin herramienta dentro.
 - [ ] Los hallazgos críticos se avisaron por teléfono, no solo por escrito.
 
-| Quien inspecciona | Acompañante | Supervisor |
-| --- | --- | --- |
-| [[Firma =firma]] | [[Firma =firma]] | [[Firma =firma]] |
-| [[Nombre]] | [[Nombre]] | [[Nombre]] |
+| Quien inspecciona | Acompañante | Supervisor | Propietario del activo / cliente |
+| --- | --- | --- | --- |
+| [[Firma =firma]] | [[Firma =firma]] | [[Firma =firma]] | [[Firma =firma]] |
+| [[Nombre]] | [[Nombre]] | [[Nombre]] | [[Nombre]] |
 
 ---
 

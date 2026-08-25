@@ -40,10 +40,12 @@ fecha:
 
 ## Testigos
 
-| Nombre | Cargo | Teléfono | Firma |
-| --- | --- | --- | --- |
-| [[Nombre]] | [[Cargo]] | [[Teléfono]] | [[Firma =firma]] |
-| [[Nombre]] | [[Cargo]] | [[Teléfono]] | [[Firma =firma]] |
+| Nombre | Tipo de testigo | Cargo | Teléfono | Firma |
+| --- | --- | --- | --- | --- |
+| [[Nombre]] | [[Tipo =Presencial/Referido]] | [[Cargo]] | [[Teléfono]] | [[Firma =firma]] |
+| [[Nombre]] | [[Tipo =Presencial/Referido]] | [[Cargo]] | [[Teléfono]] | [[Firma =firma]] |
+
+Presencial: vio el hecho. Referido: no lo vio, pero se enteró después y aporta información.
 
 ## Daños
 
@@ -106,6 +108,7 @@ La causa de fondo casi nunca es «descuido del trabajador». Si el reporte termi
 | --- | --- |
 | ¿Requiere investigación formal? | [[Investigación =Sí/No]] |
 | ¿Se comunicó al resto de los turnos? | [[Comunicación =Sí/No]] |
+| Clasificación regulatoria / de gravedad (según la autoridad laboral del país) | [[Clasificación]] |
 | Fecha de verificación de las acciones | [[Verificación =fecha]] |
 | Estado del reporte | [[Estado =Abierto/En seguimiento/Cerrado]] |
 

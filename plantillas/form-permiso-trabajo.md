@@ -71,8 +71,11 @@ fecha:
 - [ ] Se explicó el trabajo y sus riesgos a todo el equipo.
 - [ ] El área está delimitada y señalizada.
 - [ ] Se verificó ausencia de tensión con instrumento probado antes y después.
+- [ ] Prueba de tensión cero con doble verificación — persona 1: [[Nombre]] [[Firma =firma]]
+- [ ] Prueba de tensión cero con doble verificación — persona 2: [[Nombre]] [[Firma =firma]]
 - [ ] La puesta a tierra temporal está instalada donde corresponde.
 - [ ] Los candados y tarjetas del bloqueo n.º [[N.º de bloqueo]] están puestos.
+- [ ] Candado grupal (lockbox), si el trabajo lo usa — personas con candado propio puesto: [[Cantidad =numero]]
 - [ ] El extintor adecuado está a menos de 10 m.
 - [ ] La medición de gases dio: [[Oxígeno]] % O₂, [[Explosividad]] % LEL, [[Tóxicos]] ppm.
 - [ ] El plan de rescate está definido y el equipo está en sitio.

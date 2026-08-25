@@ -54,6 +54,8 @@ esac
 exit 0
 ```
 
+> `tool_input.file_path` solo existe cuando la herramienta que disparó el hook trabaja con un archivo (Edit, Write, NotebookEdit...). Otras herramientas traen otros campos — Bash, por ejemplo, manda `tool_input.command`, no `file_path` — por eso el script sale sin hacer nada si el campo viene vacío, y por eso el `matcher` de arriba se limita a `Edit|Write`.
+
 ## Cómo se comporta
 
 | Código de salida | Qué pasa |
