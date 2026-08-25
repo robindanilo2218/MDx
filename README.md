@@ -10,14 +10,15 @@ Publicado en <https://md.crgm.app>.
 
 - **Convierte Markdown a HTML** con un motor propio de unas 900 líneas: sin
   librerías, sin CDN y sin peticiones a internet. Todo está dentro de `index.html`.
-- **Catálogo de plantillas** (`▤ Plantillas`, o <kbd>Ctrl</kbd>+<kbd>K</kbd>) con 92
-  documentos listos para usar, repartidos en diez categorías: habilidades y
+- **Catálogo de plantillas** (`▤ Plantillas`, o <kbd>Ctrl</kbd>+<kbd>K</kbd>) con 103
+  documentos listos para usar, repartidos en doce categorías: habilidades y
   subagentes de Claude Code, `CLAUDE.md` / `AGENTS.md` y reglas, comandos y hooks,
   roles y prompts, cómo escribir un `.md` para una IA, documentos de trabajo
   (informes, actas, propuestas, ADR, changelog…), trabajos académicos con la
   norma APA 7, un juego completo de mantenimiento eléctrico industrial (plan
   maestro, criticidad, LOTO, termografía, calidad de energía, causa raíz, KPIs y
-  el uso de la IA en la planta) y trece formularios para rellenar. Cada plantilla
+  el uso de la IA en la planta), trece formularios para rellenar, seis
+  diapositivas listas para presentar y cuatro hojas de cálculo. Cada plantilla
   dice en qué ruta va el archivo y con qué nombre, y termina con las referencias
   de dónde sale su formato.
 - **Formularios que se rellenan sobre la vista**, sin abrir el editor: escribe
@@ -41,6 +42,15 @@ Publicado en <https://md.crgm.app>.
 - **Dibuja fórmulas** escritas en LaTeX (`$E = mc^2$` o un bloque entre `$$`),
   traducidas a MathML y dibujadas por el propio navegador: cero fuentes que
   descargar.
+- **Presenta a pantalla completa** (`▶ Presentar`): cada línea `---` abre una
+  diapositiva nueva; si el documento no tiene ninguna, cada título de primer
+  nivel abre la suya. Se navega con flechas, espacio o clic, y se imprime una
+  diapositiva por página. No es un archivo aparte: es el mismo Markdown, visto
+  de otra forma.
+- **Calcula dentro de las tablas**: una celda con `[[Total =formula::SUMA(B2:B6)]]`
+  se recalcula sola, con direcciones de celda al estilo de una hoja de cálculo
+  (`B2`, rangos `B2:B6`) y las funciones `SUMA`, `PROMEDIO`, `MAX`, `MIN`,
+  `CONTAR` y `REDONDEAR`. Sin `eval`: un evaluador propio y acotado.
 - **Colorea el código** de 20 lenguajes (JavaScript, TypeScript, JSON, Python,
   CSS, HTML, Bash, YAML, SQL, Markdown, diff, INI, Java, C, C++, Go, Rust, PHP,
   Ruby y Lua) con sus apodos habituales, y pone la etiqueta del lenguaje en la
@@ -73,9 +83,21 @@ Publicado en <https://md.crgm.app>.
 - **Tus propias plantillas**: guarda el documento que tengas abierto en
   *Mis plantillas* y reutilízalo cuando quieras.
 - **Abre archivos** `.md` de tu equipo, también arrastrándolos sobre la página.
-- **Descarga** el texto en `.md`, la página entera en `.html` con tu documento
-  dentro (esa copia funciona a doble clic, sin servidor) o la vista en `.png`
-  como imagen, hecha con el propio navegador y sin librerías.
+- **Descarga con un solo botón** (`⤓ Descargar`) que pregunta el formato: el
+  texto en `.md`, la página entera en `.html` con tu documento dentro (esa
+  copia funciona a doble clic, sin servidor) o la vista en `.png` como imagen,
+  hecha con el propio navegador y sin librerías.
+- **Comparte** (`➦ Compartir`): copia el enlace de la plantilla en uso, envía
+  el archivo `.md` por la hoja de compartir del sistema, copia el Markdown en
+  crudo, o **copia con formato**: la vista ya renderizada, lista para pegar en
+  un correo o un documento que admita texto enriquecido, con negritas, tablas
+  y títulos incluidos. También **publica la plantilla en la Comunidad**: sube
+  anónima y pública a Firestore (por REST, con `fetch` a secas y sin SDK) y te
+  llevas un enlace `?p=<id>` para dársela a quien sea. La categoría
+  **Comunidad** de la galería enseña lo publicado por todo el mundo; nada sale
+  a internet hasta que entras ahí o pulsas Publicar. Lo que publicas desde tu
+  navegador lleva un botón **retirar** en su propia tarjeta —solo tú lo ves, y
+  solo mientras sea ese mismo navegador— para deshacerlo cuando quieras.
 - **Imprime limpio**: la barra de botones y el editor no salen en el papel.
 - **Se lleva bien con el traductor del navegador**: la página declara su idioma
   con `hreflang`, el documento hereda el que digan sus metadatos (`idioma: en`) y
@@ -84,20 +106,25 @@ Publicado en <https://md.crgm.app>.
   conexión gracias al service worker.
 - **Sirve en el móvil**: el documento se lee cómodo en una pantalla estrecha y el
   editor se pone arriba con el resultado debajo, en vez de dos columnas
-  apretadas.
+  apretadas. La barra de botones entera se recoge en un menú de tres puntos
+  (`⋮`) que enseña cada acción con su nombre y su explicación — el tooltip
+  que un dedo sí puede leer.
 
 ### Sintaxis que entiende el motor
 
 Títulos ATX y setext con identificador automático o manual (`{#mi-id}`), `[TOC]`,
-párrafos y saltos duros, negrita, cursiva, tachado, resaltado, superíndice y
-subíndice, listas ordenadas y sin ordenar (anidadas, de tareas, con `start`),
-citas y avisos de GitHub (`> [!NOTE]`, `> [!AVISO]`…), bloques de código con
-vallas o con sangría, enlaces en línea, de referencia y automáticos, imágenes y
-figuras, tablas con alineación, notas al pie con enlace de vuelta, listas de
-definiciones, abreviaturas, emojis por su nombre (`:warning:`), HTML crudo,
-escapes con barra invertida, diagramas `mermaid`, fórmulas en LaTeX y metadatos
-al principio del documento (*front matter*). En los metadatos, `matematicas: no`
-apaga las fórmulas por si el documento habla de dólares.
+párrafos y saltos duros, líneas divisorias, negrita, cursiva, tachado, resaltado,
+superíndice y subíndice, listas ordenadas y sin ordenar (anidadas, de tareas, con
+`start`), citas y siete tipos de aviso (`> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`,
+`[!WARNING]`, `[!CAUTION]`, `[!ERROR]` — este último no existe ni en GitHub — y
+el alias en español `[!AVISO]`), bloques de código con vallas o con sangría,
+enlaces en línea, de referencia y automáticos, imágenes y figuras, tablas con
+alineación y fórmulas de hoja de cálculo en sus celdas, notas al pie con enlace
+de vuelta, listas de definiciones, abreviaturas, emojis por su nombre
+(`:warning:`), HTML crudo, escapes con barra invertida, diagramas `mermaid`,
+fórmulas en LaTeX y metadatos al principio del documento (*front matter*). En
+los metadatos, `matematicas: no` apaga las fórmulas por si el documento habla
+de dólares.
 
 ## Atajos
 
