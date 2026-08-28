@@ -206,6 +206,9 @@ body.editando #ed{flex:1 1 auto; height:auto; min-height:0}
 .chico-menu .chico-fila{cursor:default}
 .chico-menu b{display:block; font-family:var(--sans); font-size:.9rem}
 .chico-menu span{display:block; font-family:var(--sans); font-size:.75rem; color:var(--tenue); margin-top:.15rem}
+.chico-menu .fila-doble{display:flex; align-items:stretch; gap:.4rem}
+.chico-menu .fila-doble > a:first-child{flex:1; min-width:0}
+.chico-menu a.mini{flex:0 0 auto; align-self:center; padding:.4rem .6rem; font-size:.72rem; white-space:nowrap}
 .chico-form{display:grid; gap:.6rem; padding:.9rem; font-family:var(--sans); font-size:.85rem; min-height:0; overflow:auto}
 .chico-form label{display:grid; gap:.25rem; color:var(--tenue)}
 .chico-form input[type=text], .chico-form input[type=number], .chico-form input[type=search]{
@@ -8372,10 +8375,16 @@ function menuInstalar(){
     filas.push('<div class="chico-fila"><b>&#10514; iPhone / iPad</b>' +
       '<span>Toca Compartir (el cuadrito con la flecha hacia arriba) y luego «Agregar a inicio»</span></div>');
   }
-  filas.push('<a href="descargas/mdx-windows-portable.exe" download data-instalar="windows"><b>&#10514; Windows</b>' +
-    '<span>.exe portable: ábrelo con doble clic, sin instalador ni permisos de administrador</span></a>');
-  filas.push('<a href="descargas/mdx-linux.AppImage" download data-instalar="linux"><b>&#10514; Linux</b>' +
-    '<span>.AppImage: dale permiso de ejecución y ábrelo con doble clic</span></a>');
+  filas.push('<div class="fila-doble">' +
+    '<a href="https://github.com/robindanilo2218/MDx/releases/download/MDx_win_linux_portable/mdx-windows-portable.exe" data-instalar="windows"><b>&#10514; Windows</b>' +
+      '<span>.exe portable: ábrelo con doble clic, sin instalador ni permisos de administrador</span></a>' +
+    '<a class="mini" href="descargas/mdx-windows-portable.exe" download data-instalar="windows-mirror" title="Mismo archivo, servido desde md.crgm.app en vez de GitHub">Firebase</a>' +
+    '</div>');
+  filas.push('<div class="fila-doble">' +
+    '<a href="https://github.com/robindanilo2218/MDx/releases/download/MDx_win_linux_portable/mdx-linux.AppImage" data-instalar="linux"><b>&#10514; Linux</b>' +
+      '<span>.AppImage: dale permiso de ejecución (chmod +x) y ábrelo. En Debian/Ubuntu recientes, si no abre, instala libfuse2</span></a>' +
+    '<a class="mini" href="descargas/mdx-linux.AppImage" download data-instalar="linux-mirror" title="Mismo archivo, servido desde md.crgm.app en vez de GitHub">Firebase</a>' +
+    '</div>');
   filas.push('<button type="button" data-instalar="android"><b>&#10514; Android</b>' +
     '<span>Desde Chrome: menú ⋮ → Instalar aplicación. El .apk descargable llega pronto aquí</span></button>');
   filas.push('<a href="https://pdfx.crgm.app/" target="_blank" rel="noopener"><b>&#10145; ¿Tienes un PDF?</b>' +
