@@ -144,6 +144,27 @@ También entiende dos direcciones directas: `?nuevo=1` abre un documento en blan
 y `?plantilla=<id>` carga una plantilla concreta (por ejemplo
 `?plantilla=claudemd-proyecto`).
 
+## Escritorio (Windows / Linux)
+
+Además de la PWA, `escritorio/` empaqueta MDx con Electron en un `.exe`
+portable para Windows y un `.AppImage` para Linux. Ambos llevan la aplicación
+entera dentro (HTML, motor, plantillas): al abrirlos no descargan nada de
+`mdx.crgm.app` ni de ningún otro sitio, así que funcionan sin conexión desde
+el primer arranque.
+
+👉 **[Guía rápida](docs/GUIA-RAPIDA.md)** — cómo abrir cada uno, qué hacer si
+Windows avisa "protegió tu PC" o si el `.AppImage` no hace nada en Debian, y
+cómo dejarlos como aplicación predeterminada para `.md`.
+
+Se generan con:
+
+```bash
+cd escritorio
+npm run build         # los dos a la vez
+npm run build:win      # solo Windows
+npm run build:linux    # solo Linux
+```
+
 ## Qué hay en el repositorio
 
 ```
