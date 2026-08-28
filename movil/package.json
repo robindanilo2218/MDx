@@ -1,0 +1,15 @@
+{
+  "name": "md-crgm-movil",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MDx como app de Android (Capacitor), con apertura predeterminada de .md",
+  "scripts": {
+    "prebuild": "rm -rf app && mkdir -p app && cp -r ../index.html ../manifest.webmanifest ../favicon.ico ../iconos ../plantillas app/",
+    "sync": "npm run prebuild && npx cap sync android"
+  },
+  "devDependencies": {
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/android": "^6.2.0"
+  }
+}

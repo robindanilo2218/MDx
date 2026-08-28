@@ -1,0 +1,12 @@
+node_modules/
+descargas/
+movil/android/.gradle/
+movil/android/build/
+movil/android/app/build/
+movil/android/local.properties
+movil/android/keystore.properties
+movil/app/
+escritorio/app/
+escritorio/dist/
+*.keystore
+*.jks

@@ -1,4 +1,4 @@
-# Markdown · crgm
+# MDx
 
 Un editor de Markdown de una sola página: escribes, ves el resultado al lado, lo
 imprimes en PDF y te llevas **un único archivo `.html`** que sigue funcionando sin
@@ -104,6 +104,11 @@ Publicado en <https://md.crgm.app>.
   el código, las fórmulas y los diagramas van marcados para que no se traduzcan.
 - **Aplicación instalable** (PWA): se instala desde el navegador y funciona sin
   conexión gracias al service worker.
+- **Puede ser la app predeterminada para `.md`**: una vez instalada, el sistema
+  operativo puede abrir cualquier archivo Markdown con ella (doble clic, clic
+  derecho → "Abrir con", o marcarla como predeterminada) gracias al `manifest.webmanifest`
+  (`file_handlers`). Sólo en Chrome/Edge de escritorio o ChromeOS — Firefox y
+  Safari no soportan esta API todavía.
 - **Sirve en el móvil**: el documento se lee cómodo en una pantalla estrecha y el
   editor se pone arriba con el resultado debajo, en vez de dos columnas
   apretadas. La barra de botones entera se recoge en un menú de tres puntos

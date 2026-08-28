@@ -1,9 +1,9 @@
 /* ==========================================================================
-   Service worker de Markdown · crgm
+   Service worker de MDx
    Sube el numero de VERSION cada vez que cambies index.html o las plantillas:
    asi el navegador se entera de que hay algo nuevo.
    ========================================================================== */
-var VERSION = "v23";
+var VERSION = "v26";
 var CACHE = "mdcrgm-" + VERSION;
 
 var CONCHA = [

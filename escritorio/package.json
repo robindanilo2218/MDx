@@ -1,0 +1,41 @@
+{
+  "name": "md-crgm-escritorio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MDx como app de escritorio (Windows portable / Linux AppImage)",
+  "main": "main.js",
+  "scripts": {
+    "prebuild": "rm -rf app && mkdir -p app && cp -r ../index.html ../manifest.webmanifest ../favicon.ico ../iconos ../plantillas app/",
+    "build:win": "npm run prebuild && electron-builder --win portable",
+    "build:linux": "npm run prebuild && electron-builder --linux AppImage",
+    "build": "npm run prebuild && electron-builder --win portable --linux AppImage"
+  },
+  "build": {
+    "appId": "app.crgm.md.escritorio",
+    "productName": "MDx",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "app/**/*",
+      "package.json"
+    ],
+    "icon": "../iconos/icono-512.png",
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office"
+    }
+  },
+  "devDependencies": {
+    "electron": "^41.7.1",
+    "electron-builder": "^26.15.3"
+  }
+}

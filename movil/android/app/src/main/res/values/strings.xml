@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MDx</string>
+    <string name="title_activity_main">MDx</string>
+    <string name="package_name">app.crgm.md</string>
+    <string name="custom_url_scheme">app.crgm.md</string>
+</resources>

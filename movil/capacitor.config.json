@@ -1,0 +1,6 @@
+{
+  "appId": "app.crgm.md",
+  "appName": "MDx",
+  "webDir": "app",
+  "server": { "androidScheme": "https" }
+}

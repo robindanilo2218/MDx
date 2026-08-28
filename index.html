@@ -1031,7 +1031,7 @@ math mo{font-family:inherit}
   .dialogo-cabecera input[type=search]{order:3; flex:1 0 100%}
 }
 </style>
-<title>Markdown · crgm</title>
+<title>MDx</title>
 <meta name="description" content="Editor de Markdown que funciona sin conexión: escribe, mira el resultado, imprime en PDF y llévate un solo archivo HTML. Con catálogo de plantillas para Claude Code, documentos y reglas.">
 <meta name="theme-color" content="#2f7bff">
 <meta name="color-scheme" content="light dark">
@@ -1045,10 +1045,10 @@ math mo{font-family:inherit}
 <link rel="alternate icon" href="iconos/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="iconos/apple-touch-icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Markdown">
+<meta name="apple-mobile-web-app-title" content="MDx">
 <meta name="mobile-web-app-capable" content="yes">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Markdown · crgm">
+<meta property="og:title" content="MDx">
 <meta property="og:description" content="Escribe en Markdown, imprímelo en PDF y llévate un solo archivo. Sin cuenta y sin conexión.">
 <meta property="og:image" content="iconos/icono-512.png">
 </head>
@@ -1066,7 +1066,8 @@ math mo{font-family:inherit}
   <button type="button" id="btnImprimir"  title="Imprimir o guardar como PDF (Ctrl+P)"><b>&#128424;</b><span>Imprimir</span></button>
   <button type="button" id="btnPresentar" title="Presentar en pantalla completa, diapositiva a diapositiva"><b>&#9654;</b><span>Presentar</span></button>
   <button type="button" id="btnTema"      title="Claro / oscuro"><b>&#9686;</b><span>Tema</span></button>
-  <button type="button" id="btnInstalar"  title="Instalar como aplicación" hidden><b>&#10514;</b><span>Instalar</span></button>
+  <button type="button" id="btnInstalar"  title="Instalar o descargar la app"><b>&#10514;</b><span>Instalar</span></button>
+  <button type="button" id="btnCuenta"    title="Cuenta de Google: opcional, para documentos privados sincronizados y compartidos"><b>&#128100;</b><span>Cuenta</span></button>
   <button type="button" id="btnMenu"      title="Menú" aria-haspopup="dialog"><b>&#8942;</b></button>
   <div class="pestanas" id="pestanas" role="tablist" aria-label="Documentos abiertos" hidden></div>
 </div>
@@ -4943,6 +4944,11 @@ function descargarMd(){
 
 /* --- la pildora de estado --- */
 function pintarEstado(){
+  /* se llama cada vez que docActual cambia (se abre, se cierra, se pinta otro
+     documento): es el punto de enganche natural para arrancar o parar el
+     sondeo de sincronización. Para quien nunca inicia sesión con Google esto
+     es un no-op siempre, porque vigilarSondeo() mira docActual.sincronizado. */
+  vigilarSondeo();
   var caja = $("#estadoDoc");
   if(!caja) return;
   anotarPestana();
@@ -4982,8 +4988,7 @@ function verRecientes(){
 function abrirReciente(id){
   return almacen.uno(id).then(function(d){
     if(!d){ aviso("Ese documento ya no está en Recientes"); return; }
-    fijarTexto(d.texto, d.nombre || (d.corto + ".md"),
-               { registro: d, aviso: "Abierto " + d.corto + (d.titulo ? " · " + d.titulo : "") });
+    fijarTexto(d.texto, d.nombre || (d.corto + ".md"), { registro: d });
     cerrarGaleria();
   })["catch"](function(e){ aviso("No se pudo abrir: " + e.message); });
 }
@@ -5395,7 +5400,7 @@ function pintar(md){
   else if(elDoc.replaceChildren) elDoc.replaceChildren(limpio);
   else { elDoc.innerHTML = ""; elDoc.appendChild(limpio); }
   var t = r.meta.titulo || r.meta.title || r.meta.name || "";
-  document.title = t ? t + " · Markdown" : "Markdown · crgm";
+  document.title = t ? t + " · MDx" : "MDx";
   marcarIdioma(r.meta);
   botonesCopiar();
   prepararDiagramas();
@@ -5449,14 +5454,6 @@ function fijarTexto(txt, nombre, opc){
   tocaRepintar();
   window.scrollTo(0, 0);
   if(elDoc.parentNode) elDoc.scrollTop = 0;
-  if(opc.aviso){
-    if(anterior && docActual && anterior.id !== docActual.id && (anterior.texto || "").trim()){
-      aviso(opc.aviso + ". " + anterior.corto + " quedó en Recientes.", "Volver a " + anterior.corto,
-            function(){ abrirReciente(anterior.id); });
-    }else{
-      aviso(opc.aviso);
-    }
-  }
 }
 function hayCambios(){ return fuenteActual.trim() !== textoBase.trim(); }
 function confirmarReemplazo(){
@@ -5478,8 +5475,8 @@ function descargar(nombre, texto, tipo){
 }
 function baseNombre(){
   if(nombreSugerido) return nombreSugerido.replace(/\.(md|markdown|mdown|mkd|txt|html?)$/i, "");
-  var t = (document.title || "").replace(/ · Markdown$/, "").replace(/[\\\/:*?"<>|]+/g, "").trim();
-  return (t && t !== "Markdown · crgm" ? t : "documento").toLowerCase().replace(/\s+/g, "-").slice(0, 60);
+  var t = (document.title || "").replace(/ · MDx$/, "").replace(/[\\\/:*?"<>|]+/g, "").trim();
+  return (t && t !== "MDx" ? t : "documento").toLowerCase().replace(/\s+/g, "-").slice(0, 60);
 }
 function guardarHtml(){
   var clon = document.documentElement.cloneNode(true);
@@ -6450,6 +6447,8 @@ function menuCompartir(){
   var enlace = enlaceDePlantilla();
   var esCom = enlace.indexOf("?p=") >= 0;
   var filas = ['<div class="chico-menu">'];
+  filas.push('<button type="button" data-comp="guardarmia"><b>&#9733; Guardar como plantilla tuya</b>' +
+    '<span>Queda en Plantillas &rarr; Mis plantillas, solo en este navegador (no se descarga nada)</span></button>');
   if(enlace){
     filas.push('<button type="button" data-comp="enlace"><b>&#128279; Copiar el enlace de la plantilla</b>' +
       '<span>' + escUI(enlace) + (esCom ? "" : " &middot; la del catálogo, sin tus cambios de después") + '</span></button>');
@@ -6473,8 +6472,8 @@ function menuCompartir(){
   abrirChico("Compartir", filas.join(""));
 }
 function formPublicar(){
-  var t = ((docActual && docActual.titulo) || (document.title || "").replace(/ · Markdown$/, "")).trim();
-  if(t === "Markdown · crgm") t = "";
+  var t = ((docActual && docActual.titulo) || (document.title || "").replace(/ · MDx$/, "")).trim();
+  if(t === "MDx") t = "";
   abrirChico("Publicar en la comunidad", [
     '<div class="chico-form">',
     '<label>Título <input type="text" id="pubTitulo" maxlength="80" value="' + escUI(t) + '"></label>',
@@ -6527,7 +6526,8 @@ function menuBarra(){
     ["btnImprimir",   "&#128424;",      "Imprimir",   "Imprimir o guardar como PDF, limpio y sin botones"],
     ["btnPresentar",  "&#9654;",        "Presentar",  "En pantalla completa, diapositiva a diapositiva"],
     ["btnTema",       "&#9686;",        "Tema",       "Claro u oscuro"],
-    ["btnInstalar",   "&#10514;",       "Instalar",   "Instalar como aplicación: funciona sin conexión"]
+    ["btnInstalar",   "&#10514;",       "Instalar",   "Instalar como aplicación: funciona sin conexión"],
+    ["btnCuenta",     "&#128100;",      "Cuenta",     "Opcional: documentos privados sincronizados y compartidos con tu cuenta de Google"]
   ];
   abrirChico("Menú", '<div class="chico-menu">' + filas.map(function(f){
     var b = document.getElementById(f[0]);
@@ -7253,12 +7253,457 @@ function retirarComunidad(id){
   });
 }
 
+/* ==========================================================================
+   CUENTA DE GOOGLE: opcional y APARTE de la sesión anónima de arriba.
+   La anónima es para publicar en la Comunidad (nadie es nadie); esta es para
+   el editor con NOMBRE -- documentos PRIVADOS que se sincronizan solos entre
+   tus equipos y que puedes compartir con alguien para editar juntos. Nadie
+   la necesita para nada de lo que ya hace la aplicación: si no la usas, no
+   cambia ni un byte de lo que ya funcionaba sin conexión.
+   ========================================================================== */
+var GOOGLE_CLIENT_ID = "23404750417-24dgv5kbvecetnd1tgl3glk6m66n4upe.apps.googleusercontent.com";
+/* reemplaza lo de arriba por el Client ID real tras crear un OAuth Client ID
+   (tipo "Web application") en Google Cloud Console, con este origen en
+   "Authorized JavaScript origins" y "Authorized redirect URIs". Sin eso el
+   botón de "Iniciar sesión con Google" no puede funcionar -- eso no se
+   puede generar por código. */
+var CLAVE_SESION_GOOGLE = "mdcrgm_sesion_google";
+var CLAVE_OAUTH_ESTADO = "mdcrgm_oauth_estado";
+
+function iniciarSesionGoogle(){
+  var estado = idComunidad(), nonce = idComunidad();
+  sessionStorage.setItem(CLAVE_OAUTH_ESTADO, JSON.stringify({estado: estado, nonce: nonce}));
+  var params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: location.origin + location.pathname,
+    response_type: "id_token", scope: "openid email",
+    state: estado, nonce: nonce, prompt: "select_account"
+  });
+  location.href = "https://accounts.google.com/o/oauth2/v2/auth?" + params.toString();
+}
+
+function recogerRetornoGoogle(){
+  var frag = location.hash.replace(/^#/, "");
+  if(!frag || frag.indexOf("id_token=") === -1) return null;
+  var datos = new URLSearchParams(frag);
+  var guardado = null;
+  try{ guardado = JSON.parse(sessionStorage.getItem(CLAVE_OAUTH_ESTADO) || "null"); }catch(e){}
+  sessionStorage.removeItem(CLAVE_OAUTH_ESTADO);
+  history.replaceState(null, "", location.pathname + location.search);
+  if(!guardado || datos.get("state") !== guardado.estado) return null;
+  var idTokenGoogle = datos.get("id_token");
+  var carga = null;
+  try{ carga = JSON.parse(atob(idTokenGoogle.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); }catch(e){}
+  if(!carga || carga.nonce !== guardado.nonce) return null;
+  return fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=" + COMUNIDAD.clave, {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      postBody: "id_token=" + encodeURIComponent(idTokenGoogle) + "&providerId=google.com",
+      requestUri: location.origin + location.pathname,
+      returnIdpCredential: true, returnSecureToken: true
+    })
+  }).then(function(r){ return r.json().then(function(j){ return {ok: r.ok, j: j}; }); }, function(e){ throw sinRed(e); })
+    .then(function(x){
+      if(!x.ok) throw new Error((x.j.error && x.j.error.message) || "no se pudo iniciar sesión");
+      var s = {idToken: x.j.idToken, refresco: x.j.refreshToken, uid: x.j.localId, correo: x.j.email,
+               caduca: Date.now() + (parseInt(x.j.expiresIn,10)||3600)*1000};
+      escribir(CLAVE_SESION_GOOGLE, JSON.stringify(s));
+      return s;
+    });
+}
+
+/* --- sesión de Google activa, renovada si hace falta ---
+   A diferencia de sesionAnonima(), aquí NUNCA se crea una sesión sola: sin
+   refresco válido se devuelve null y quien llama decide qué hacer (invitar a
+   iniciar sesión, o simplemente no hacer nada, como el sondeo de más abajo). */
+function sesionGoogle(){
+  var s = null;
+  try{ s = JSON.parse(leer(CLAVE_SESION_GOOGLE) || "null"); }catch(e){}
+  if(!s || !s.refresco) return Promise.resolve(null);
+  if(s.idToken && Date.now() < (s.caduca || 0) - 60000) return Promise.resolve(s);
+  return fetch("https://securetoken.googleapis.com/v1/token?key=" + COMUNIDAD.clave, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(s.refresco)
+  }).then(function(r){
+    if(!r.ok) throw new Error("caducó");
+    return r.json();
+  }, function(e){ throw sinRed(e); }).then(function(j){
+    var n = { idToken: j.id_token, refresco: j.refresh_token, uid: j.user_id, correo: s.correo,
+              caduca: Date.now() + (parseInt(j.expires_in, 10) || 3600) * 1000 };
+    escribir(CLAVE_SESION_GOOGLE, JSON.stringify(n));
+    return n;
+  })["catch"](function(){
+    /* el refresco también caducó (o el usuario revocó el acceso): no hay
+       sesión de Google, y no se insiste sola -- que el usuario decida */
+    borrar(CLAVE_SESION_GOOGLE);
+    return null;
+  });
+}
+function estadoSesionGoogle(){
+  var s = null;
+  try{ s = JSON.parse(leer(CLAVE_SESION_GOOGLE) || "null"); }catch(e){}
+  return (s && s.refresco) ? s : null;
+}
+function cerrarSesionGoogle(){
+  borrar(CLAVE_SESION_GOOGLE);
+  detenerSondeo();
+  aviso("Sesión de Google cerrada. Lo que ya sincronizaste sigue en la nube; este navegador sigue con su copia.");
+}
+
+/* --- documentos privados (usuarios_md/{uid}/documentos/{docId}) por REST ---
+   Mismo estilo que COMUNIDAD/plantillas_md, pero cada documento vive bajo el
+   uid de su dueño y las reglas de Firestore son las únicas que deciden quién
+   más lo lee o lo escribe (ver firestore.rules). */
+function nombreDocPrivado(ownerUid, docId){
+  return "projects/" + COMUNIDAD.proyecto + "/databases/(default)/documents/usuarios_md/" +
+         ownerUid + "/documentos/" + docId;
+}
+function privCampo(f, c){ return (f && f[c] && f[c].stringValue) || ""; }
+function privBool(f, c, def){ return (f && f[c] && ("booleanValue" in f[c])) ? f[c].booleanValue : !!def; }
+function privLista(f, c){
+  var v = f && f[c] && f[c].arrayValue && f[c].arrayValue.values;
+  return (v || []).map(function(x){ return x.stringValue; });
+}
+function privDoc(j){
+  var f = j.fields || {};
+  return {
+    docId: (j.name || "").split("/").pop(),
+    ownerUid: privCampo(f, "ownerUid"), titulo: privCampo(f, "titulo"), texto: privCampo(f, "texto"),
+    colaboradores: privLista(f, "colaboradores"), compartirActivo: privBool(f, "compartirActivo", false),
+    /* updateTime lo pone Firestore, no un campo nuestro: es la hora exacta
+       del último commit, y es contra lo que se compara para detectar conflictos */
+    updateTime: j.updateTime || null
+  };
+}
+function traerDocPrivado(ownerUid, docId, s){
+  return fetch(comRaiz() + "/usuarios_md/" + encodeURIComponent(ownerUid) + "/documentos/" +
+               encodeURIComponent(docId) + "?key=" + COMUNIDAD.clave, {
+    headers: { "Authorization": "Bearer " + s.idToken }
+  }).then(function(r){
+    if(r.status === 404) throw new Error("el documento remoto ya no existe");
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }, function(e){ throw sinRed(e); }).then(privDoc);
+}
+
+/* --- activar la sincronización de UN documento: lo crea en la nube ---
+   Nace sin compartir (compartirActivo:false) y sin colaboradores: es privado
+   hasta que su dueño pulse "Compartir para editar". */
+function activarSincronizacion(doc){
+  if(!doc) return Promise.reject(new Error("no hay documento que sincronizar"));
+  if(doc.sincronizado) return Promise.resolve(doc.sincronizado);
+  return sesionGoogle().then(function(s){
+    if(!s) return Promise.reject(new Error("inicia sesión con Google para sincronizar"));
+    var docId = idComunidad();
+    return fetch(comRaiz() + ":commit?key=" + COMUNIDAD.clave, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.idToken },
+      body: JSON.stringify({ writes: [{
+        update: {
+          name: nombreDocPrivado(s.uid, docId),
+          fields: {
+            ownerUid: { stringValue: s.uid },
+            titulo: { stringValue: String(doc.titulo || "").slice(0, 120) },
+            texto: { stringValue: doc.texto || "" },
+            colaboradores: { arrayValue: { values: [] } },
+            compartirActivo: { booleanValue: false }
+          }
+        },
+        /* las dos fechas las pone el servidor: nadie inventa cuándo "nació" el documento */
+        updateTransforms: [
+          { fieldPath: "createdAt", setToServerValue: "REQUEST_TIME" },
+          { fieldPath: "updatedAt", setToServerValue: "REQUEST_TIME" }
+        ],
+        currentDocument: { exists: false }
+      }] })
+    }).then(function(r){
+      if(r.ok) return r.json();
+      return r.json()["catch"](function(){ return {}; }).then(function(j){
+        throw new Error((j.error && j.error.message) || ("HTTP " + r.status));
+      });
+    }, function(e){ throw sinRed(e); }).then(function(resultado){
+      var ut = resultado.writeResults && resultado.writeResults[0] && resultado.writeResults[0].updateTime;
+      doc.sincronizado = { docId: docId, ownerUid: s.uid, colaborador: false,
+                            ultimoUpdateTime: ut || null, firmaLocal: firma(doc.texto || "") };
+      doc.compartirActivo = false;
+      if(doc === docActual){ guardarYa(); pintarEstado(); } else if(HAY_ALMACEN) guardarRegistro(doc);
+      aviso("Sincronización activada: este documento ahora vive también en tu cuenta de Google");
+      return doc.sincronizado;
+    });
+  });
+}
+
+/* --- compartir para editar: abre la puerta de autoservicio de las reglas ---
+   Sólo cambia compartirActivo; el enlace lleva el secreto (uid+docId). */
+function compartirDocumento(doc){
+  if(!doc || !doc.sincronizado) return Promise.reject(new Error("activa la sincronización primero"));
+  var sinc = doc.sincronizado;
+  return sesionGoogle().then(function(s){
+    if(!s) return Promise.reject(new Error("inicia sesión con Google para compartir"));
+    return fetch(comRaiz() + ":commit?key=" + COMUNIDAD.clave, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.idToken },
+      body: JSON.stringify({ writes: [{
+        update: { name: nombreDocPrivado(sinc.ownerUid, sinc.docId),
+                  fields: { compartirActivo: { booleanValue: true } } },
+        updateMask: { fieldPaths: ["compartirActivo"] },
+        updateTransforms: [{ fieldPath: "updatedAt", setToServerValue: "REQUEST_TIME" }],
+        currentDocument: { exists: true }
+      }] })
+    }).then(function(r){
+      if(r.ok) return r.json();
+      return r.json()["catch"](function(){ return {}; }).then(function(j){
+        throw new Error((j.error && j.error.message) || ("HTTP " + r.status));
+      });
+    }, function(e){ throw sinRed(e); }).then(function(resultado){
+      var ut = resultado.writeResults && resultado.writeResults[0] && resultado.writeResults[0].updateTime;
+      sinc.ultimoUpdateTime = ut || sinc.ultimoUpdateTime;
+      doc.compartirActivo = true;
+      if(doc === docActual){ guardarYa(); pintarEstado(); vigilarSondeo(); } else if(HAY_ALMACEN) guardarRegistro(doc);
+      var enlace = location.origin + location.pathname + "?doc=" + sinc.docId + "&u=" + sinc.ownerUid;
+      abrirChico("Compartir para editar", [
+        '<div class="chico-form">',
+        '<p class="chico-nota">Quien abra este enlace con su propia cuenta de Google podrá editar este documento contigo. ' +
+          "El enlace es el secreto: compártelo sólo con quien quieras que edite.</p>",
+        '<label>Enlace <input type="text" id="compEnlace" readonly value="' + escUI(enlace) + '"></label>',
+        '<div class="chico-pie"><button type="button" class="principal" id="compCopiarEnlace">Copiar enlace</button></div>',
+        "</div>"
+      ].join(""));
+      $("#compEnlace").focus(); $("#compEnlace").select();
+      $("#compCopiarEnlace").addEventListener("click", function(){ copiar(enlace); aviso("Enlace copiado"); });
+      return enlace;
+    });
+  });
+}
+
+/* --- conflicto real: nunca se sobreescribe en silencio ---
+   La versión local se guarda aparte, como un documento nuevo, y el que está
+   en pantalla pasa a reflejar el remoto -- así queda algo con qué "combinar
+   a mano" lo que dice el aviso. */
+function resolverConflicto(doc, sinc, remoto){
+  var hora = new Date().toLocaleTimeString();
+  var copia = crearDoc(doc.texto, { nombre: doc.nombre, origen: "conflicto" });
+  copia.titulo = (doc.titulo || tituloDe(doc.texto) || "Sin título") + " (conflicto, " + hora + ")";
+  if(HAY_ALMACEN) guardarRegistro(copia).then(function(){ cargarRecientes(); });
+  doc.texto = remoto.texto; doc.bytes = doc.texto.length; doc.modificado = Date.now();
+  if(remoto.titulo) doc.titulo = remoto.titulo;
+  sinc.ultimoUpdateTime = remoto.updateTime;
+  sinc.firmaLocal = firma(doc.texto);
+  fijarTexto(doc.texto, doc.nombre, { registro: doc });
+  aviso("Alguien más cambió este documento a la vez: tu versión de hace un momento quedó guardada aparte, como «" +
+        copia.titulo + "», para combinarla a mano.", "Ver Recientes", verRecientes);
+  return "conflicto";
+}
+
+/* --- subir los cambios locales, sólo si nadie más escribió primero ---
+   La precondición de updateTime ES la comprobación: si falla, alguien ganó
+   la carrera entre nuestro GET y este commit, y eso es un conflicto de verdad. */
+function subirCambiosLocales(doc, sinc, s){
+  return fetch(comRaiz() + ":commit?key=" + COMUNIDAD.clave, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.idToken },
+    body: JSON.stringify({ writes: [{
+      update: { name: nombreDocPrivado(sinc.ownerUid, sinc.docId), fields: {
+        titulo: { stringValue: String(doc.titulo || "").slice(0, 120) },
+        texto: { stringValue: doc.texto || "" }
+      }},
+      updateMask: { fieldPaths: ["titulo", "texto"] },
+      updateTransforms: [{ fieldPath: "updatedAt", setToServerValue: "REQUEST_TIME" }],
+      currentDocument: sinc.ultimoUpdateTime ? { updateTime: sinc.ultimoUpdateTime } : { exists: true }
+    }] })
+  }).then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); },
+    function(e){ throw sinRed(e); })
+    .then(function(x){
+      if(x.ok){
+        var ut = x.j.writeResults && x.j.writeResults[0] && x.j.writeResults[0].updateTime;
+        sinc.ultimoUpdateTime = ut || sinc.ultimoUpdateTime;
+        sinc.firmaLocal = firma(doc.texto || "");
+        guardarYa();
+        return "subido";
+      }
+      /* la precondición falló: alguien más escribió primero -- mismo trato
+         que un conflicto, nunca se fuerza la escritura por encima */
+      return traerDocPrivado(sinc.ownerUid, sinc.docId, s).then(function(remoto){
+        return resolverConflicto(doc, sinc, remoto);
+      });
+    });
+}
+
+/* --- el corazón de la sincronización: comparar y decidir, nunca adivinar ---
+   Sólo opera sobre el documento ABIERTO (docActual), y sólo si es del dueño
+   o (siendo colaborador) el dueño sigue con "compartir" activo. */
+function sincronizarAhora(){
+  /* si una vuelta anterior sigue esperando la red (posible con SONDEO_MS
+     corto y conexión lenta), se devuelve esa misma promesa en vez de lanzar
+     otra: dos vueltas solapadas verían la misma firmaLocal desactualizada y
+     se pisarían entre sí, creando un "(conflicto, hora)" fantasma. */
+  if(sondeoEnVuelo) return sondeoEnVuelo;
+  var doc = docActual;
+  if(!doc || !doc.sincronizado) return Promise.resolve(null);
+  var sinc = doc.sincronizado;
+  var terminar = function(v){ sondeoEnVuelo = null; return v; };
+  return sondeoEnVuelo = sesionGoogle().then(function(s){
+    if(!s) return null;   // sin sesión de Google: no hay con qué sincronizar
+    var esDueno = !sinc.colaborador;
+    if(!esDueno && !doc.compartirActivo) return null;   // el dueño cerró "compartir"
+    return traerDocPrivado(sinc.ownerUid, sinc.docId, s).then(function(remoto){
+      var remotoCambio = remoto.updateTime !== sinc.ultimoUpdateTime;
+      var localCambio = firma(doc.texto || "") !== (sinc.firmaLocal || "");
+      doc.compartirActivo = remoto.compartirActivo;   // se refleja para el guardián de arriba
+
+      if(!remotoCambio && !localCambio) return "igual";
+
+      if(remotoCambio && !localCambio){
+        // nadie escribía aquí: el remoto manda, sin preguntar
+        doc.texto = remoto.texto; doc.bytes = doc.texto.length; doc.modificado = Date.now();
+        if(remoto.titulo) doc.titulo = remoto.titulo;
+        sinc.ultimoUpdateTime = remoto.updateTime;
+        sinc.firmaLocal = firma(doc.texto);
+        fijarTexto(doc.texto, doc.nombre, { registro: doc, aviso: "Se actualizó con los cambios de la nube" });
+        return "remoto";
+      }
+
+      if(!remotoCambio && localCambio) return subirCambiosLocales(doc, sinc, s);
+
+      // AMBOS cambiaron: conflicto de verdad
+      return resolverConflicto(doc, sinc, remoto);
+    });
+  }).then(terminar, function(e){ terminar(); throw e; });
+}
+
+/* --- sondeo ligero: sólo mientras el documento abierto esté sincronizado Y
+   compartido Y la pestaña esté visible -- ni un fetch de más fuera de eso --- */
+var SONDEO_MS = 4000, relojSondeo = null, sondeoEnVuelo = null;
+function detenerSondeo(){ clearInterval(relojSondeo); relojSondeo = null; }
+function iniciarSondeo(){
+  detenerSondeo();
+  if(document.visibilityState !== "visible") return;
+  sincronizarAhora()["catch"](function(){});
+  relojSondeo = setInterval(function(){
+    if(!docActual || !docActual.sincronizado || !docActual.compartirActivo ||
+       document.visibilityState !== "visible"){ detenerSondeo(); return; }
+    sincronizarAhora()["catch"](function(){});
+  }, SONDEO_MS);
+}
+function vigilarSondeo(){
+  if(docActual && docActual.sincronizado && docActual.compartirActivo) iniciarSondeo();
+  else detenerSondeo();
+}
+document.addEventListener("visibilitychange", vigilarSondeo);
+
+/* --- abrir un documento remoto (el propio, o uno donde te acaban de sumar) --- */
+function abrirDocumentoRemoto(ownerUid, docId, s, esColaborador){
+  return traerDocPrivado(ownerUid, docId, s).then(function(remoto){
+    if(!confirmarReemplazo()) return;
+    var doc = crearDoc(remoto.texto, { nombre: nombreSugerido, origen: "colaboracion" });
+    if(remoto.titulo) doc.titulo = remoto.titulo;
+    doc.sincronizado = { docId: docId, ownerUid: ownerUid, colaborador: esColaborador,
+                          ultimoUpdateTime: remoto.updateTime, firmaLocal: firma(remoto.texto || "") };
+    doc.compartirActivo = remoto.compartirActivo;
+    fijarTexto(remoto.texto, doc.nombre, { registro: doc,
+      aviso: esColaborador ? "Te uniste como colaborador de «" + (doc.titulo || "este documento") + "»"
+                            : "Abriendo tu documento sincronizado" });
+  })["catch"](function(e){ aviso("No se pudo abrir el documento: " + e.message); });
+}
+
+var CLAVE_UNION_PENDIENTE = "mdcrgm_union_pendiente";
+/* --- unirse como colaborador, vía ?doc=<id>&u=<ownerUid> ---
+   El redirect_uri de iniciarSesionGoogle() vuelve SIN esta consulta (es sólo
+   origin+pathname), así que el destino se guarda en sessionStorage para
+   retomar la unión al volver -- igual que el estado/nonce de la OAuth misma. */
+function unirseComoColaborador(){
+  var p = new URLSearchParams(location.search);
+  var docId = p.get("doc"), ownerUid = p.get("u"), pend = null;
+  if(docId && ownerUid){
+    sessionStorage.setItem(CLAVE_UNION_PENDIENTE, JSON.stringify({ docId: docId, ownerUid: ownerUid }));
+    history.replaceState(null, "", location.pathname);
+  }else{
+    try{ pend = JSON.parse(sessionStorage.getItem(CLAVE_UNION_PENDIENTE) || "null"); }catch(e){}
+    if(!pend) return;
+    docId = pend.docId; ownerUid = pend.ownerUid;
+  }
+  sesionGoogle().then(function(s){
+    if(!s){
+      aviso("Este enlace es para colaborar en un documento: entra con tu cuenta de Google para poder editarlo.",
+            "Iniciar sesión con Google", iniciarSesionGoogle);
+      return;
+    }
+    sessionStorage.removeItem(CLAVE_UNION_PENDIENTE);
+    if(s.uid === ownerUid) return abrirDocumentoRemoto(ownerUid, docId, s, false);
+    // autoservicio: agregarse A SI MISMO a colaboradores, exactamente lo que permiten las reglas
+    return fetch(comRaiz() + ":commit?key=" + COMUNIDAD.clave, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.idToken },
+      body: JSON.stringify({ writes: [{
+        update: { name: nombreDocPrivado(ownerUid, docId) },
+        updateMask: { fieldPaths: [] },
+        updateTransforms: [
+          { fieldPath: "colaboradores", appendMissingElements: { values: [{ stringValue: s.uid }] } },
+          { fieldPath: "updatedAt", setToServerValue: "REQUEST_TIME" }
+        ],
+        currentDocument: { exists: true }
+      }] })
+    }).then(function(r){
+      if(r.ok) return abrirDocumentoRemoto(ownerUid, docId, s, true);
+      return r.json()["catch"](function(){ return {}; }).then(function(j){
+        throw new Error((j.error && j.error.message) || ("HTTP " + r.status));
+      });
+    }, function(e){ throw sinRed(e); });
+  })["catch"](function(e){ aviso("No se pudo entrar como colaborador: " + e.message); });
+}
+
+/* misma condición que HAY_COMUNIDAD: hace falta red y no ser un .html exportado */
+var HAY_LOGIN_GOOGLE = HAY_COMUNIDAD;
+
+/* --- el menú "Cuenta": mismo patrón que menuCompartir()/menuDescargar() --- */
+function menuCuenta(){
+  var s = estadoSesionGoogle();
+  var filas = ['<div class="chico-menu">'];
+  if(!s){
+    filas.push('<p class="chico-nota">Opcional y aparte de todo lo demás: inicia sesión con Google sólo si ' +
+      "quieres que un documento se guarde en privado en la nube, se sincronice entre tus equipos o lo compartas " +
+      "con alguien para editarlo juntos. Sin ella, la aplicación sigue funcionando exactamente igual, sin conexión.</p>");
+    filas.push('<button type="button" data-cuenta="entrar"><b>&#128100; Iniciar sesión con Google</b>' +
+      "<span>Para documentos privados, sincronizados y compartidos</span></button>");
+  }else{
+    filas.push('<p class="chico-nota">Sesión iniciada' + (s.correo ? " como <b>" + escUI(s.correo) + "</b>" : "") + ".</p>");
+    if(docActual){
+      if(docActual.sincronizado){
+        filas.push('<p class="chico-nota">Este documento está sincronizado con tu cuenta' +
+          (docActual.sincronizado.colaborador ? " (colaboras en él, con quien lo compartió)." : ".") + "</p>");
+        if(!docActual.sincronizado.colaborador){
+          filas.push('<button type="button" data-cuenta="compartir"><b>&#128279; Compartir para editar</b>' +
+            "<span>Genera un enlace: quien lo abra con su cuenta de Google podrá editarlo contigo</span></button>");
+        }
+      }else{
+        filas.push('<button type="button" data-cuenta="sincronizar"><b>&#9851; Sincronizar este documento</b>' +
+          "<span>Guarda una copia privada en tu cuenta, sólo tuya salvo que la compartas</span></button>");
+      }
+    }
+    filas.push('<button type="button" data-cuenta="salir"><b>&#10007; Cerrar sesión de Google</b>' +
+      "<span>Tus documentos siguen aquí, en este navegador</span></button>");
+  }
+  filas.push("</div>");
+  abrirChico("Cuenta de Google", filas.join(""));
+}
+
 /* ---------- catálogo de plantillas ---------- */
 var CATALOGO = null, catActual = null, filtro = "";
 function misPlantillas(){
   try{ return JSON.parse(leer(CLAVE_MIAS) || "[]"); }catch(e){ return []; }
 }
 function guardarMias(lista){ escribir(CLAVE_MIAS, JSON.stringify(lista)); }
+function guardarComoMiPlantilla(){
+  var titulo = window.prompt("Nombre de la plantilla:", (document.title || "").replace(/ · Markdown$/, ""));
+  if(!titulo) return false;
+  var lista = misPlantillas();
+  lista.push({ id: "mia-" + lista.length + "-" + titulo.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 24),
+               titulo: titulo, desc: "Guardada por ti", nombre: nombreSugerido, texto: fuenteActual });
+  guardarMias(lista);
+  aviso("Guardada en «Mis plantillas»");
+  return true;
+}
 
 function cargarCatalogo(){
   if(CATALOGO) return Promise.resolve(CATALOGO);
@@ -7335,10 +7780,10 @@ function todasLasPlantillas(){
 function pintarGaleria(){
   var cats = (HAY_ALMACEN ? [{ id: "recientes", nombre: "Recientes", icono: "◷",
                                descripcion: "Lo que has escrito o abierto en este navegador" }] : [])
+    .concat([{ id: "mias", nombre: "Mis plantillas", icono: "★", descripcion: "Las que guardas tú, en este navegador" }])
     .concat(CATALOGO ? CATALOGO.categorias : [])
     .concat(HAY_COMUNIDAD ? [{ id: "comunidad", nombre: "Comunidad", icono: "✽",
-                               descripcion: "Publicadas por quien quiera: anónimas, públicas y de todos. Publica la tuya desde ➦ Compartir." }] : [])
-    .concat([{ id: "mias", nombre: "Mis plantillas", icono: "★", descripcion: "Las que guardas tú, en este navegador" }]);
+                               descripcion: "Publicadas por quien quiera: anónimas, públicas y de todos. Publica la tuya desde ➦ Compartir." }] : []);
   var todas = todasLasPlantillas();
   var q = filtro.trim().toLowerCase();
 
@@ -7435,7 +7880,7 @@ function usarPlantilla(id){
   traer.then(function(txt){
     if(!confirmarReemplazo()) return;
     fijarTexto(txt, p.nombre || ((p.com ? (aArchivo(p.titulo) || "plantilla") : p.id) + ".md"),
-               { origen: "plantilla", plantilla: p.id, aviso: "Plantilla cargada: " + p.titulo });
+               { origen: "plantilla", plantilla: p.id });
     cerrarGaleria();
   })["catch"](function(e){ aviso("No se pudo cargar: " + e.message); });
 }
@@ -7518,14 +7963,7 @@ $("#tarjetas").addEventListener("click", function(e){
   if(!tarjeta) return;
   if(tarjeta.getAttribute("data-rec")){ abrirReciente(tarjeta.getAttribute("data-rec")); return; }
   if(tarjeta.getAttribute("data-guardar")){
-    var titulo = window.prompt("Nombre de la plantilla:", (document.title || "").replace(/ · Markdown$/, ""));
-    if(!titulo) return;
-    var lista = misPlantillas();
-    lista.push({ id: "mia-" + lista.length + "-" + titulo.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 24),
-                 titulo: titulo, desc: "Guardada por ti", nombre: nombreSugerido, texto: fuenteActual });
-    guardarMias(lista);
-    pintarGaleria();
-    aviso("Guardada en «Mis plantillas»");
+    if(guardarComoMiPlantilla()) pintarGaleria();
     return;
   }
   usarPlantilla(tarjeta.getAttribute("data-id"));
@@ -7593,11 +8031,11 @@ $("#btnTema").addEventListener("click", alternarTema);
 $("#btnImprimir").addEventListener("click", function(){ window.print(); });
 $("#btnDescargar").addEventListener("click", menuDescargar);
 $("#btnCompartir").addEventListener("click", menuCompartir);
+$("#btnCuenta").addEventListener("click", menuCuenta);
 $("#btnMenu").addEventListener("click", alternarMenuBarra);
 function documentoNuevo(){
   if(!confirmarReemplazo()) return;
-  fijarTexto("---\ntitulo: \nautor: \nfecha: \n---\n\n", "documento.md",
-             { origen: "nuevo", aviso: "Documento nuevo" });
+  fijarTexto("---\ntitulo: \nautor: \nfecha: \n---\n\n", "documento.md", { origen: "nuevo" });
   if(!abierto) alternarEditor();
 }
 $("#btnNuevo").addEventListener("click", documentoNuevo);
@@ -7612,12 +8050,48 @@ $("#archivo").addEventListener("change", function(){
     var texto = String(fr.result);
     fijarTexto(texto, f.name, {
       origen: "local", version: 1, descargado: f.lastModified || Date.now(),
-      nombreDescarga: f.name, firmaDescarga: firma(texto),
-      aviso: "Abierto: " + f.name
+      nombreDescarga: f.name, firmaDescarga: firma(texto)
     });
   };
   fr.readAsText(f);
 });
+
+/* el sistema operativo abre esta app (instalada) con un .md: "Abrir con" o
+   "predeterminada para .md". Sólo existe en Chromium de escritorio/ChromeOS;
+   en cualquier otro navegador "launchQueue" no está y esto no hace nada. */
+if(window.launchQueue && window.launchQueue.setConsumer){
+  window.launchQueue.setConsumer(function(lanzamiento){
+    var manijas = lanzamiento.files || [];
+    if(!manijas.length) return;
+    if(!confirmarReemplazo()) return;
+    Promise.all(manijas.map(function(m){ return m.getFile(); })).then(function(archivos){
+      var primero = archivos[0];
+      var fr = new FileReader();
+      fr.onload = function(){
+        var texto = String(fr.result);
+        fijarTexto(texto, primero.name, {
+          origen: "local", version: 1, descargado: primero.lastModified || Date.now(),
+          nombreDescarga: primero.name, firmaDescarga: firma(texto)
+        });
+        /* si abrieron varios de golpe, el resto queda en Recientes sin perderse */
+        if(HAY_ALMACEN && archivos.length > 1){
+          archivos.slice(1).forEach(function(f){
+            var fr2 = new FileReader();
+            fr2.onload = function(){
+              var t2 = String(fr2.result);
+              guardarRegistro(crearDoc(t2, {
+                nombre: f.name, origen: "local", version: 1, descargado: f.lastModified || Date.now(),
+                nombreDescarga: f.name, firmaDescarga: firma(t2)
+              })).then(function(){ cargarRecientes(); });
+            };
+            fr2.readAsText(f);
+          });
+        }
+      };
+      fr.readAsText(primero);
+    })["catch"](function(){ aviso("No se pudo abrir ese archivo"); });
+  });
+}
 
 $("#respaldo").addEventListener("change", function(){
   var f = this.files && this.files[0];
@@ -7642,8 +8116,7 @@ $("#respaldo").addEventListener("change", function(){
       var texto = String(fr.result);
       fijarTexto(texto, f.name, {
         origen: "local", version: 1, descargado: f.lastModified || Date.now(),
-        nombreDescarga: f.name, firmaDescarga: firma(texto),
-        aviso: "Abierto: " + f.name
+        nombreDescarga: f.name, firmaDescarga: firma(texto)
       });
     };
     fr.readAsText(f);
@@ -7814,15 +8287,56 @@ $("#cuerpoChico").addEventListener("click", function(e){
     else if(fmt === "png") exportarPng();
     return;
   }
+  var inst = e.target.closest("[data-instalar]");
+  if(inst){
+    var qins = inst.getAttribute("data-instalar");
+    if(qins === "pwa"){
+      e.preventDefault();
+      cerrarChico();
+      if(!promesaInstalar) return;
+      promesaInstalar.prompt();
+      promesaInstalar.userChoice.then(function(){ promesaInstalar = null; });
+      return;
+    }
+    if(qins === "android"){
+      e.preventDefault();
+      cerrarChico();
+      aviso("Instálala desde el menú ⋮ de Chrome: «Instalar aplicación»");
+      return;
+    }
+    cerrarChico();
+    return;
+  }
   var comp = e.target.closest("[data-comp]");
   if(comp){
     var que = comp.getAttribute("data-comp");
     if(que === "publicar"){ formPublicar(); return; }
+    if(que === "guardarmia"){ cerrarChico(); guardarComoMiPlantilla(); return; }
     cerrarChico();
     if(que === "enlace"){ copiar(enlaceDePlantilla()); aviso("Enlace copiado"); }
     else if(que === "archivo"){ compartirArchivo(); }
     else if(que === "copiar"){ copiar(fuenteActual.replace(/^\n+/, "")); aviso("Texto copiado"); }
     else if(que === "formato"){ copiarFormato(); }
+    return;
+  }
+  var cue = e.target.closest("[data-cuenta]");
+  if(cue){
+    var qc = cue.getAttribute("data-cuenta");
+    if(qc === "entrar"){ cerrarChico(); iniciarSesionGoogle(); return; }
+    if(qc === "salir"){ cerrarChico(); cerrarSesionGoogle(); return; }
+    if(qc === "sincronizar"){
+      if(!docActual) return;
+      cue.disabled = true; cue.textContent = "Sincronizando…";
+      activarSincronizacion(docActual).then(function(){ menuCuenta(); })
+        ["catch"](function(e){ cerrarChico(); aviso("No se pudo sincronizar: " + e.message); });
+      return;
+    }
+    if(qc === "compartir"){
+      if(!docActual) return;
+      cue.disabled = true; cue.textContent = "Generando enlace…";
+      compartirDocumento(docActual)["catch"](function(e){ cerrarChico(); aviso("No se pudo compartir: " + e.message); });
+      return;
+    }
     return;
   }
   /* el menu de los tres puntos: cada fila pulsa el boton de verdad de la barra */
@@ -7840,17 +8354,24 @@ var promesaInstalar = null;
 window.addEventListener("beforeinstallprompt", function(e){
   e.preventDefault();
   promesaInstalar = e;
-  $("#btnInstalar").hidden = false;
 });
-$("#btnInstalar").addEventListener("click", function(){
-  if(!promesaInstalar) return;
-  promesaInstalar.prompt();
-  promesaInstalar.userChoice.then(function(){
-    promesaInstalar = null;
-    $("#btnInstalar").hidden = true;
-  });
-});
-window.addEventListener("appinstalled", function(){ $("#btnInstalar").hidden = true; });
+window.addEventListener("appinstalled", function(){ promesaInstalar = null; });
+function menuInstalar(){
+  var filas = ['<div class="chico-menu">'];
+  if(promesaInstalar){
+    filas.push('<button type="button" data-instalar="pwa"><b>&#10514; Instalar como app</b>' +
+      '<span>Se agrega a tu equipo o teléfono y funciona sin conexión</span></button>');
+  }
+  filas.push('<a href="descargas/mdx-windows-portable.exe" download data-instalar="windows"><b>&#10514; Windows</b>' +
+    '<span>.exe portable: ábrelo con doble clic, sin instalador ni permisos de administrador</span></a>');
+  filas.push('<a href="descargas/mdx-linux.AppImage" download data-instalar="linux"><b>&#10514; Linux</b>' +
+    '<span>.AppImage: dale permiso de ejecución y ábrelo con doble clic</span></a>');
+  filas.push('<button type="button" data-instalar="android"><b>&#10514; Android</b>' +
+    '<span>Desde Chrome: menú ⋮ → Instalar aplicación. El .apk descargable llega pronto aquí</span></button>');
+  filas.push("</div>");
+  abrirChico("Instalar MDx", filas.join(""));
+}
+$("#btnInstalar").addEventListener("click", menuInstalar);
 
 /* ---------- service worker ---------- */
 if(!MODO_ARCHIVO && "serviceWorker" in navigator &&
@@ -7883,6 +8404,7 @@ if(!MODO_ARCHIVO && "serviceWorker" in navigator &&
 
 /* ---------- arranque ---------- */
 if(!HAY_GALERIA) $("#btnPlantillas").hidden = true;
+if(!HAY_LOGIN_GOOGLE) $("#btnCuenta").hidden = true;
 if(HAY_ALMACEN) leerPestanas();
 if(HAY_ALMACEN){
   var guardadoDoc = leer(CLAVE_DOC);
@@ -7891,6 +8413,20 @@ if(HAY_ALMACEN){
     textoBase = guardadoDoc;
     nombreSugerido = leer(CLAVE_NOMBRE) || "";
   }
+}
+
+/* ---------- abrir un .md como app predeterminada (File Handling API) ---------- */
+if("launchQueue" in window && window.launchQueue){
+  window.launchQueue.setConsumer(function(datos){
+    var f = datos.files && datos.files[0];
+    if(!f) return;
+    f.getFile().then(function(archivo){
+      return archivo.text().then(function(txt){
+        if(!confirmarReemplazo()) return;
+        fijarTexto(txt, archivo.name);
+      });
+    })["catch"](function(){});
+  });
 }
 
 var parametros = new URLSearchParams(location.search);
@@ -7908,8 +8444,7 @@ if(!ES_EXPORTADO && parametros.has("nuevo")){
   traerComunidad(pedidaCom).then(function(d){
     if(!confirmarReemplazo()) return;
     fijarTexto(d.texto, d.nombre || ((aArchivo(d.titulo) || "plantilla") + ".md"),
-               { origen: "plantilla", plantilla: "com:" + d.id,
-                 aviso: "Plantilla de la comunidad: " + (d.titulo || "sin título") });
+               { origen: "plantilla", plantilla: "com:" + d.id });
   })["catch"](function(e){ aviso("No se pudo traer la plantilla: " + e.message); });
 }else if(HAY_GALERIA && parametros.get("plantilla")){
   var pedida = parametros.get("plantilla");
@@ -7969,6 +8504,22 @@ if(window.ResizeObserver){
 }
 pintarCuenta();
 
+/* ---------- Google: opcional, aparte de todo lo de arriba ----------
+   recogerRetornoGoogle() procesa el regreso del redirect si corresponde (si
+   no, no hace nada); unirseComoColaborador() retoma un enlace de "compartir"
+   si la URL (o una unión pendiente de antes del login) lo trae. Para quien
+   nunca toca "Cuenta" ambas son no-ops silenciosos. */
+var retornoGoogle = recogerRetornoGoogle();
+if(retornoGoogle){
+  retornoGoogle.then(function(){ unirseComoColaborador(); })
+    ["catch"](function(e){
+      aviso("No se pudo iniciar sesión con Google: " + (e && e.message ? e.message : e));
+      unirseComoColaborador();
+    });
+}else{
+  unirseComoColaborador();
+}
+
 window.plantilla = {
   convertir: mdAHtml, pintar: pintar, editor: alternarEditor, galeria: abrirGaleria,
   guardarHtml: guardarHtml, tema: alternarTema, fijar: fijarTexto,
@@ -7987,7 +8538,10 @@ window.plantilla = {
   copiarFormato: copiarFormato,
   comunidad: { traer: traerComunidad, publicar: publicarComunidad, retirar: retirarComunidad,
                lista: function(){ return COM_LISTA; }, pedir: pedirComunidad,
-               mias: misPublicadas }
+               mias: misPublicadas },
+  cuenta: { entrar: iniciarSesionGoogle, salir: cerrarSesionGoogle, sesion: estadoSesionGoogle,
+            sincronizar: activarSincronizacion, compartir: compartirDocumento,
+            sincronizarAhora: sincronizarAhora, menu: menuCuenta }
 };
 
 })();
