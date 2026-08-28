@@ -197,11 +197,13 @@ body.editando #ed{flex:1 1 auto; height:auto; min-height:0}
    contenido -- se desborda por detras de .dialogo (overflow:hidden) y el
    scroll del mouse termina moviendo el documento de atras, no el menu */
 .chico-menu{display:grid; gap:.4rem; padding:.8rem; min-height:0; overflow:auto}
-.chico-menu button{
+.chico-menu button, .chico-menu a, .chico-menu .chico-fila{
   display:block; width:100%; text-align:left; font:inherit; cursor:pointer; padding:.6rem .7rem;
   background:var(--papel); border:1px solid var(--borde); border-radius:.55rem; color:var(--texto);
+  text-decoration:none; box-sizing:border-box;
 }
-.chico-menu button:hover{border-color:var(--acento); background:var(--acento-suave)}
+.chico-menu button:hover, .chico-menu a:hover{border-color:var(--acento); background:var(--acento-suave)}
+.chico-menu .chico-fila{cursor:default}
 .chico-menu b{display:block; font-family:var(--sans); font-size:.9rem}
 .chico-menu span{display:block; font-family:var(--sans); font-size:.75rem; color:var(--tenue); margin-top:.15rem}
 .chico-form{display:grid; gap:.6rem; padding:.9rem; font-family:var(--sans); font-size:.85rem; min-height:0; overflow:auto}
@@ -8356,11 +8358,19 @@ window.addEventListener("beforeinstallprompt", function(e){
   promesaInstalar = e;
 });
 window.addEventListener("appinstalled", function(){ promesaInstalar = null; });
+function esIOS(){
+  return /iP(hone|od|ad)/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
 function menuInstalar(){
   var filas = ['<div class="chico-menu">'];
   if(promesaInstalar){
     filas.push('<button type="button" data-instalar="pwa"><b>&#10514; Instalar como app</b>' +
       '<span>Se agrega a tu equipo o teléfono y funciona sin conexión</span></button>');
+  }
+  if(esIOS() && !navigator.standalone){
+    filas.push('<div class="chico-fila"><b>&#10514; iPhone / iPad</b>' +
+      '<span>Toca Compartir (el cuadrito con la flecha hacia arriba) y luego «Agregar a inicio»</span></div>');
   }
   filas.push('<a href="descargas/mdx-windows-portable.exe" download data-instalar="windows"><b>&#10514; Windows</b>' +
     '<span>.exe portable: ábrelo con doble clic, sin instalador ni permisos de administrador</span></a>');
@@ -8368,6 +8378,8 @@ function menuInstalar(){
     '<span>.AppImage: dale permiso de ejecución y ábrelo con doble clic</span></a>');
   filas.push('<button type="button" data-instalar="android"><b>&#10514; Android</b>' +
     '<span>Desde Chrome: menú ⋮ → Instalar aplicación. El .apk descargable llega pronto aquí</span></button>');
+  filas.push('<a href="https://pdfx.crgm.app/" target="_blank" rel="noopener"><b>&#10145; ¿Tienes un PDF?</b>' +
+    '<span>Conviértelo a Markdown con PDFx, gratis y sin subirlo a internet</span></a>');
   filas.push("</div>");
   abrirChico("Instalar MDx", filas.join(""));
 }
