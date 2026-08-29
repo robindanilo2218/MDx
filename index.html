@@ -1128,6 +1128,40 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .pizarra-barra button.activo{background:var(--acento); color:#fff; border-color:var(--acento)}
 .pizarra-barra .pizarra-boton-listo{margin-left:auto; border-color:var(--acento); color:var(--acento); font-weight:600}
 
+/* bloque ```svg -- el saneamiento real lo hace desinfectarFragmento() sobre
+   todo el documento, aqui solo hay marco visual */
+figure.svg-viewer{margin:1.5rem 0; padding:.9rem .6rem; text-align:center; background:var(--papel); border:1px solid var(--borde); border-radius:.6rem}
+figure.svg-viewer svg{max-width:100%; height:auto}
+
+/* bloque ```plano */
+.plano-viewer{margin:1.5rem 0; padding:1rem; border:1px solid var(--borde); border-radius:.6rem; background:var(--papel); text-align:center}
+.plano-svg{max-width:100%; height:auto}
+.plano-muro{stroke:var(--texto); stroke-linecap:square}
+.plano-ventana{stroke:var(--texto); stroke-width:1}
+.plano-puerta-hoja, .plano-puerta-arco{stroke:var(--tenue); fill:none; stroke-width:1}
+.plano-cota{stroke:var(--tenue); stroke-width:1}
+.plano-cota-texto{fill:var(--tenue); font-size:.55rem; paint-order:stroke; stroke:var(--papel); stroke-width:3px}
+.plano-texto{fill:var(--texto); font-size:.7rem}
+.plano-flecha-punta{fill:var(--tenue)}
+table.plano-stats{margin:1rem auto 0; border-collapse:collapse; font-size:.85em}
+table.plano-stats caption{caption-side:top; font-weight:600; margin-bottom:.4rem; color:var(--tenue); font-size:.8em; text-transform:uppercase; letter-spacing:.04em}
+table.plano-stats td{padding:.3rem .7rem; border-bottom:1px solid var(--borde); text-align:left}
+table.plano-stats td:last-child{text-align:right; font-variant-numeric:tabular-nums}
+
+/* bloque ```iso -- estatico, sin motor3d */
+.iso-viewer{margin:1.5rem 0; padding:1rem; border:1px solid var(--borde); border-radius:.6rem; background:var(--papel); text-align:center}
+.iso-svg{max-width:100%; height:auto}
+.iso-cara{stroke:var(--papel); stroke-width:1}
+.iso-texto{fill:#fff; font-size:.7rem; paint-order:stroke; stroke:rgba(0,0,0,.55); stroke-width:3px}
+
+/* bloque ```3d -- alambrico, mismo motor3d que la vista 3D del gpx */
+.tresd-viewer{margin:1.5rem 0; padding:1rem; border:1px solid var(--borde); border-radius:.6rem; background:var(--papel)}
+.tresd-mapa{position:relative}
+.tresd-svg{width:100%; height:400px; display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:none; cursor:grab}
+.tresd-svg:active{cursor:grabbing}
+.tresd-arista{stroke:var(--acento); stroke-width:1.5}
+.tresd-vertice{fill:var(--papel); stroke:var(--acento); stroke-width:1.5}
+
 /* formulas */
 .formula{font-size:1.03em}
 .formula-caja{margin:1.3rem 0; overflow-x:auto; text-align:center}
@@ -1179,6 +1213,8 @@ math mo{font-family:inherit}
   .gpx-captura-controles, .gpx-boton-calibrar, .gpx-boton-cancelar-calibracion{display:none}
   .pizarra-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
   .pizarra-boton-editar, .pizarra-barra{display:none}
+  figure.svg-viewer, .plano-viewer, .iso-viewer, .tresd-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
+  .tresd-svg{height:320px}
   .formula-caja{break-inside:avoid; page-break-inside:avoid}
   .campo{
     background:none !important; box-shadow:none !important;
@@ -1226,6 +1262,7 @@ math mo{font-family:inherit}
   figure.diagrama{padding:.6rem .25rem; margin:1.2rem 0}
   .gpx-svg, .gpx-svg3d{height:300px}
   .gpx-svg-perfil{height:180px}
+  .tresd-svg{height:300px}
   .formula-bloque{font-size:1.06em}
   .ver-codigo{opacity:1}
   blockquote, .alerta{padding-left:.9rem; padding-right:.9rem}
@@ -1305,6 +1342,7 @@ math mo{font-family:inherit}
   <button type="button" id="btnRellenar" title="Rellenar los campos del documento aquí mismo" aria-pressed="false" hidden><b>&#9998;&#9648;</b><span>Rellenar</span></button>
   <button type="button" id="btnNuevo"     title="Empezar un documento en blanco"><b>&#65291;</b><span>Nuevo</span></button>
   <button type="button" id="btnAbrir"     title="Abrir un archivo .md o .html de tu equipo"><b>&#128194;</b><span>Abrir</span></button>
+  <button type="button" id="btnImportarUrl" title="Importar un .md o .html publicado en un enlace"><b>&#128279;</b><span>Enlace</span></button>
   <button type="button" id="btnDescargar" title="Descargar el documento: el texto en .md, la página en .html o la vista en .png"><b>&#10515;</b><span>Descargar</span></button>
   <button type="button" id="btnCompartir" title="Compartir: el enlace, el archivo .md o publicar la plantilla en la comunidad"><b>&#10150;</b><span>Compartir</span></button>
   <button type="button" id="btnImprimir"  title="Imprimir o guardar como PDF (Ctrl+P)"><b>&#128424;</b><span>Imprimir</span></button>
@@ -1335,6 +1373,9 @@ math mo{font-family:inherit}
   </button>
   <button type="button" class="fila" data-accion="btnAbrir" title="Abrir un archivo .md o .html de tu equipo">
     <span class="etiqueta">Abrir</span><span class="icono">&#128194;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnImportarUrl" title="Importar un .md o .html publicado en un enlace">
+    <span class="etiqueta">Enlace</span><span class="icono">&#128279;</span>
   </button>
   <div class="item">
     <button type="button" class="fila" id="menuDescargar" title="Descargar el documento: elige el formato" aria-haspopup="true">
@@ -5353,6 +5394,413 @@ function dibujarPizarra(codigo, indicePizarra){
     "</figure>";
 }
 
+/* ==========================================================================
+   BLOQUE ```svg -- vectores crudos (mdx-bloques-spec-v2.md seccion 4)
+   El saneamiento real lo hace desinfectarFragmento()/limpiarNodos() sobre el
+   documento entero (script, foreignObject, on*, href javascript: ya se quitan
+   igual que en cualquier otro HTML incrustado): el bloque solo envuelve el
+   SVG crudo en una figura, sin reinventar una segunda lista blanca.
+   ========================================================================== */
+function dibujarSvgCrudo(codigo){
+  return '<figure class="svg-viewer no-romper" translate="no">' + codigo + "</figure>";
+}
+
+/* ==========================================================================
+   BLOQUE ```plano -- planos 2D con estadisticas (spec seccion 5)
+   DSL de texto plano: escala, muro (polilinea), puerta/ventana (proyectadas
+   sobre el muro mas cercano) y cota. Coordenadas y anchos siempre en METROS
+   dentro de los datos parseados; la conversion a pixeles ocurre solo al
+   dibujar, igual que pizarra/gpx guardan sus datos en unidades propias.
+   Alcance de "area por recinto cerrado": cada `muro` cuyo ultimo punto vuelve
+   al primero es un ciclo cerrado con area propia (formula del poligono/
+   shoelace); no se arman recintos combinando varias lineas `muro` distintas
+   (eso pediria detectar caras de un grafo planar, fuera de alcance de un
+   parser de una pasada). Un piso tipico se dibuja como un solo `muro` cerrado
+   con particiones internas sueltas, que ya calza con este alcance.
+   ========================================================================== */
+var PLANO_ESCALA_M_DEF = 1, PLANO_ESCALA_PX_DEF = 40;
+var PLANO_GROSOR_MURO_M = 0.2;
+var PLANO_PUERTA_ANCHO_DEF = 0.9, PLANO_VENTANA_ANCHO_DEF = 1.2;
+var RE_PLANO_PUNTO = /(-?[\d.]+)\s*,\s*(-?[\d.]+)/g;
+
+function planoPuntos(cadena){
+  var out = [], m;
+  RE_PLANO_PUNTO.lastIndex = 0;
+  while((m = RE_PLANO_PUNTO.exec(cadena))) out.push({ x: parseFloat(m[1]), y: parseFloat(m[2]) });
+  return out;
+}
+function planoParsear(texto){
+  var lineas = String(texto || "").split("\n");
+  var datos = { escalaM: PLANO_ESCALA_M_DEF, escalaPx: PLANO_ESCALA_PX_DEF,
+    muros: [], puertas: [], ventanas: [], textos: [], cotas: [] };
+  var i, l, m;
+  for(i = 0; i < lineas.length; i++){
+    l = lineas[i].trim();
+    if(!l) continue;
+    if((m = l.match(/^escala\s+([\d.]+)\s*m\s*=\s*([\d.]+)\s*px$/i))){
+      datos.escalaM = parseFloat(m[1]) || PLANO_ESCALA_M_DEF;
+      datos.escalaPx = parseFloat(m[2]) || PLANO_ESCALA_PX_DEF;
+      continue;
+    }
+    if((m = l.match(/^muro\s+(.+)$/i))){
+      var pm = planoPuntos(m[1]);
+      if(pm.length >= 2) datos.muros.push(pm);
+      continue;
+    }
+    if((m = l.match(/^puerta\s+(-?[\d.]+\s*,\s*-?[\d.]+)(?:\s+ancho\s+([\d.]+))?/i))){
+      var pp = planoPuntos(m[1])[0];
+      if(pp) datos.puertas.push({ x: pp.x, y: pp.y, ancho: parseFloat(m[2]) || PLANO_PUERTA_ANCHO_DEF });
+      continue;
+    }
+    if((m = l.match(/^ventana\s+(-?[\d.]+\s*,\s*-?[\d.]+)(?:\s+ancho\s+([\d.]+))?/i))){
+      var pv = planoPuntos(m[1])[0];
+      if(pv) datos.ventanas.push({ x: pv.x, y: pv.y, ancho: parseFloat(m[2]) || PLANO_VENTANA_ANCHO_DEF });
+      continue;
+    }
+    if((m = l.match(/^texto\s+(-?[\d.]+\s*,\s*-?[\d.]+)\s+(.+)$/i))){
+      var pt = planoPuntos(m[1])[0];
+      if(pt) datos.textos.push({ x: pt.x, y: pt.y, texto: m[2] });
+      continue;
+    }
+    if((m = l.match(/^cota\s+(.+)$/i))){
+      var pc = planoPuntos(m[1]);
+      if(pc.length >= 2) datos.cotas.push({ a: pc[0], b: pc[pc.length - 1] });
+      continue;
+    }
+    /* linea no reconocida: se ignora, no interrumpe el resto del plano */
+  }
+  return datos;
+}
+function planoLongitud(pts){
+  var i, total = 0;
+  for(i = 1; i < pts.length; i++) total += Math.sqrt(Math.pow(pts[i].x - pts[i - 1].x, 2) + Math.pow(pts[i].y - pts[i - 1].y, 2));
+  return total;
+}
+function planoCerrado(pts){
+  if(pts.length < 3) return false;
+  var a = pts[0], b = pts[pts.length - 1];
+  return Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6;
+}
+function planoArea(pts){
+  var i, n = pts.length, suma = 0, a, b;
+  for(i = 0; i < n; i++){ a = pts[i]; b = pts[(i + 1) % n]; suma += a.x * b.y - b.x * a.y; }
+  return Math.abs(suma) / 2;
+}
+function planoSegmentos(muros){
+  var segs = [], i, j, pts;
+  for(i = 0; i < muros.length; i++){
+    pts = muros[i];
+    for(j = 1; j < pts.length; j++) segs.push({ a: pts[j - 1], b: pts[j] });
+  }
+  return segs;
+}
+/* proyecta p sobre un segmento; t en metros desde `a`, siempre entre 0 y el
+   largo del propio segmento (una puerta mas alla de una esquina se recorta
+   sobre esa misma pared, no se escapa a la de al lado) */
+function planoProyectar(p, seg){
+  var dx = seg.b.x - seg.a.x, dy = seg.b.y - seg.a.y;
+  var largo2 = dx * dx + dy * dy, largo = Math.sqrt(largo2) || 1e-9;
+  var t = largo2 ? ((p.x - seg.a.x) * dx + (p.y - seg.a.y) * dy) / largo2 : 0;
+  if(t < 0) t = 0; if(t > 1) t = 1;
+  var qx = seg.a.x + dx * t, qy = seg.a.y + dy * t;
+  return { t: t * largo, largo: largo, dist: Math.sqrt(Math.pow(p.x - qx, 2) + Math.pow(p.y - qy, 2)) };
+}
+function planoSegmentoMasCercano(p, segs){
+  var mejor = null, mejorProy = null, i, proy;
+  for(i = 0; i < segs.length; i++){
+    proy = planoProyectar(p, segs[i]);
+    if(!mejor || proy.dist < mejorProy.dist){ mejor = segs[i]; mejorProy = proy; }
+  }
+  if(!mejor) return null;
+  return { seg: mejor, t: mejorProy.t, largo: mejorProy.largo };
+}
+/* huecos por segmento: centra el ancho pedido en el punto de proyeccion y lo
+   recorta para que quepa entero dentro del propio segmento */
+function planoCortes(segs, puertas, ventanas){
+  var cortes = [];
+  function agregar(lista, tipo){
+    var i, u, mitad, t0, t1;
+    for(i = 0; i < lista.length; i++){
+      u = planoSegmentoMasCercano({ x: lista[i].x, y: lista[i].y }, segs);
+      if(!u) continue;
+      mitad = lista[i].ancho / 2;
+      t0 = u.t - mitad; t1 = u.t + mitad;
+      if(t0 < 0){ t1 -= t0; t0 = 0; }
+      if(t1 > u.largo){ t0 -= (t1 - u.largo); t1 = u.largo; }
+      if(t0 < 0) t0 = 0;
+      cortes.push({ seg: u.seg, t0: t0, t1: t1, tipo: tipo, ancho: lista[i].ancho });
+    }
+  }
+  agregar(puertas, "puerta");
+  agregar(ventanas, "ventana");
+  return cortes;
+}
+function planoMetros(n){ return (Math.round(n * 100) / 100) + " m"; }
+function planoRenderSVG(datos){
+  var k = (datos.escalaPx || PLANO_ESCALA_PX_DEF) / (datos.escalaM || PLANO_ESCALA_M_DEF);
+  var segs = planoSegmentos(datos.muros);
+  var cortes = planoCortes(segs, datos.puertas, datos.ventanas);
+  var porSegmento = [], i, j;
+  for(i = 0; i < segs.length; i++) porSegmento.push([]);
+  for(i = 0; i < cortes.length; i++){
+    var idx = segs.indexOf(cortes[i].seg);
+    if(idx >= 0) porSegmento[idx].push(cortes[i]);
+  }
+  var grosorPx = PLANO_GROSOR_MURO_M * k;
+  var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  function marca(x, y){ if(x < minX) minX = x; if(x > maxX) maxX = x; if(y < minY) minY = y; if(y > maxY) maxY = y; }
+  for(i = 0; i < segs.length; i++){ marca(segs[i].a.x, segs[i].a.y); marca(segs[i].b.x, segs[i].b.y); }
+  for(i = 0; i < datos.textos.length; i++) marca(datos.textos[i].x, datos.textos[i].y);
+  for(i = 0; i < datos.cotas.length; i++){ marca(datos.cotas[i].a.x, datos.cotas[i].a.y); marca(datos.cotas[i].b.x, datos.cotas[i].b.y); }
+  if(!isFinite(minX)){ minX = 0; minY = 0; maxX = 1; maxY = 1; }
+  var margen = 1;
+  minX -= margen; minY -= margen; maxX += margen; maxY += margen;
+  var ancho = Math.max(1, (maxX - minX) * k), alto = Math.max(1, (maxY - minY) * k);
+  var ox = -minX * k, oy = -minY * k;
+  function conv(x, y){ return { x: r2(x * k + ox), y: r2(y * k + oy) }; }
+
+  var partes = [];
+  partes.push('<defs><marker id="plano-flecha" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path class="plano-flecha-punta" d="M0,1 L7,4 L0,7 Z"></path></marker></defs>');
+
+  for(i = 0; i < segs.length; i++){
+    var seg = segs[i], dx = seg.b.x - seg.a.x, dy = seg.b.y - seg.a.y;
+    var largo = Math.sqrt(dx * dx + dy * dy) || 1e-9;
+    var ux = dx / largo, uy = dy / largo;
+    var propios = porSegmento[i].slice().sort(function(c1, c2){ return c1.t0 - c2.t0; });
+    var puntoEnT = function(t){ return conv(seg.a.x + ux * t, seg.a.y + uy * t); };
+    var cursor = 0, t0, p0, p1;
+    for(j = 0; j <= propios.length; j++){
+      t0 = j < propios.length ? propios[j].t0 : largo;
+      if(t0 > cursor){
+        p0 = puntoEnT(cursor); p1 = puntoEnT(t0);
+        partes.push('<line class="plano-muro" x1="' + p0.x + '" y1="' + p0.y + '" x2="' + p1.x + '" y2="' + p1.y + '" stroke-width="' + r2(grosorPx) + '"></line>');
+      }
+      if(j < propios.length) cursor = propios[j].t1;
+    }
+    for(j = 0; j < propios.length; j++){
+      var c = propios[j], q0 = puntoEnT(c.t0), q1 = puntoEnT(c.t1);
+      var nx = -uy, ny = ux;
+      if(c.tipo === "ventana"){
+        var h = grosorPx * 0.6, lado;
+        for(lado = -1; lado <= 1; lado++){
+          partes.push('<line class="plano-ventana" x1="' + r2(q0.x + nx * h * lado) + '" y1="' + r2(q0.y + ny * h * lado) +
+            '" x2="' + r2(q1.x + nx * h * lado) + '" y2="' + r2(q1.y + ny * h * lado) + '"></line>');
+        }
+      }else{
+        var libre = { x: q0.x + nx * (c.ancho * k), y: q0.y + ny * (c.ancho * k) };
+        partes.push('<line class="plano-puerta-hoja" x1="' + r2(q0.x) + '" y1="' + r2(q0.y) +
+          '" x2="' + r2(libre.x) + '" y2="' + r2(libre.y) + '"></line>');
+        partes.push('<path class="plano-puerta-arco" d="M' + r2(libre.x) + "," + r2(libre.y) +
+          " A" + r2(c.ancho * k) + "," + r2(c.ancho * k) + " 0 0,1 " + r2(q1.x) + "," + r2(q1.y) + '"></path>');
+      }
+    }
+  }
+
+  for(i = 0; i < datos.textos.length; i++){
+    var pt = conv(datos.textos[i].x, datos.textos[i].y);
+    partes.push('<text class="plano-texto" x="' + pt.x + '" y="' + pt.y + '" text-anchor="middle" dominant-baseline="middle">' + escUI(datos.textos[i].texto) + "</text>");
+  }
+  for(i = 0; i < datos.cotas.length; i++){
+    var cta = datos.cotas[i], pa = conv(cta.a.x, cta.a.y), pb = conv(cta.b.x, cta.b.y);
+    var largoM = Math.sqrt(Math.pow(cta.b.x - cta.a.x, 2) + Math.pow(cta.b.y - cta.a.y, 2));
+    partes.push('<line class="plano-cota" x1="' + pa.x + '" y1="' + pa.y + '" x2="' + pb.x + '" y2="' + pb.y +
+      '" marker-start="url(#plano-flecha)" marker-end="url(#plano-flecha)"></line>');
+    partes.push('<text class="plano-cota-texto" x="' + r2((pa.x + pb.x) / 2) + '" y="' + r2((pa.y + pb.y) / 2) + '" text-anchor="middle">' + escUI(planoMetros(largoM)) + "</text>");
+  }
+  return '<svg class="plano-svg" viewBox="0 0 ' + r2(ancho) + " " + r2(alto) + '" role="img" aria-label="Plano 2D">' + partes.join("") + "</svg>";
+}
+function planoEstadisticasHTML(datos){
+  var i, totalMuro = 0, areaTotal = 0, recintos = 0;
+  for(i = 0; i < datos.muros.length; i++){
+    totalMuro += planoLongitud(datos.muros[i]);
+    if(planoCerrado(datos.muros[i])){ areaTotal += planoArea(datos.muros[i]); recintos++; }
+  }
+  var aberturas = datos.puertas.length + datos.ventanas.length;
+  var filas = "<tr><td>Metros lineales de muro</td><td>" + r2(totalMuro) + " m</td></tr>" +
+    "<tr><td>Área total (recintos cerrados)</td><td>" + (recintos ? r2(areaTotal) + " m²" : "—") + "</td></tr>" +
+    "<tr><td>Aberturas (puertas + ventanas)</td><td>" + aberturas + "</td></tr>";
+  return '<table class="plano-stats"><caption>Base para estimar materiales</caption><tbody>' + filas + "</tbody></table>";
+}
+function dibujarPlano(codigo){
+  var datos = planoParsear(codigo);
+  return '<figure class="plano-viewer no-romper" translate="no">' + planoRenderSVG(datos) + planoEstadisticasHTML(datos) + "</figure>";
+}
+
+/* ==========================================================================
+   BLOQUE ```iso -- vista isometrica estatica (spec seccion 6). Sin
+   interactividad (a diferencia de ```3d): proyeccion isometrica clasica fija
+   y orden de pintor simple por x+y+z.
+   ========================================================================== */
+var ISO_ESCALA_PX = 40;
+var ISO_PALETA = ["#4c8bf5", "#f5a623", "#2fae4e", "#e5484d", "#9b6bd6", "#17a2b8"];
+var RE_ISO_CAJA = /^caja\s+(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s+([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s+(.+))?$/i;
+function isoParsear(texto){
+  var lineas = String(texto || "").split("\n"), cajas = [], i, l, m;
+  for(i = 0; i < lineas.length; i++){
+    l = lineas[i].trim();
+    if(!l) continue;
+    if((m = l.match(RE_ISO_CAJA))){
+      cajas.push({
+        x: parseFloat(m[1]), y: parseFloat(m[2]), z: parseFloat(m[3]),
+        w: parseFloat(m[4]), d: parseFloat(m[5]), h: parseFloat(m[6]), etiqueta: m[7] || ""
+      });
+    }
+  }
+  return { cajas: cajas };
+}
+function isoProyectar(x, y, z){ return { px: (x - y) * 0.866, py: (x + y) * 0.5 - z }; }
+function isoOscurecer(hex, cant){
+  var m = String(hex).replace("#", "");
+  if(m.length === 3) m = m.charAt(0) + m.charAt(0) + m.charAt(1) + m.charAt(1) + m.charAt(2) + m.charAt(2);
+  var r = parseInt(m.substr(0, 2), 16) || 0, g = parseInt(m.substr(2, 2), 16) || 0, b = parseInt(m.substr(4, 2), 16) || 0;
+  function h2(n){ var s = Math.max(0, Math.min(255, n)).toString(16); return s.length < 2 ? "0" + s : s; }
+  return "#" + h2(Math.round(r * (1 - cant))) + h2(Math.round(g * (1 - cant))) + h2(Math.round(b * (1 - cant)));
+}
+function isoRenderSVG(datos){
+  var i, j, cajas = datos.cajas.slice().sort(function(a, b){ return (a.x + a.y + a.z) - (b.x + b.y + b.z); });
+  function pantallaCruda(x, y, z){
+    var q = isoProyectar(x, y, z);
+    return { sx: q.px * ISO_ESCALA_PX, sy: -q.py * ISO_ESCALA_PX };   /* -py: mas altura sube en pantalla */
+  }
+  var cajasProy = [], minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  function marca(p){ if(p.sx < minX) minX = p.sx; if(p.sx > maxX) maxX = p.sx; if(p.sy < minY) minY = p.sy; if(p.sy > maxY) maxY = p.sy; }
+  for(i = 0; i < cajas.length; i++){
+    var c = cajas[i];
+    var top = [
+      pantallaCruda(c.x, c.y, c.z + c.h), pantallaCruda(c.x + c.w, c.y, c.z + c.h),
+      pantallaCruda(c.x + c.w, c.y + c.d, c.z + c.h), pantallaCruda(c.x, c.y + c.d, c.z + c.h)
+    ];
+    var caraX = [
+      pantallaCruda(c.x + c.w, c.y, c.z), pantallaCruda(c.x + c.w, c.y + c.d, c.z),
+      pantallaCruda(c.x + c.w, c.y + c.d, c.z + c.h), pantallaCruda(c.x + c.w, c.y, c.z + c.h)
+    ];
+    var caraY = [
+      pantallaCruda(c.x, c.y + c.d, c.z), pantallaCruda(c.x + c.w, c.y + c.d, c.z),
+      pantallaCruda(c.x + c.w, c.y + c.d, c.z + c.h), pantallaCruda(c.x, c.y + c.d, c.z + c.h)
+    ];
+    for(j = 0; j < 4; j++){ marca(top[j]); marca(caraX[j]); marca(caraY[j]); }
+    cajasProy.push({ top: top, caraX: caraX, caraY: caraY, color: ISO_PALETA[i % ISO_PALETA.length], etiqueta: c.etiqueta });
+  }
+  if(!cajasProy.length){ minX = 0; minY = 0; maxX = 1; maxY = 1; }
+  var margen = 24;
+  var ox = -minX + margen, oy = -minY + margen;
+  var ancho = Math.max(1, (maxX - minX) + margen * 2), alto = Math.max(1, (maxY - minY) + margen * 2);
+  function pol(pts){ return pts.map(function(p){ return r2(p.sx + ox) + "," + r2(p.sy + oy); }).join(" "); }
+  var partes = [];
+  for(i = 0; i < cajasProy.length; i++){
+    var cj = cajasProy[i];
+    partes.push('<polygon class="iso-cara" points="' + pol(cj.top) + '" fill="' + cj.color + '"></polygon>');
+    partes.push('<polygon class="iso-cara" points="' + pol(cj.caraX) + '" fill="' + isoOscurecer(cj.color, 0.22) + '"></polygon>');
+    partes.push('<polygon class="iso-cara" points="' + pol(cj.caraY) + '" fill="' + isoOscurecer(cj.color, 0.42) + '"></polygon>');
+    if(cj.etiqueta){
+      var cx = (cj.top[0].sx + cj.top[1].sx + cj.top[2].sx + cj.top[3].sx) / 4 + ox;
+      var cy = (cj.top[0].sy + cj.top[1].sy + cj.top[2].sy + cj.top[3].sy) / 4 + oy;
+      partes.push('<text class="iso-texto" x="' + r2(cx) + '" y="' + r2(cy) + '" text-anchor="middle" dominant-baseline="middle">' + escUI(cj.etiqueta) + "</text>");
+    }
+  }
+  return '<svg class="iso-svg" viewBox="0 0 ' + r2(ancho) + " " + r2(alto) + '" role="img" aria-label="Vista isométrica">' + partes.join("") + "</svg>";
+}
+function dibujarIso(codigo){
+  return '<figure class="iso-viewer no-romper" translate="no">' + isoRenderSVG(isoParsear(codigo)) + "</figure>";
+}
+
+/* ==========================================================================
+   BLOQUE ```3d -- alambrico rotable (spec seccion 7), mismo motor3d que la
+   vista 3D del gpx (seccion 8: motor3dActivar/motor3dRotarX/Y/Proyectar).
+   `caja` es azucar sintactico: 8 vertices + 12 aristas con nombres internos
+   que nunca chocan con los que escribe el usuario (prefijo "__cajaN_" que
+   "v NOMBRE" no puede producir por si solo, ya que NOMBRE viene de \S+ y
+   __cajaN_ no es un valor que un contador vaya a repetir).
+   ========================================================================== */
+var tresDContador = 0;
+var TRESD_RE_V = /^v\s+(\S+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s*$/i;
+var TRESD_RE_ARISTA = /^arista\s+(\S+)\s+(\S+)\s*$/i;
+var TRESD_RE_CAJA = /^caja\s+(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s+([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*$/i;
+var TRESD_CAJA_ESQ = [[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+var TRESD_CAJA_BORDES = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+function tresDParsear(texto){
+  var lineas = String(texto || "").split("\n");
+  var vertices = {}, aristasRaw = [], cajaN = 0, i, l, m, k, b, x0, y0, z0, w, d, h, pre;
+  for(i = 0; i < lineas.length; i++){
+    l = lineas[i].trim();
+    if(!l) continue;
+    if((m = l.match(TRESD_RE_V))){ vertices[m[1]] = { x: parseFloat(m[2]), y: parseFloat(m[3]), z: parseFloat(m[4]) }; continue; }
+    if((m = l.match(TRESD_RE_ARISTA))){ aristasRaw.push([m[1], m[2]]); continue; }
+    if((m = l.match(TRESD_RE_CAJA))){
+      x0 = parseFloat(m[1]); y0 = parseFloat(m[2]); z0 = parseFloat(m[3]);
+      w = parseFloat(m[4]); d = parseFloat(m[5]); h = parseFloat(m[6]);
+      cajaN++; pre = "__caja" + cajaN + "_";
+      for(k = 0; k < 8; k++) vertices[pre + k] = { x: x0 + TRESD_CAJA_ESQ[k][0] * w, y: y0 + TRESD_CAJA_ESQ[k][1] * d, z: z0 + TRESD_CAJA_ESQ[k][2] * h };
+      for(b = 0; b < TRESD_CAJA_BORDES.length; b++) aristasRaw.push([pre + TRESD_CAJA_BORDES[b][0], pre + TRESD_CAJA_BORDES[b][1]]);
+      continue;
+    }
+    /* linea no reconocida: se ignora */
+  }
+  var aristas = [];
+  for(i = 0; i < aristasRaw.length; i++) if(vertices[aristasRaw[i][0]] && vertices[aristasRaw[i][1]]) aristas.push(aristasRaw[i]);
+  return { vertices: vertices, aristas: aristas };
+}
+function tresDPrimitivas(datos, estado){
+  var nombres = Object.keys(datos.vertices), i;
+  if(!nombres.length) return "";
+  var mmX = { min: Infinity, max: -Infinity }, mmY = { min: Infinity, max: -Infinity }, mmZ = { min: Infinity, max: -Infinity }, p;
+  for(i = 0; i < nombres.length; i++){
+    p = datos.vertices[nombres[i]];
+    if(p.x < mmX.min) mmX.min = p.x; if(p.x > mmX.max) mmX.max = p.x;
+    if(p.y < mmY.min) mmY.min = p.y; if(p.y > mmY.max) mmY.max = p.y;
+    if(p.z < mmZ.min) mmZ.min = p.z; if(p.z > mmZ.max) mmZ.max = p.z;
+  }
+  var centro = { x: (mmX.min + mmX.max) / 2, y: (mmY.min + mmY.max) / 2, z: (mmZ.min + mmZ.max) / 2 };
+  var radio = Math.sqrt(Math.pow((mmX.max - mmX.min) / 2, 2) + Math.pow((mmY.max - mmY.min) / 2, 2) + Math.pow((mmZ.max - mmZ.min) / 2, 2)) || 1;
+  var LADO = 640, D = 800;
+  var escalaFinal = ((LADO * 0.4) / radio) * (estado.escala || 1);
+  function rotar(p2){
+    var rel = { x: p2.x - centro.x, y: p2.y - centro.y, z: p2.z - centro.z };
+    return motor3dRotarX(motor3dRotarY(rel, estado.yaw), estado.pitch);
+  }
+  function pantalla(r){ var q = motor3dProyectar(r, D); return { x: r2(q.x * escalaFinal + LADO / 2), y: r2(q.y * escalaFinal + LADO / 2) }; }
+  var rotados = {}, proyectados = {};
+  for(i = 0; i < nombres.length; i++){ rotados[nombres[i]] = rotar(datos.vertices[nombres[i]]); proyectados[nombres[i]] = pantalla(rotados[nombres[i]]); }
+  var lineas = [], a, b, pa, pb;
+  for(i = 0; i < datos.aristas.length; i++){
+    a = datos.aristas[i][0]; b = datos.aristas[i][1];
+    pa = proyectados[a]; pb = proyectados[b];
+    lineas.push({ z: (rotados[a].z + rotados[b].z) / 2, html: '<line class="tresd-arista" x1="' + pa.x + '" y1="' + pa.y + '" x2="' + pb.x + '" y2="' + pb.y + '"></line>' });
+  }
+  lineas.sort(function(x, y){ return y.z - x.z; });   /* mas lejos primero, igual que gpxPrimitivas3D */
+  var puntos = [];
+  for(i = 0; i < nombres.length; i++){
+    if(nombres[i].indexOf("__caja") === 0) continue;   /* los vertices de una caja no llevan bolita propia, solo aristas */
+    puntos.push('<circle class="tresd-vertice" cx="' + proyectados[nombres[i]].x + '" cy="' + proyectados[nombres[i]].y + '" r="3"><title>' + escUI(nombres[i]) + "</title></circle>");
+  }
+  return lineas.map(function(x){ return x.html; }).join("") + puntos.join("");
+}
+function dibujar3D(codigo){
+  tresDContador++;
+  var datos = tresDParsear(codigo);
+  var estado = { yaw: -0.6, pitch: 0.55, escala: 1 };
+  var payload = { datos: datos };
+  return '<figure class="tresd-viewer no-romper" id="tresd-' + tresDContador + '" translate="no" data-tresd="' + escUI(JSON.stringify(payload)) + '">' +
+    '<div class="tresd-mapa"><svg class="tresd-svg" viewBox="0 0 640 640" role="img" aria-label="Vista 3D alámbrica">' +
+    tresDPrimitivas(datos, estado) + "</svg></div></figure>";
+}
+function tresDActivarFigura(fig){
+  var payload;
+  try{ payload = JSON.parse(fig.dataset.tresd || "{}"); }catch(e){ return; }
+  if(!payload.datos) return;
+  var svg = fig.querySelector(".tresd-svg");
+  if(!svg) return;
+  var estado = { yaw: -0.6, pitch: 0.55, escala: 1 };
+  motor3dActivar(svg, estado, function(){ svg.innerHTML = tresDPrimitivas(payload.datos, estado); });
+}
+function prepararTresD(){
+  Array.prototype.forEach.call(elDoc.querySelectorAll(".tresd-viewer"), function(fig){
+    if(fig.dataset.tresdListo) return;
+    fig.dataset.tresdListo = "1";
+    tresDActivarFigura(fig);
+  });
+}
+
 /* -------------------------------------------------------------------------- */
 function mdAHtml(fuente){
   var Z = String.fromCharCode(0);        // marca interna, invisible
@@ -5749,6 +6197,22 @@ function mdAHtml(fuente){
         if(etiqueta === "pizarra"){
           indicePizarra++;
           apunta(dibujarPizarra(codigo, indicePizarra));
+          continue;
+        }
+        if(etiqueta === "svg"){
+          apunta(dibujarSvgCrudo(codigo));
+          continue;
+        }
+        if(etiqueta === "plano"){
+          apunta(dibujarPlano(codigo));
+          continue;
+        }
+        if(etiqueta === "iso"){
+          apunta(dibujarIso(codigo));
+          continue;
+        }
+        if(etiqueta === "3d"){
+          apunta(dibujar3D(codigo));
           continue;
         }
         if(etiqueta === "mermaid" || etiqueta === "diagrama" || etiqueta === "grafico" || etiqueta === "gr\u00e1fico"){
@@ -6179,9 +6643,28 @@ function htmlAMd(html){
   return md.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").replace(/\s+$/, "") + "\n";
 }
 
+/* si el .html es uno que exportó la propia MDx (guardarHtml, más abajo), el
+   documento real no está en lo que se ve renderizado -- está intacto dentro
+   de <script id="fuente">, que htmlAMd() se saltea por ser un <script>. Sin
+   este atajo, reabrir un .html propio "convierte" la interfaz oculta de la
+   app y tira basura en vez de recuperar el documento. */
+function fuentePropia(html){
+  if(!/data-standalone\s*=\s*["']1["']/.test(html)) return null;
+  var doc;
+  try{ doc = new DOMParser().parseFromString(html, "text/html"); }catch(e){ return null; }
+  var f = doc.getElementById("fuente");
+  if(!f) return null;
+  var t = f.textContent;
+  if(t.charAt(0) === "\n") t = t.slice(1);
+  if(t.charAt(t.length - 1) === "\n") t = t.slice(0, -1);
+  return t.replace(/<\\\/(script)/gi, "</$1");
+}
+
 /* convierte al abrir un .html/.htm: nombre y contenido listos para fijarTexto() */
 function comoMarkdown(nombre, texto){
   if(!/\.html?$/i.test(nombre)) return { texto: texto, nombre: nombre, convertido: false };
+  var propia = fuentePropia(texto);
+  if(propia !== null) return { texto: propia, nombre: nombre.replace(/\.html?$/i, "") + ".md", convertido: false };
   return { texto: htmlAMd(texto), nombre: nombre.replace(/\.html?$/i, "") + ".md", convertido: true };
 }
 
@@ -7706,6 +8189,7 @@ function pintar(md){
   prepararDiagramas();
   prepararGPX();
   prepararPizarra();
+  prepararTresD();
   prepararPlegado();
   contarCampos();
   calcularHojas();
@@ -7980,6 +8464,29 @@ if(elEd){
       elEd.value = elEd.value.slice(0, s) + "  " + elEd.value.slice(f);
       elEd.selectionStart = elEd.selectionEnd = s + 2;
     }
+  });
+  /* pegar contenido copiado de la web (una pagina, Word, Google Docs...): si el
+     portapapeles trae HTML con formato de verdad -- no solo texto envuelto en un
+     <span>/<meta> como pegan muchas apps incluso para texto plano -- se convierte
+     con htmlAMd() (ver más arriba) en vez de tirar las etiquetas crudas. */
+  elEd.addEventListener("paste", function(e){
+    var html = e.clipboardData && e.clipboardData.getData("text/html");
+    if(!html || !/<(h[1-6]|p|ul|ol|li|table|blockquote|pre|code|a|img|strong|b|em|i)[\s>]/i.test(html)) return;
+    var md = htmlAMd(html).trim();
+    if(!md) return;
+    e.preventDefault();
+    var inicio = elEd.selectionStart, fin = elEd.selectionEnd;
+    var antes = elEd.value.slice(0, inicio), despues = elEd.value.slice(fin);
+    var plano = e.clipboardData.getData("text/plain") || "";
+    function poner(txt){
+      elEd.value = antes + txt + despues;
+      elEd.selectionStart = elEd.selectionEnd = inicio + txt.length;
+      elEd.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    poner(md);
+    aviso("Se pegó convertido a Markdown: revisá el resultado, sobre todo tablas y formato raro", "Pegar tal cual", function(){
+      poner(plano);
+    });
   });
 }
 
@@ -8837,6 +9344,52 @@ function formPublicar(){
     })["catch"](function(e){
       boton.disabled = false; boton.textContent = "Publicar";
       aviso("No se pudo publicar: " + e.message);
+    });
+  });
+}
+/* ---------- importar desde un enlace ----------
+   El .md/.html tiene que estar servido con CORS abierto (un raw de GitHub,
+   jsDelivr, un sitio propio...): muchas páginas no lo permiten, y sin un
+   servidor propio de por medio no hay forma de evitarlo desde aquí -- por
+   eso el aviso de error lo explica en vez de sonar a que algo se rompió. */
+function formImportarUrl(){
+  if(!window.fetch) return aviso("Este navegador no permite traer un enlace");
+  abrirChico("Importar desde un enlace", [
+    '<div class="chico-form">',
+    '<label>Dirección <input type="url" id="impUrl" placeholder="https://…/documento.md"></label>',
+    '<p class="chico-nota">Trae un .md o .html publicado en otra página y lo abre aquí. Solo funciona si esa ' +
+      'página permite el acceso desde otras páginas (CORS); muchas no lo permiten.</p>',
+    '<div class="chico-pie"><button type="button" class="principal" id="impHacer">Importar</button></div>',
+    "</div>"
+  ].join(""));
+  $("#impUrl").focus();
+  $("#impHacer").addEventListener("click", function(){
+    var url = $("#impUrl").value.trim();
+    if(!url) return aviso("Falta la dirección");
+    if(!confirmarReemplazo()) return;
+    var boton = $("#impHacer");
+    boton.disabled = true; boton.textContent = "Importando…";
+    fetch(url).then(function(r){
+      if(!r.ok) throw new Error("el servidor respondió " + r.status);
+      return r.text();
+    }).then(function(texto){
+      var nombre = (url.split("/").pop() || "").split(/[?#]/)[0] || "documento";
+      if(!/\.(md|markdown|mdown|mkd|txt|html?)$/i.test(nombre)){
+        nombre += /<html[\s>]/i.test(texto) ? ".html" : ".md";
+      }
+      var r2 = comoMarkdown(nombre, texto);
+      if(r2.convertido && !r2.texto.trim()){
+        boton.disabled = false; boton.textContent = "Importar";
+        aviso("Ese enlace no tiene texto para convertir");
+        return;
+      }
+      fijarTexto(r2.texto, r2.nombre, { origen: "url", version: 1 });
+      cerrarChico();
+      if(r2.convertido) aviso("Convertido de HTML a Markdown: revisá el resultado, sobre todo tablas y formato raro");
+    })["catch"](function(e){
+      boton.disabled = false; boton.textContent = "Importar";
+      aviso("No se pudo traer ese enlace: " + e.message +
+        " (si esa página no permite el acceso desde otras páginas -- CORS -- no hay forma de evitarlo desde aquí)");
     });
   });
 }
@@ -10109,11 +10662,9 @@ function retirarComunidad(id){
    cambia ni un byte de lo que ya funcionaba sin conexión.
    ========================================================================== */
 var GOOGLE_CLIENT_ID = "23404750417-24dgv5kbvecetnd1tgl3glk6m66n4upe.apps.googleusercontent.com";
-/* reemplaza lo de arriba por el Client ID real tras crear un OAuth Client ID
-   (tipo "Web application") en Google Cloud Console, con este origen en
-   "Authorized JavaScript origins" y "Authorized redirect URIs". Sin eso el
-   botón de "Iniciar sesión con Google" no puede funcionar -- eso no se
-   puede generar por código. */
+/* el Client ID vive en Google Cloud Console (proyecto hashchat-app, tipo
+   "Web application") con https://md.crgm.app en "Authorized JavaScript
+   origins" y redirect URIs; si el dominio cambia, hay que agregarlo allí. */
 var CLAVE_SESION_GOOGLE = "mdcrgm_sesion_google";
 var CLAVE_OAUTH_ESTADO = "mdcrgm_oauth_estado";
 
@@ -10985,6 +11536,7 @@ function documentoNuevo(){
 }
 $("#btnNuevo").addEventListener("click", documentoNuevo);
 $("#btnAbrir").addEventListener("click", function(){ $("#archivo").click(); });
+$("#btnImportarUrl").addEventListener("click", formImportarUrl);
 $("#archivo").addEventListener("change", function(){
   var f = this.files && this.files[0];
   this.value = "";
@@ -11389,19 +11941,10 @@ if(HAY_ALMACEN){
   }
 }
 
-/* ---------- abrir un .md como app predeterminada (File Handling API) ---------- */
-if("launchQueue" in window && window.launchQueue){
-  window.launchQueue.setConsumer(function(datos){
-    var f = datos.files && datos.files[0];
-    if(!f) return;
-    f.getFile().then(function(archivo){
-      return archivo.text().then(function(txt){
-        if(!confirmarReemplazo()) return;
-        fijarTexto(txt, archivo.name);
-      });
-    })["catch"](function(){});
-  });
-}
+/* abrir un .md como app predeterminada: el consumidor de launchQueue vive más
+   arriba, junto al resto de aperturas de archivo (registra metadatos del
+   documento y guarda en Recientes los archivos extra). setConsumer sólo admite
+   uno: registrar otro aquí lo pisaría. */
 
 var parametros = new URLSearchParams(location.search);
 pintar(fuenteActual);
