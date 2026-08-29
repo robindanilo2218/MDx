@@ -1304,6 +1304,212 @@ plantillas, y una que explica el formato paso a paso: **Cómo se hace un formula
 | Recuadro con tipo | `[[Fecha =fecha]]` o `[[Estado =Bueno/Malo]]` |
 | Recuadro ya escrito | `[[Ciudad::Panamá]]` |
 | Cambio de página | `<div class="salto-pagina"></div>` |
+| Ruta GPX | ` ```gpx ` con el archivo `.gpx` dentro |
+| Plano 2D | ` ```plano ` con `muro`, `puerta`, `ventana`... |
+| Vista isométrica | ` ```iso ` con `caja x,y,z ancho,fondo,alto` |
+| Alámbrico 3D | ` ```3d ` con `v`, `arista`, `caja` |
+| SVG propio | ` ```svg ` con el SVG dentro |
+| Pizarra a mano | botón **✎ Pizarrón**, o el lápiz dentro de Presentar |
+
+## 26. Mapas y dibujo técnico
+
+Cuatro bloques para dibujar sin salir del documento — sin fotos, sin archivos aparte, todo como texto que se puede editar, versionar y buscar. El botón **➕ Insertar → Mapas y dibujo técnico** trae un ejemplo listo de cada uno para editar desde ahí; esta sección explica la sintaxis completa.
+
+### Plano 2D
+
+````md
+```plano
+escala 1m = 40px
+muro 0,0 → 10,0 → 10,8 → 0,8 → 0,0
+muro 6,0 → 6,8
+puerta 2,0 ancho 1
+puerta 6,4 ancho 0.9
+ventana 10,3 ancho 1.5
+texto 3,4 Sala
+texto 8,4 Dormitorio
+cota 0,0 → 10,0
+```
+````
+
+<div class="demo">
+
+```plano
+escala 1m = 40px
+muro 0,0 → 10,0 → 10,8 → 0,8 → 0,0
+muro 6,0 → 6,8
+puerta 2,0 ancho 1
+puerta 6,4 ancho 0.9
+ventana 10,3 ancho 1.5
+texto 3,4 Sala
+texto 8,4 Dormitorio
+cota 0,0 → 10,0
+```
+
+</div>
+
+| Instrucción | Qué dibuja |
+| --- | --- |
+| `escala 1m = 40px` | cuántos píxeles vale un metro (opcional, por defecto ya trae uno razonable) |
+| `muro x,y → x,y → ...` | una polilínea de muro; una cadena que vuelve al punto de partida cierra un recinto |
+| `puerta x,y ancho N` | se coloca sobre el muro más cercano a ese punto y abre el hueco sola: no hace falta calcular el ángulo |
+| `ventana x,y ancho N` | igual que la puerta, dibujada como línea triple |
+| `texto x,y Lo que sea` | una etiqueta de texto en ese punto |
+| `cota x,y → x,y` | una línea de medida con flechas y el valor en metros |
+
+Debajo del dibujo aparece una tabla con los metros lineales de muro, el área de cada recinto cerrado y el conteo de puertas y ventanas — una base para calcular materiales. El área solo se calcula sobre un `muro` cuyo último punto vuelve al primero: varias líneas de `muro` no se combinan entre sí para formar un recinto.
+
+### Vista isométrica
+
+````md
+```iso
+caja 0,0,0 4,3,2.5 Sala
+caja 4,0,0 3,3,2.5 Cocina
+```
+````
+
+<div class="demo">
+
+```iso
+caja 0,0,0 4,3,2.5 Sala
+caja 4,0,0 3,3,2.5 Cocina
+```
+
+</div>
+
+Cada línea es `caja x,y,z ancho,fondo,alto Etiqueta`: la posición de una esquina, el tamaño de la caja y, al final, un texto opcional. Sirve para plantas, volúmenes de almacenaje o distribución de espacios en 2.5D, sin tener que rotar nada.
+
+### Alámbrico 3D
+
+````md
+```3d
+v A 0 0 0
+v B 4 0 0
+v C 4 3 0
+arista A B
+arista B C
+caja 0,0,0 4,3,2.5
+```
+````
+
+<div class="demo">
+
+```3d
+v A 0 0 0
+v B 4 0 0
+v C 4 3 0
+arista A B
+arista B C
+caja 0,0,0 4,3,2.5
+```
+
+</div>
+
+`v Nombre x y z` declara un vértice, `arista Nombre1 Nombre2` los une con una línea, y `caja x,y,z ancho,fondo,alto` es un atajo que arma las 8 esquinas y las 12 aristas de un cubo de una sola vez, sin declarar cada vértice a mano. Se arrastra para rotar y se usa la rueda o el pellizco para acercar — el mismo control que la vista 3D de una ruta GPX.
+
+### SVG propio
+
+````md
+```svg
+<svg viewBox="0 0 200 100">
+  <rect x="10" y="10" width="80" height="80" fill="#1a73e8" rx="8"/>
+  <circle cx="150" cy="50" r="40" fill="#e5484d"/>
+</svg>
+```
+````
+
+<div class="demo">
+
+```svg
+<svg viewBox="0 0 200 100">
+  <rect x="10" y="10" width="80" height="80" fill="#1a73e8" rx="8"/>
+  <circle cx="150" cy="50" r="40" fill="#e5484d"/>
+</svg>
+```
+
+</div>
+
+El contenido pasa directo al documento, sin ninguna sintaxis intermedia: si sabes SVG, tienes el control completo. Por seguridad se limpia antes de mostrarse — se quitan `<script>`, los atributos `onclick` y similares, y cualquier enlace que empiece por `javascript:` — así que un SVG copiado de cualquier lado no puede ejecutar código ni robar datos, aunque sí puede perder alguna parte si dependía de eso.
+
+> [!NOTE]
+> Los cuatro bloques de esta sección respetan el tema claro y oscuro, y se exportan igual de nítidos en el PNG (`⤓ Descargar → Imagen`) y en la impresión.
+
+## 27. Rutas GPX
+
+````md
+```gpx vista=2d
+<?xml version="1.0"?>
+<gpx version="1.1"><trk><trkseg>
+<trkpt lat="40.4168" lon="-3.7038"><ele>650</ele><time>2026-01-01T08:00:00Z</time></trkpt>
+<trkpt lat="40.4178" lon="-3.7028"><ele>660</ele><time>2026-01-01T08:05:00Z</time></trkpt>
+<trkpt lat="40.4188" lon="-3.7018"><ele>655</ele><time>2026-01-01T08:10:00Z</time></trkpt>
+</trkseg></trk></gpx>
+```
+````
+
+<div class="demo">
+
+```gpx vista=2d
+<?xml version="1.0"?>
+<gpx version="1.1"><trk><trkseg>
+<trkpt lat="40.4168" lon="-3.7038"><ele>650</ele><time>2026-01-01T08:00:00Z</time></trkpt>
+<trkpt lat="40.4178" lon="-3.7028"><ele>660</ele><time>2026-01-01T08:05:00Z</time></trkpt>
+<trkpt lat="40.4188" lon="-3.7018"><ele>655</ele><time>2026-01-01T08:10:00Z</time></trkpt>
+</trkseg></trk></gpx>
+```
+
+</div>
+
+Pega dentro el archivo `.gpx` que exporta cualquier reloj, app de rutas o GPS — el mismo que ya tengas guardado, sin tocarlo. Debajo del mapa aparecen la distancia, la velocidad media, el desnivel y, si el archivo trae hora en cada punto, la pendiente media y máxima y cómo cambia la velocidad en las cuestas.
+
+| Parámetro (después de ` ```gpx `) | Valores | Qué hace |
+| --- | --- | --- |
+| `vista=` | `2d`, `3d`, `perfil` | qué vista se ve al abrir el documento — el lector puede cambiarla igual con los botones |
+| `color=` | `velocidad`, `pendiente` | de qué depende el color de la línea |
+| `exageracion=` | un número, por defecto `3` | cuánto se exagera la altura en la vista 3D (el desnivel real es minúsculo junto a la distancia recorrida) |
+
+Los puntos `<wpt>` del archivo (notas, paradas, sitios) se dibujan con su color según `<type>` — `combustible`, `incidente`, `cliente`, `parada`, o azul si no lleva tipo — y su `<name>`/`<desc>` aparecen al tocarlos. Si el GPX trae también una `<rte>` (ruta planificada, no el track real), se dibuja punteada debajo del recorrido real para comparar plan contra realidad.
+
+> [!TIP]
+> El botón **"Obtener contexto del mapa"** que aparece bajo la ruta trae, una sola vez, las calles y ríos de alrededor (vía OpenStreetMap) y los deja guardados dentro del propio documento: desde ese momento el mapa se ve igual sin conexión, para siempre. Y si prefieres tu propia captura de pantalla de cualquier mapa, "Usar captura como fondo" la calibra con dos puntos conocidos de la ruta.
+
+## 28. Pizarra, pizarrón y el modo Presentar
+
+### Dibujar a mano dentro del documento
+
+El bloque ` ```pizarra ` guarda trazos hechos a mano como texto plano — no se crea escribiéndolo, sino dibujando con el botón **✎ Pizarrón** (lienzo en blanco a pantalla completa) o con el lápiz dentro de **▶ Presentar** (ver más abajo) y luego pulsando **insertar**. Una vez insertado se ve, se descarga, se imprime y se versiona como cualquier otra figura del documento:
+
+```md
+tamaño 800x500
+trazo #1a73e8 4 M120,80 L340,210
+```
+
+Cada línea `trazo COLOR GROSOR ...` es un trazo; borrar la línea borra el trazo, igual que borrar cualquier otro texto.
+
+### El Pizarrón global
+
+Botón **✎ Pizarrón**, junto a **▶ Presentar**: un lienzo en blanco a pantalla completa, independiente de cualquier documento. Al salir, tres opciones: **descartar**, **insertar** como bloque ` ```pizarra ` al final del documento actual, o **descargar** como imagen PNG.
+
+### Lápiz y anotaciones dentro de Presentar
+
+Dentro de **▶ Presentar**, un botón de lápiz activa una capa de dibujo sobre la diapositiva actual:
+
+| Tecla | Qué hace |
+| --- | --- |
+| `L` | activar o apagar el lápiz |
+| `B` | borrador |
+| `C` | limpiar la diapositiva actual |
+| `O` | abrir o cerrar el índice de títulos |
+| `→` / espacio / `Av Pág` | siguiente diapositiva |
+| `←` / `Re Pág` | diapositiva anterior |
+| `Esc` | cerrar lo que esté abierto encima (miniaturas, índice) y, si no hay nada abierto, salir de Presentar |
+
+Junto al lápiz hay cuatro muestras de color para elegir con qué se dibuja. Los trazos son **temporales por defecto** — se pierden al salir de Presentar — salvo que pulses **Guardar anotaciones**, que los añade como un bloque ` ```pizarra ` al final de esa diapositiva en el propio Markdown.
+
+Tres botones más, todos sin salir de la presentación:
+
+- **⊞ Miniaturas:** una grilla con todas las diapositivas; un clic en cualquiera salta ahí.
+- **☰ Índice:** la lista de títulos del documento (tecla `O`); un clic en un título salta a su diapositiva.
+- **✎ Pizarrón:** abre el Pizarrón global sin cerrar la presentación — al salir de él (descartar, insertar o descargar) vuelves exactamente a la misma diapositiva, con el mismo dibujo.
 
 ---
 

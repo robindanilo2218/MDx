@@ -46,7 +46,20 @@ Publicado en <https://md.crgm.app>.
   diapositiva nueva; si el documento no tiene ninguna, cada título de primer
   nivel abre la suya. Se navega con flechas, espacio o clic, y se imprime una
   diapositiva por página. No es un archivo aparte: es el mismo Markdown, visto
-  de otra forma.
+  de otra forma. Dentro de Presentar hay un lápiz para anotar sobre la
+  diapositiva actual (con cuatro colores), un botón `⊞ Miniaturas` para saltar
+  de un vistazo a cualquier diapositiva, un `☰ Índice` con los títulos del
+  documento y un botón `✎ Pizarrón` para abrir un lienzo en blanco a pantalla
+  completa sin salir de la presentación.
+- **Dibuja a mano** con el bloque `​```pizarra`, que guarda los trazos como
+  texto plano dentro del documento, y con el **Pizarrón** (botón junto a
+  `▶ Presentar`), un lienzo en blanco independiente de cualquier documento.
+- **Mapas y dibujo técnico como texto**: rutas GPX con mapa 2D/3D y perfil de
+  elevación (`​```gpx`), planos 2D acotados (`​```plano`), vistas isométricas
+  (`​```iso`) y escenas 3D con perspectiva simple (`​```3d`), además de un
+  `​```svg` de uso libre — todo con el mismo sanitizador que ya usan los
+  diagramas `mermaid`, así que no hay imágenes que adjuntar ni servicios
+  externos de por medio.
 - **Calcula dentro de las tablas**: una celda con `[[Total =formula::SUMA(B2:B6)]]`
   se recalcula sola, con direcciones de celda al estilo de una hoja de cálculo
   (`B2`, rangos `B2:B6`) y las funciones `SUMA`, `PROMEDIO`, `MAX`, `MIN`,
@@ -127,9 +140,10 @@ enlaces en línea, de referencia y automáticos, imágenes y figuras, tablas con
 alineación y fórmulas de hoja de cálculo en sus celdas, notas al pie con enlace
 de vuelta, listas de definiciones, abreviaturas, emojis por su nombre
 (`:warning:`), HTML crudo, escapes con barra invertida, diagramas `mermaid`,
-fórmulas en LaTeX y metadatos al principio del documento (*front matter*). En
-los metadatos, `matematicas: no` apaga las fórmulas por si el documento habla
-de dólares.
+fórmulas en LaTeX, rutas GPX, planos, vistas isométricas y escenas 3D
+(`gpx`/`plano`/`iso`/`3d`), pizarras dibujadas a mano (`pizarra`) y metadatos
+al principio del documento (*front matter*). En los metadatos,
+`matematicas: no` apaga las fórmulas por si el documento habla de dólares.
 
 ## Atajos
 
@@ -173,7 +187,7 @@ manifest.webmanifest  Nombre, iconos y accesos directos de la aplicación
 sw.js                 Service worker: guarda la aplicación para usarla sin conexión
 iconos/               Icono en SVG y en PNG (normal, maskable, favicon, Apple)
 favicon.ico           Icono para las pestañas antiguas
-plantillas/           Las 92 plantillas en .md e indice.json que las describe
+plantillas/           Las 103 plantillas en .md e indice.json que las describe
 herramientas/         empaquetar.py: mete el catálogo dentro de index.html
 CNAME                 md.crgm.app
 .nojekyll             Para que GitHub Pages sirva los archivos tal cual

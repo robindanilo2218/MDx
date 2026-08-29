@@ -516,6 +516,90 @@ misma filosofía que Presentar.
   sección de esa diapositiva en el Markdown. En vista documento se ve como
   figura; al volver a Presentar se superpone de nuevo.
 
+### 12.4 Miniaturas, Índice, colores del lápiz y Pizarrón desde Presentar
+
+Cuatro mejoras a la barra de Presentar (implementadas 29-ago-2026, sobre la
+base de 12.3), todas navegables sin salir de la presentación:
+
+- **Colores del lápiz:** junto a `✎ Lápiz`, cuatro muestras de color
+  (`#diaLapizColores`, visibles solo con el lápiz activo). Elegir una cambia
+  el color de los trazos siguientes; no activa el lápiz por sí sola.
+- **`✎ Pizarrón` dentro de Presentar:** botón que abre el Pizarrón global
+  (12.2) sin cerrar la sesión de Presentar — oculta `#diapositivas`, y al
+  salir del Pizarrón (descartar/insertar/descargar) vuelve exactamente a la
+  misma diapositiva y capa de lápiz, re-entrando a pantalla completa.
+- **`⊞ Miniaturas`:** grilla de todas las diapositivas (clones reales del
+  contenido, escalados con un solo `transform:scale`) dentro de `#diaCuerpo`;
+  click en una salta a esa diapositiva.
+- **`☰ Índice`:** lista de títulos del documento (mismo origen que "Esquema"),
+  también dentro de `#diaCuerpo`; click en un título salta a su diapositiva.
+  Tecla `O` la abre/cierra.
+
+**Por qué ninguna de las dos usa el diálogo chico (`#velo2`):** durante
+Presentar, `#diapositivas` está en pantalla completa real (Fullscreen API), y
+su "capa superior" pinta por encima de *cualquier* elemento que no sea también
+parte de ese mismo elemento fullscreen — sin importar z-index. Un diálogo
+`#velo2` (que vive fuera de `#diapositivas`) queda con el DOM perfectamente
+correcto pero invisible en pantalla; es el mismo problema que
+`intentarSalirPizarron()` ya tenía que esquivar saliendo de pantalla completa
+antes de abrir su menú. La solución aquí fue más simple: Miniaturas e Índice
+reemplazan el contenido de `#diaCuerpo` (que sí es descendiente del elemento
+fullscreen), igual que hace `pintarDiapositiva()` con la diapositiva normal.
+
+Como `pintarDiapositiva()` es el único punto que reescribe `#diaCuerpo`,
+abrir cualquier diapositiva nueva cierra Miniaturas/Índice automáticamente
+si estaban abiertos, y `teclaDia()` trata `Escape` en capas: primero cierra
+la capa transitoria abierta (miniaturas o índice), y solo si ninguna está
+abierta, cierra Presentar entero.
+
+### 12.5 Revisión adversarial de 12.4 (7 hallazgos, todos corregidos)
+
+Una revisión adversarial de tres agentes (miniaturas, índice, ida-y-vuelta
+Pizarrón↔Presentar) sobre el código de 12.4 encontró 7 fallos reales — 0
+descartados — corregidos el mismo día (SW v41→v42):
+
+- **Campos `[[Campo]]` de tipo texto/larga/firma seguían editables dentro de
+  clones (Miniaturas y la diapositiva normal).** `campoHtml()` genera esos
+  tipos como `<span contenteditable="true">`, no como `<input>`/`<select>`,
+  así que el bloqueo anterior (deshabilitar solo `input, select, textarea`)
+  no los tocaba. Nuevo helper compartido `diaNeutralizarCampos(c)` — usado por
+  `pintarDiapositiva()` y `diaAbrirMiniaturas()` — que además pone
+  `contentEditable = "false"` y `tabindex = "-1"` en todo `[contenteditable]`
+  del clon. `tabindex="-1"` saca el campo de la navegación por `Tab`;
+  `contentEditable="false"` impide escribir aunque algo le dé foco por script.
+- **`Escape` durante el viaje a `✎ Pizarrón` desde Presentar cerraba TODA la
+  presentación**, no solo el Pizarrón: `diaAbrirPizarron()` deja el listener
+  de `teclaDia()` puesto (hace falta para volver luego), y `abrirPizarron()`
+  agrega el suyo propio (`teclaPizarron`) — los dos atendían la misma tecla.
+  Fix: `teclaDia()` ahora empieza con
+  `if($("#diapositivas").hidden) return;`, ya que `diaAbrirPizarron()` es el
+  único camino que oculta `#diapositivas` mientras `DIA` sigue vivo.
+- **Reentrada a pantalla completa tras el Pizarrón podía resolverse fuera de
+  tiempo si se repetía el viaje rápido.** El guardia de identidad
+  `DIA !== sesion` no sirve aquí porque `DIA` es el MISMO objeto en cada
+  ida-y-vuelta dentro de una sesión de Presentar. Se agregó un contador
+  `DIA.vueltaPizarron`, incrementado en cada apertura, capturado como
+  `vuelta` junto a `sesion`, y comprobado como
+  `DIA.vueltaPizarron !== vuelta` además de la identidad.
+- **Un título anidado (p.ej. `## Nota` dentro de una cita `> [!NOTA]`) no
+  saltaba a su diapositiva desde el Índice.** `titulosDoc()` encuentra
+  encabezados a cualquier profundidad, pero `diaSlideDeTitulo()` comparaba
+  con `indexOf` solo contra los nodos de nivel superior de `DIA.grupos`.
+  Fix: comparar con `g[j] === h || (g[j].contains && g[j].contains(h))`.
+- **Un trazo de lápiz a medio dibujar no se cancelaba al saltar al Pizarrón**,
+  dejando un `<path>` temporal huérfano. `diaAbrirPizarron()` ahora quita el
+  `.pizarra-trazo-actual` en curso y limpia `DIA.enCurso` antes de ocultar
+  `#diapositivas`.
+- **`cerrarPresentacion()` no vaciaba `#diaCuerpo` ni quitaba `.activo` de
+  `#diaMiniaturas`/`#diaEsquema`** cuando se disparaba desde el camino de
+  resincronización de `pintar()` (documento vaciado mientras Miniaturas o
+  Índice estaban abiertos) — dejaba nodos DOM huérfanos pero adjuntos. Fix:
+  `cerrarPresentacion()` ahora limpia `#diaCuerpo` y ambos botones siempre.
+
+Probado con `probar_dia_revision_fixes.js` (6 casos dirigidos, uno por
+escenario de arriba, incluida una segunda vuelta a Pizarrón para ejercitar
+`vueltaPizarron`). Regresión completa de 18 scripts en verde.
+
 ---
 
 ## 13. Presupuesto y orden de implementación
