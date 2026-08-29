@@ -246,5 +246,29 @@ guardado automático en el navegador, que necesitan un origen de verdad.
 
 ## Licencia
 
-[MIT](LICENSE) © 2026 Robin Gregorio. Copia, cambia y publica lo que quieras;
-las plantillas están para eso.
+MDx es software libre, bajo la **Licencia Pública General de GNU, versión 3**.
+El texto completo está en [LICENSE](LICENSE).
+
+```
+Copyright (C) 2026 Robin Gregorio
+
+Este programa es software libre: puedes redistribuirlo y modificarlo bajo los
+términos de la Licencia Pública General de GNU, versión 3, tal como la publica
+la Free Software Foundation.
+
+Se distribuye con la esperanza de que sea útil, pero SIN NINGUNA GARANTÍA; ni
+siquiera la garantía implícita de COMERCIALIZACIÓN o de IDONEIDAD PARA UN FIN
+DETERMINADO. Consulta la Licencia Pública General de GNU para más detalles.
+```
+
+En la práctica, para quien recibe MDx: puede usarlo para lo que quiera, copiarlo
+y repartirlo — las plantillas están pensadas justo para eso. Si modifica y
+reparte su versión (incluidos los portables de Electron o el `.apk`), tiene que
+publicarla también bajo la GPL v3 y dar acceso al código.
+
+**Código fuente:** <https://github.com/robindanilo2218/MDx>
+
+El empaquetado de escritorio (`escritorio/`) usa Electron como motor de
+ventana — es MIT, y no entra en conflicto con la GPL v3 del propio MDx: es el
+mismo caso que distribuir software GPL sobre un sistema operativo con licencia
+permisiva.

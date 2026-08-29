@@ -101,5 +101,5 @@ usarlo, AppImageLauncher (ver arriba) también lo integra.
 
 ---
 
-MDx es software libre bajo licencia MIT.
+MDx es software libre bajo licencia GPL v3.
 Copyright (C) 2026 Robin Gregorio · <https://md.crgm.app>

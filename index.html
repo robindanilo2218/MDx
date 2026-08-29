@@ -466,6 +466,14 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 #diapositivas .dia-cuerpo a{ color:#8ecbff }
 #diapositivas .dia-cuerpo :first-child{ margin-top:0 }
 #diapositivas .dia-cuerpo input, #diapositivas .dia-cuerpo select{ color:inherit }
+#diapositivas .dia-marco{ position:relative; flex:1; display:flex; min-height:0 }
+#diapositivas .dia-lapiz-svg{
+  position:absolute; inset:0; width:100%; height:100%;
+  touch-action:none; pointer-events:none;
+}
+#diapositivas.dia-lapiz-activo .dia-lapiz-svg{ pointer-events:auto; cursor:crosshair }
+#diapositivas.dia-lapiz-activo.dia-lapiz-borrador .dia-lapiz-svg{ cursor:not-allowed }
+#diapositivas.dia-lapiz-activo.dia-lapiz-borrador .dia-lapiz-svg .pizarra-trazo{ cursor:pointer }
 #diapositivas .dia-pie{
   display:flex; align-items:center; gap:.75rem; padding:.75rem 1.25rem;
   font-size:.85rem; color:#aeb6c4;
@@ -476,12 +484,46 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 }
 #diapositivas .dia-pie button:hover:not(:disabled){ background:#1b2029; border-color:#5a6478 }
 #diapositivas .dia-pie button:disabled{ opacity:.35; cursor:default }
+#diapositivas .dia-pie button.activo{ background:#1a73e8; border-color:#1a73e8; color:#fff }
 #diapositivas .dia-pie #diaContador{ font-variant-numeric:tabular-nums }
-#diapositivas .dia-pie #diaSalir{ margin-left:auto }
+#diapositivas .dia-pie .dia-solo-lapiz{ display:none }
+#diapositivas.dia-lapiz-activo .dia-pie .dia-solo-lapiz{ display:inline-block }
+#diapositivas .dia-pie #diaLapiz{ margin-left:auto }
+/* una anotacion ya guardada (seccion 12.3, "Guardar anotaciones") se ve como
+   una figura normal en el documento, pero aqui dentro se superpone a la
+   diapositiva en vez de ocupar su propio espacio en el flujo */
+#diapositivas .dia-cuerpo .pizarra-viewer{
+  position:absolute; inset:7vh 8vw; margin:0; border:none; background:none; pointer-events:none;
+}
+#diapositivas .dia-cuerpo .pizarra-viewer .pizarra-svg{ background:transparent }
+#diapositivas .dia-cuerpo .pizarra-viewer .pizarra-boton-editar{ display:none }
 @media (prefers-reduced-motion:no-preference){
   #diapositivas .dia-cuerpo > div{ animation:dia-entra .25s ease-out }
 }
 @keyframes dia-entra{ from{ opacity:0; transform:translateY(.6em) } to{ opacity:1; transform:none } }
+
+/* pizarron global: lienzo en blanco a pantalla completa, misma familia visual
+   que #diapositivas (mismo modo "pantalla oscura" sea cual sea el tema) */
+#pizarron{
+  position:fixed; inset:0; z-index:9999; display:none; flex-direction:column;
+  background:#0b0d12; color:#f4f6fb; font-family:var(--sans);
+}
+#pizarron:not([hidden]){ display:flex }
+#pizarron .pizarron-lienzo{ flex:1; position:relative; overflow:hidden }
+#pizarron .pizarron-lienzo .pizarra-svg{ width:100%; height:100%; touch-action:none; cursor:crosshair; background:#fff }
+#pizarron .pizarron-barra{
+  display:flex; align-items:center; gap:.75rem; padding:.75rem 1.25rem;
+  font-size:.85rem; color:#aeb6c4;
+}
+#pizarron .pizarron-barra button{
+  font:inherit; color:inherit; background:transparent; cursor:pointer;
+  border:1px solid #3a4150; border-radius:.5rem; padding:.3em .7em; line-height:1;
+}
+#pizarron .pizarron-barra button:hover{ background:#1b2029; border-color:#5a6478 }
+#pizarron .pizarron-barra button.activo{ background:#1a73e8; border-color:#1a73e8; color:#fff }
+#pizarron .pizarron-barra input[type="color"]{ width:2.2rem; height:2.2rem; padding:0; border:1px solid #3a4150; border-radius:.5rem; background:none; cursor:pointer }
+#pizarron .pizarron-barra input[type="range"]{ width:7rem }
+#pizarron .pizarron-barra #pizarronSalir{ margin-left:auto }
 
 /* citas */
 blockquote{
@@ -675,7 +717,10 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
 
 /* diálogo del catálogo */
 .velo{
-  position:fixed; inset:0; z-index:100; padding:1rem;
+  /* por encima de #diapositivas/#pizarron (z-index:9999): un dialogo chico
+     (p.ej. "Salir del pizarrón") puede abrirse desde dentro de esas pantallas
+     completas y tiene que quedar visible, no detras. */
+  position:fixed; inset:0; z-index:10000; padding:1rem;
   background:rgba(8,12,18,.55); display:flex; align-items:center; justify-content:center;
 }
 .velo[hidden]{display:none}
@@ -761,14 +806,106 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
   max-width:min(80vw,26rem); padding-left:.5rem; opacity:1;
 }
 @media (prefers-reduced-motion:reduce){ .estado-doc .detalle{ transition:none } }
+/* plegada, el texto va cortado con puntos suspensivos; al acercarse se ve entero,
+   envolviendo en varias lineas si hace falta en vez de recortarse */
 .estado-doc .texto{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer }
+.estado-doc:hover .texto, .estado-doc:focus-within .texto, .estado-doc.abierta .texto{
+  overflow:visible; text-overflow:clip; white-space:normal;
+}
 .estado-doc b{ color:var(--texto); font-weight:600 }
 .estado-doc button{
   font:inherit; cursor:pointer; white-space:nowrap; color:var(--acento);
   background:transparent; border:1px solid var(--borde); border-radius:.45rem; padding:.25em .55em;
 }
 .estado-doc button:hover{ background:var(--acento-suave); border-color:var(--acento) }
+/* botones de accion: apilados en vertical encima de la pildora, de arriba hacia
+   abajo por lo frecuente que se usan (Presentar primero, lo mas ocasional pegado
+   a la pildora). El hueco antes de la lista es padding, no margen: si fuera
+   margen el cursor "perdería" el hover al cruzarlo y la lista se cerraría antes
+   de poder pulsar nada. max-height + overflow-y es solo un seguro por si la
+   pantalla es muy baja; en el uso normal los seis botones caben de sobra. */
+.estado-doc .acciones{
+  position:absolute; left:0; bottom:100%; padding-bottom:.4rem; display:flex; flex-direction:column;
+  align-items:stretch; gap:.3rem; opacity:0; pointer-events:none; transform:translateY(.3rem);
+  max-height:calc(100vh - 5rem); overflow-y:auto; overscroll-behavior:contain;
+  transition:opacity .18s ease, transform .18s ease;
+}
+.estado-doc:hover .acciones, .estado-doc:focus-within .acciones, .estado-doc.abierta .acciones{
+  opacity:1; pointer-events:auto; transform:translateY(0);
+}
+.estado-doc .acciones button{ text-align:left; background:var(--papel); box-shadow:var(--sombra) }
+@media (prefers-reduced-motion:reduce){ .estado-doc .acciones{ transition:none } }
+/* Descargar y Compartir llevan varias opciones: en vez de crecer la lista
+   vertical, se abren a un lado (hay sitio de sobra porque la píldora vive
+   pegada al borde izquierdo). El submenú ("estado-submenu") no vive dentro
+   de ".item": main.js lo cuelga directo de <body> la primera vez que hace
+   falta (ver colocarSubmenu en el JS) por dos motivos, cualquiera de los
+   cuales lo rompe si se queda dentro de ".acciones":
+   1) ".acciones" anima con "transform" (para el deslizamiento al abrirse);
+      un transform en un antecesor le crea su propio marco de referencia a
+      cualquier descendiente "position:fixed", así que sus coordenadas
+      dejarían de ser relativas a la pantalla y quedarían mal colocadas.
+   2) ".acciones" tiene overflow-y:auto (para poder desplazarse si no caben
+      los botones); eso recorta cualquier descendiente que se salga de su
+      caja, aunque no esté desplazada en ese momento.
+   Colgarlo de <body> lo libra de los dos. Ya fuera de ".item" tampoco le
+   sirven los selectores ":hover"/":focus-within" -- todo el mostrar/ocultar
+   y el emparejamiento con su botón los lleva main.js (ver prepararSubmenu):
+   con la clase "mostrando" y, al salir, un margen de tolerancia antes de
+   cerrar, porque el submenú suele ser más alto que su botón disparador y
+   moverse en diagonal hacia una opción de más abajo (p.ej. ".png") cruza una
+   esquina que un simple ":hover" geométrico no cubre. */
+.estado-doc .item > button{ width:100% }
+.estado-submenu{
+  position:fixed; display:flex; flex-direction:column; gap:.3rem; min-width:9rem;
+  opacity:0; pointer-events:none; transition:opacity .18s ease; z-index:61;
+  font:inherit; color:inherit;
+}
+.estado-submenu.mostrando{ opacity:1; pointer-events:auto }
+.estado-submenu button{
+  font:inherit; cursor:pointer; white-space:nowrap; text-align:left; color:var(--acento);
+  background:var(--papel); border:1px solid var(--borde); border-radius:.45rem; padding:.25em .55em;
+  box-shadow:var(--sombra);
+}
+.estado-submenu button:hover{ background:var(--acento-suave); border-color:var(--acento) }
+@media (prefers-reduced-motion:reduce){ .estado-submenu{ transition:none } }
 @media (max-width:600px){ .estado-doc{ left:.5rem; bottom:.5rem; font-size:.72rem; max-width:calc(100vw - 1rem) } }
+
+/* menú de los tres puntos: mismo patrón de fondo transparente que
+   ".estado-doc .acciones" (cada fila es su propia pastilla, no hay panel
+   detrás), pero al revés -- crece hacia ABAJO desde #btnMenu (ver
+   colocarMenuTres en el JS) porque cuelga de la esquina superior derecha, y
+   la etiqueta va a la IZQUIERDA del icono porque el panel vive pegado al
+   borde derecho. Descargar y Compartir reutilizan ".item"/".estado-submenu"
+   tal cual (ver el comentario de esa clase): mismo problema de fondo, misma
+   solución -- colgados de <body>, fuera de este ".overflow-y:auto". */
+.menu-tres{
+  position:fixed; z-index:55; display:flex; flex-direction:column; align-items:stretch;
+  gap:.3rem; max-height:calc(100vh - 5rem); overflow-y:auto; overscroll-behavior:contain;
+}
+.menu-tres[hidden]{display:none}
+.menu-tres .fila{
+  display:flex; align-items:center; justify-content:flex-end; gap:.5rem; width:100%;
+  font:inherit; cursor:pointer; color:var(--texto);
+  background:var(--papel); border:1px solid var(--borde); border-radius:.5rem;
+  padding:.4em .6em; box-shadow:var(--sombra); white-space:nowrap;
+}
+.menu-tres .fila:hover{ background:var(--acento-suave); border-color:var(--acento) }
+.menu-tres .etiqueta{ font-size:.78rem }
+.menu-tres .icono{ font-size:1.05rem; line-height:1; flex:0 0 auto }
+.menu-tres .item{ width:100% }
+
+/* pequeño credito de licencia, pegado a la esquina opuesta a #estado-doc para
+   no chocar con la píldora del documento. Discreto a proposito: solo un (c)
+   que se aclara al pasar el ratón o al enfocarlo con el teclado. */
+.creditos{
+  position:fixed; right:.6rem; bottom:.6rem; z-index:40; width:1.6rem; height:1.6rem;
+  display:flex; align-items:center; justify-content:center; font:inherit; font-size:.85rem;
+  color:var(--tenue); background:var(--papel); border:1px solid var(--borde); border-radius:50%;
+  opacity:.55; cursor:pointer; transition:opacity .15s ease;
+}
+.creditos:hover, .creditos:focus-visible{ opacity:1; border-color:var(--acento); color:var(--acento) }
+@media (max-width:600px){ .creditos{ right:.5rem; bottom:.5rem } }
 
 .tarjeta .reciente-datos{ color:var(--tenue); font-size:.75rem }
 .tarjeta .reciente-datos code{ font-size:.95em; background:var(--codigo-fondo); padding:.05em .35em; border-radius:.3em }
@@ -975,6 +1112,22 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
   background:none; color:var(--acento); font-size:.88em; cursor:pointer;
 }
 
+/* bloques pizarra */
+.pizarra-viewer{margin:1.5rem 0; padding:1rem; border:1px solid var(--borde); border-radius:.6rem; background:var(--papel)}
+.pizarra-lienzo{position:relative; line-height:0}
+.pizarra-svg{width:100%; height:auto; display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:pan-y}
+.pizarra-trazo, .pizarra-trazo-actual{fill:none; stroke-linecap:round; stroke-linejoin:round}
+.pizarra-dibujando .pizarra-svg{touch-action:none; cursor:crosshair}
+.pizarra-dibujando.pizarra-borrador .pizarra-svg{cursor:not-allowed}
+.pizarra-dibujando.pizarra-borrador .pizarra-trazo{cursor:pointer}
+.pizarra-boton-editar{margin-top:.6rem; padding:.45rem 1rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.88em; cursor:pointer}
+.pizarra-barra{margin-top:.6rem; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap}
+.pizarra-barra input[type="color"]{width:2.2rem; height:2.2rem; padding:0; border:1px solid var(--borde); border-radius:.4rem; background:none; cursor:pointer}
+.pizarra-barra input[type="range"]{width:7rem}
+.pizarra-barra button{padding:.4rem .8rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.85em; cursor:pointer}
+.pizarra-barra button.activo{background:var(--acento); color:#fff; border-color:var(--acento)}
+.pizarra-barra .pizarra-boton-listo{margin-left:auto; border-color:var(--acento); color:var(--acento); font-weight:600}
+
 /* formulas */
 .formula{font-size:1.03em}
 .formula-caja{margin:1.3rem 0; overflow-x:auto; text-align:center}
@@ -1024,6 +1177,8 @@ math mo{font-family:inherit}
   .gpx-norte, .gpx-escala, .gpx-vistas, .gpx-ayuda3d{display:none}
   .gpx-boton-contexto, .gpx-boton-agregar-poi{display:none}
   .gpx-captura-controles, .gpx-boton-calibrar, .gpx-boton-cancelar-calibracion{display:none}
+  .pizarra-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
+  .pizarra-boton-editar, .pizarra-barra{display:none}
   .formula-caja{break-inside:avoid; page-break-inside:avoid}
   .campo{
     background:none !important; box-shadow:none !important;
@@ -1154,12 +1309,70 @@ math mo{font-family:inherit}
   <button type="button" id="btnCompartir" title="Compartir: el enlace, el archivo .md o publicar la plantilla en la comunidad"><b>&#10150;</b><span>Compartir</span></button>
   <button type="button" id="btnImprimir"  title="Imprimir o guardar como PDF (Ctrl+P)"><b>&#128424;</b><span>Imprimir</span></button>
   <button type="button" id="btnPresentar" title="Presentar en pantalla completa, diapositiva a diapositiva"><b>&#9654;</b><span>Presentar</span></button>
+  <button type="button" id="btnPizarron"  title="Pizarrón en blanco a pantalla completa"><b>&#9998;</b><span>Pizarrón</span></button>
   <button type="button" id="btnTema"      title="Claro / oscuro"><b>&#9686;</b><span>Tema</span></button>
   <button type="button" id="btnInstalar"  title="Instalar o descargar la app"><b>&#10514;</b><span>Instalar</span></button>
   <button type="button" id="btnCuenta"    title="Cuenta de Google: opcional, para documentos privados sincronizados y compartidos"><b>&#128100;</b><span>Cuenta</span></button>
-  <button type="button" id="btnMenu"      title="Menú" aria-haspopup="dialog"><b>&#8942;</b></button>
+  <button type="button" id="btnMenu"      title="Menú" aria-haspopup="menu" aria-controls="menuTres" aria-expanded="false"><b>&#8942;</b></button>
   <div class="pestanas" id="pestanas" role="tablist" aria-label="Documentos abiertos" hidden></div>
 </div>
+
+<!-- Menú de los tres puntos: ver colocarMenuTres/abrirMenuTres en el JS. Orden
+     de arriba hacia abajo por lo frecuente que se usa (Presentar primero, a
+     pedido explícito; el resto, mi mejor estimación de peso de uso). -->
+<div class="menu-tres no-print" id="menuTres" hidden>
+  <button type="button" class="fila" data-accion="btnPresentar" title="Presentar en pantalla completa, diapositiva a diapositiva">
+    <span class="etiqueta">Presentar</span><span class="icono">&#9654;</span>
+  </button>
+  <button type="button" class="fila" id="menuEditar" data-accion="btnEditar" title="Escribir aquí mismo, con el resultado al lado">
+    <span class="etiqueta" id="menuEditarEtq">Editar</span><span class="icono" id="menuEditarIco">&#9998;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnImprimir" title="Imprimir o guardar como PDF, limpio y sin botones">
+    <span class="etiqueta">Imprimir</span><span class="icono">&#128424;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnNuevo" title="Empezar un documento en blanco">
+    <span class="etiqueta">Nuevo</span><span class="icono">&#65291;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnAbrir" title="Abrir un archivo .md o .html de tu equipo">
+    <span class="etiqueta">Abrir</span><span class="icono">&#128194;</span>
+  </button>
+  <div class="item">
+    <button type="button" class="fila" id="menuDescargar" title="Descargar el documento: elige el formato" aria-haspopup="true">
+      <span class="etiqueta">Descargar</span><span class="icono">&#10515;</span>
+    </button>
+    <div class="estado-submenu no-print" id="menuBajaSub">
+      <button type="button" id="menuBajaMd" title="El Markdown tal cual, para seguir editándolo donde sea">.md</button>
+      <button type="button" id="menuBajaHtml" title="Esta misma página con tu documento dentro: un solo archivo que funciona a doble clic, sin conexión">.html</button>
+      <button type="button" id="menuBajaPng" title="La vista tal como se ve, para pegarla en un correo o una presentación">.png</button>
+    </div>
+  </div>
+  <div class="item">
+    <button type="button" class="fila" id="menuCompartir" title="Compartir: el enlace, el archivo .md o publicar la plantilla en la comunidad" aria-haspopup="true">
+      <span class="etiqueta">Compartir</span><span class="icono">&#10150;</span>
+    </button>
+    <div class="estado-submenu no-print" id="menuCompartirSub"></div>
+  </div>
+  <button type="button" class="fila" data-accion="btnPlantillas" title="El catálogo, lo Reciente, la Comunidad y las tuyas">
+    <span class="etiqueta">Plantillas</span><span class="icono">&#9636;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnEsquema" title="Índice del documento: saltar de un título a otro">
+    <span class="etiqueta">Esquema</span><span class="icono">&#9776;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnRellenar" title="Rellenar los campos del documento aquí mismo">
+    <span class="etiqueta">Rellenar</span><span class="icono">&#9998;&#9648;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnTema" title="Claro u oscuro">
+    <span class="etiqueta">Tema</span><span class="icono">&#9686;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnInstalar" title="Instalar como aplicación: funciona sin conexión">
+    <span class="etiqueta">Instalar</span><span class="icono">&#10514;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnCuenta" title="Opcional: documentos privados sincronizados y compartidos con tu cuenta de Google">
+    <span class="etiqueta">Cuenta</span><span class="icono">&#128100;</span>
+  </button>
+</div>
+
+<button type="button" class="creditos no-print" id="btnCreditos" title="Licencia y créditos" aria-haspopup="dialog">&copy;</button>
 
 <div class="barra-form no-print" id="barraForm" hidden>
   <span id="formCuenta">Sin campos</span>
@@ -1169,12 +1382,31 @@ math mo{font-family:inherit}
 </div>
 
 <div id="diapositivas" class="no-print" hidden>
-  <div class="dia-cuerpo" id="diaCuerpo"></div>
+  <div class="dia-marco">
+    <div class="dia-cuerpo" id="diaCuerpo"></div>
+    <svg class="dia-lapiz-svg" id="diaLapizSvg"></svg>
+  </div>
   <div class="dia-pie">
     <button type="button" id="diaAnterior" title="Diapositiva anterior (&larr;)">&#8592;</button>
     <span id="diaContador"></span>
     <button type="button" id="diaSiguiente" title="Siguiente diapositiva (&rarr;)">&#8594;</button>
+    <button type="button" id="diaLapiz" aria-pressed="false" title="Lápiz (L)">&#9998; Lápiz</button>
+    <button type="button" id="diaBorrador" class="dia-solo-lapiz" aria-pressed="false" title="Borrador (B)">Borrador</button>
+    <button type="button" id="diaLimpiar" class="dia-solo-lapiz" title="Limpiar (C)">Limpiar</button>
+    <button type="button" id="diaGuardarAnotaciones" title="Añade lo dibujado como bloque al documento">Guardar anotaciones</button>
     <button type="button" id="diaSalir" title="Salir (Esc)">&#10005; Salir</button>
+  </div>
+</div>
+
+<div id="pizarron" class="no-print" hidden>
+  <div class="pizarron-lienzo" id="pizarronLienzo"></div>
+  <div class="pizarron-barra">
+    <input type="color" id="pizarronColor" value="#1a73e8" title="Color del trazo">
+    <input type="range" id="pizarronGrosor" min="1" max="24" value="3" title="Grosor del trazo">
+    <button type="button" id="pizarronBorrador" aria-pressed="false">Borrador</button>
+    <button type="button" id="pizarronDeshacer">Deshacer</button>
+    <button type="button" id="pizarronLimpiar">Limpiar</button>
+    <button type="button" id="pizarronSalir" title="Salir (Esc)">&#10005; Salir</button>
   </div>
 </div>
 
@@ -1243,14 +1475,30 @@ math mo{font-family:inherit}
 </div>
 
 <div class="estado-doc no-print" id="estadoDoc" hidden>
+  <div class="acciones">
+    <button type="button" id="estadoPresentar" title="Presentar en pantalla completa, diapositiva a diapositiva">Presentar</button>
+    <button type="button" id="estadoImprimir" title="Imprimir o guardar como PDF (Ctrl+P)">Imprimir</button>
+    <div class="item">
+      <button type="button" id="estadoDescargar" title="Descargar el documento: elige el formato" aria-haspopup="true">Descargar</button>
+      <div class="estado-submenu no-print" id="estadoDescargarSub">
+        <button type="button" id="estadoBajaMd" title="El Markdown tal cual, para seguir editándolo donde sea">.md</button>
+        <button type="button" id="estadoBajaHtml" title="Esta misma página con tu documento dentro: un solo archivo que funciona a doble clic, sin conexión">.html</button>
+        <button type="button" id="estadoBajaPng" title="La vista tal como se ve, para pegarla en un correo o una presentación">.png</button>
+      </div>
+    </div>
+    <div class="item">
+      <button type="button" id="estadoCompartir" title="Compartir: el enlace, el archivo .md o publicar la plantilla en la comunidad" aria-haspopup="true">Compartir</button>
+      <div class="estado-submenu no-print" id="estadoCompartirSub"></div>
+    </div>
+    <button type="button" id="estadoRecientes" title="Todos los documentos guardados en este navegador">Recientes</button>
+    <button type="button" id="estadoGuardarPlantilla" title="Guarda una copia de este documento en Plantillas → Mis plantillas, solo en este navegador">Guardar en mis plantillas</button>
+  </div>
   <button type="button" class="tirador" id="estadoTirador" aria-expanded="false"
           title="Este documento: dónde está guardado y qué puedes hacer con él">
     <span class="punto"></span><span class="corto" id="estadoCorto"></span>
   </button>
   <div class="detalle">
     <span class="texto" id="estadoTexto" title="Ver los documentos abiertos aquí"></span>
-    <button type="button" id="estadoRecientes" title="Todos los documentos guardados en este navegador">Recientes</button>
-    <button type="button" id="estadoDescargar">Descargar</button>
   </div>
 </div>
 <div class="aviso-flotante no-print" id="aviso" hidden>
@@ -4805,10 +5053,22 @@ function gpxValidarContexto(contexto){
 /* mismo cuidado que gpxValidarContexto: un `imagen`/`calibracion` de un
    ```gpx-datos escrito a mano no debe llegar sin forma a los sitios que
    asumen un dataURL o cuatro numeros (seccion 3.8). */
-function gpxValidarImagen(imagen){ return (typeof imagen === "string" && /^data:image\//.test(imagen)) ? imagen : null; }
+/* tope generoso (~9 MB de imagen real, un poco por encima de lo que deja
+   subir el propio input de archivo) para que un dataURL enorme en un
+   companero escrito a mano no quede reescapandose entero en cada refresco
+   de la figura (cada toque de la calibracion, por ejemplo). */
+function gpxValidarImagen(imagen){
+  if(typeof imagen !== "string" || !/^data:image\//.test(imagen)) return null;
+  if(imagen.length > 12 * 1024 * 1024) return null;
+  return imagen;
+}
 function gpxValidarCalibracion(cal){
   if(!cal || typeof cal !== "object") return null;
   if(!gpxNumeroValido(cal.a) || !gpxNumeroValido(cal.b) || !gpxNumeroValido(cal.tx) || !gpxNumeroValido(cal.ty)) return null;
+  /* una escala/traslacion descomunal (de un companero manipulado a mano, la
+     calibracion real de 2 toques nunca da numeros asi) desborda a
+     Infinity/NaN al proyectar puntos reales y corrompe el SVG en silencio. */
+  if(Math.abs(cal.a) > 1e6 || Math.abs(cal.b) > 1e6 || Math.abs(cal.tx) > 1e8 || Math.abs(cal.ty) > 1e8) return null;
   return { a: cal.a, b: cal.b, tx: cal.tx, ty: cal.ty };
 }
 function gpxLocalDe(datos){
@@ -4983,6 +5243,116 @@ function dibujarGPX(xmlTexto, params, datosGpxTexto, indiceGpx){
   }
 }
 
+/* ==========================================================================
+   BLOQUE ```pizarra
+   Trazos a mano guardados como texto plano dentro del propio bloque, sin
+   companero (mdx-bloques-spec-v2.md seccion 12.1): "tamaño WxH" fija el
+   lienzo, cada linea "trazo COLOR GROSOR d..." es un <path> mas. Al ser texto
+   se versiona, se imprime y viaja en el .html exportado; borrar una linea a
+   mano borra ese trazo, igual que editar cualquier otro Markdown.
+   ========================================================================== */
+var pizarraContador = 0;
+var PIZARRA_RE_TAMANO = /^tamaño\s+(\d+)\s*[x×]\s*(\d+)\s*$/i;
+var PIZARRA_RE_TRAZO = /^trazo\s+(\S+)\s+([0-9.]+)\s+(.+)$/i;
+var PIZARRA_RE_COLOR = /^#[0-9a-fA-F]{3,8}$/;
+var PIZARRA_RE_PATH = /^[MLHVCSQTAZ0-9.\-,\s]+$/i;
+var PIZARRA_ANCHO_DEF = 800, PIZARRA_ALTO_DEF = 500, PIZARRA_COLOR_DEF = "#1a73e8";
+var PIZARRA_D_MAX = 19000;     // por debajo del tope de lectura (20000): lo que se dibuja siempre cabe al releer
+var PIZARRA_TRAZOS_MAX = 2000; // idem, tope de lectura en pizarraParsear
+
+/* tolerante a mano: una linea rara (color invalido, un "path" con letras que
+   no son de SVG, un tamaño fuera de rango) se descarta sola sin tirar el
+   resto del pizarron ni avisar nada, igual que una fila de tabla invalida en
+   Markdown normal. Los topes (2000 trazos, 20000 caracteres por trazo) son
+   para un bloque escrito a mano con datos absurdos, no para el uso normal. */
+function pizarraParsear(codigo){
+  var ls = String(codigo || "").split("\n"), ancho = PIZARRA_ANCHO_DEF, alto = PIZARRA_ALTO_DEF, trazos = [], i, l, m, w, h, grosor, d;
+  for(i = 0; i < ls.length; i++){
+    l = ls[i].trim();
+    if(!l) continue;
+    m = l.match(PIZARRA_RE_TAMANO);
+    if(m){
+      w = parseInt(m[1], 10); h = parseInt(m[2], 10);
+      if(w > 0 && w <= 4000) ancho = w;
+      if(h > 0 && h <= 4000) alto = h;
+      continue;
+    }
+    m = l.match(PIZARRA_RE_TRAZO);
+    if(!m || trazos.length >= PIZARRA_TRAZOS_MAX) continue;
+    grosor = Number(m[2]);
+    if(!isFinite(grosor) || grosor <= 0) grosor = 3;
+    if(grosor > 60) grosor = 60;
+    d = m[3].trim();
+    if(!d || d.length > 20000 || !PIZARRA_RE_PATH.test(d)) continue;
+    trazos.push({ color: PIZARRA_RE_COLOR.test(m[1]) ? m[1] : PIZARRA_COLOR_DEF, grosor: grosor, d: d });
+  }
+  return { ancho: ancho, alto: alto, trazos: trazos };
+}
+function pizarraSerializar(datos){
+  var ls = ["tamaño " + datos.ancho + "x" + datos.alto], i, t;
+  for(i = 0; i < datos.trazos.length; i++){
+    t = datos.trazos[i];
+    ls.push("trazo " + t.color + " " + t.grosor + " " + t.d);
+  }
+  return ls.join("\n");
+}
+/* suavizado por curvas cuadraticas entre puntos medios (mdx-bloques-spec-v2.md
+   seccion 12.1, formula dada ahi mismo): con menos de 3 puntos no hay medio
+   que calcular, asi que un toque simple queda como una linea de largo cero
+   (un punto, gracias al remate redondo de .pizarra-trazo). */
+function pizarraTrazoAPath(pts){
+  var i, mx, my, d;
+  if(pts.length < 3) return "M" + pts[0].x + " " + pts[0].y + " L" + pts[pts.length - 1].x + " " + pts[pts.length - 1].y;
+  d = "M" + pts[0].x + " " + pts[0].y;
+  for(i = 1; i < pts.length - 1; i++){
+    mx = (pts[i].x + pts[i + 1].x) / 2;
+    my = (pts[i].y + pts[i + 1].y) / 2;
+    d += " Q" + pts[i].x + " " + pts[i].y + " " + mx + " " + my;
+  }
+  return d;
+}
+/* igual que pizarraTrazoAPath(pts), pero calculada de forma incremental: cada
+   segmento "Q..." depende solo de pts[i] y pts[i+1], nunca del largo total del
+   arreglo, asi que al agregar un punto no hace falta recalcular los anteriores
+   -- alcanza con pegarle el segmento nuevo al "d" que ya se tenia. Sin esto,
+   redibujar el trazo entero en cada pointermove es O(n^2) para un trazo largo. */
+function pizarraTrazoApendice(anterior, pts){
+  var n = pts.length, i, a, b, mx, my;
+  if(n < 4) return pizarraTrazoAPath(pts);
+  i = n - 2; a = pts[i]; b = pts[i + 1];
+  mx = (a.x + b.x) / 2; my = (a.y + b.y) / 2;
+  return anterior + " Q" + a.x + " " + a.y + " " + mx + " " + my;
+}
+function pizarraPuntoDesde(e, rect, datos){
+  var x = (e.clientX - rect.left) / rect.width * datos.ancho;
+  var y = (e.clientY - rect.top) / rect.height * datos.alto;
+  return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+}
+function pizarraTrazosHTML(datos){
+  var partes = [], i, t;
+  for(i = 0; i < datos.trazos.length; i++){
+    t = datos.trazos[i];
+    partes.push('<path class="pizarra-trazo" data-i="' + i + '" d="' + escUI(t.d) + '" stroke="' + escUI(t.color) + '" stroke-width="' + t.grosor + '"></path>');
+  }
+  return partes.join("");
+}
+function pizarraSvgHTML(datos){
+  return '<svg class="pizarra-svg" viewBox="0 0 ' + datos.ancho + ' ' + datos.alto + '">' + pizarraTrazosHTML(datos) + "</svg>";
+}
+function pizarraLienzoHTML(datos){
+  return '<div class="pizarra-lienzo">' + pizarraSvgHTML(datos) + "</div>";
+}
+function dibujarPizarra(codigo, indicePizarra){
+  var datos = pizarraParsear(codigo);
+  pizarraContador++;
+  var payload = { datos: datos, firma: gpxFirma(codigo) };
+  return '<figure class="pizarra-viewer no-romper" id="pizarra-' + pizarraContador + '" translate="no"' +
+    ' data-pizarra-indice="' + (indicePizarra || 0) + '" data-pizarra="' + escUI(JSON.stringify(payload)) + '">' +
+    pizarraLienzoHTML(datos) +
+    '<button type="button" class="pizarra-boton-editar no-print">✎ Dibujar</button>' +
+    "</figure>";
+}
+
 /* -------------------------------------------------------------------------- */
 function mdAHtml(fuente){
   var Z = String.fromCharCode(0);        // marca interna, invisible
@@ -5000,6 +5370,7 @@ function mdAHtml(fuente){
   var metaOrden = [];
   var hayTOC = false;
   var indiceGpx = 0;    // el n-esimo bloque ```gpx de ESTE documento (para localizarlo despues en fuenteActual)
+  var indicePizarra = 0;    // idem, para ```pizarra
 
   function g(html){ G.push(html); return Z + (G.length - 1) + Z; }
   function abrirTodo(s){
@@ -5373,6 +5744,11 @@ function mdAHtml(fuente){
           }else{
             apunta(dibujarGPX(codigo, gpxParametros(parametrosGpx), datosGpxTexto, indiceGpx));
           }
+          continue;
+        }
+        if(etiqueta === "pizarra"){
+          indicePizarra++;
+          apunta(dibujarPizarra(codigo, indicePizarra));
           continue;
         }
         if(etiqueta === "mermaid" || etiqueta === "diagrama" || etiqueta === "grafico" || etiqueta === "gr\u00e1fico"){
@@ -6164,9 +6540,35 @@ function pintarEstado(){
   $("#estadoTexto").title = p
     ? "Este documento no está en tus carpetas: vive en este navegador. Descárgalo cuando quieras; si borras los datos de navegación, se pierde. Pulsa para ver los recientes."
     : "Guardado en este navegador y descargado a tus carpetas. Pulsa para ver los recientes.";
-  var b = $("#estadoDescargar");
-  b.textContent = p ? "Descargar" : "Descargar otra vez";
-  b.title = "Se descargará como " + nombreParaDescargar("md");
+  var bm = $("#estadoBajaMd");
+  bm.textContent = p ? ".md" : ".md otra vez";
+  bm.title = "El Markdown tal cual, para seguir editándolo donde sea · se descargará como " + nombreParaDescargar("md");
+  pintarSubmenuCompartir();
+}
+/* mismas opciones que menuCompartir(), en miniatura para el submenú del
+   estado del documento: solo icono + título con la explicación, nada de
+   descripción larga, para cerrar rapido sin abrir el cuadro grande. */
+function pintarSubmenuCompartir(){
+  var enlace = enlaceDePlantilla();
+  var filas = ['<button type="button" data-esubcomp="guardarmia" title="Queda en Plantillas → Mis plantillas, solo en este navegador (no se descarga nada)">&#9733; Plantilla tuya</button>'];
+  if(enlace){
+    filas.push('<button type="button" data-esubcomp="enlace" title="Copiar el enlace de la plantilla: ' + escUI(enlace) + '">&#128279; Copiar enlace</button>');
+  }
+  if(HAY_COMUNIDAD){
+    filas.push('<button type="button" data-esubcomp="publicar" title="Publicar en la comunidad: anónima y pública, cualquiera la verá en Plantillas → Comunidad">&#10045; Publicar</button>');
+  }
+  if(navigator.share){
+    filas.push('<button type="button" data-esubcomp="archivo" title="Enviar el archivo .md por la hoja de compartir del sistema: correo, mensajería, lo que tengas">&#10150; Enviar archivo</button>');
+  }
+  filas.push('<button type="button" data-esubcomp="copiar" title="Copiar el Markdown entero al portapapeles">&#10697; Copiar texto</button>');
+  filas.push('<button type="button" data-esubcomp="formato" title="Copiar la vista ya renderizada: pégala en un correo o documento y llega con negritas, tablas y títulos">&#10697; Copiar con formato</button>');
+  var html = filas.join("");
+  /* dos sitios llevan las mismas opciones: el submenú de la píldora de estado
+     y el del menú de los tres puntos (ver colocarMenuTres) */
+  ["#estadoCompartirSub", "#menuCompartirSub"].forEach(function(sel){
+    var cont = $(sel);
+    if(cont) cont.innerHTML = html;
+  });
 }
 /* la pildora vive plegada para no taparte el documento: se abre sola al pasar
    el raton por encima y, en una pantalla tactil, al tocarla */
@@ -6428,8 +6830,16 @@ function escUI(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 var temporizadorAviso = null;
+/* si el navegador esta de verdad en pantalla completa (pizarron, Presentar),
+   #aviso -- que vive fuera de esos contenedores, junto a #velo2 -- queda
+   tapado por la "capa superior" de la Fullscreen API sin importar su z-index
+   (mismo problema que el menu de salida del pizarron, ver mdx-bloques-spec-v2.md
+   seccion 12.2): se lo reubica dentro del elemento fullscreen antes de
+   mostrarlo, y de vuelta al body en cuanto no hay ninguno. */
 function aviso(texto, etiqueta, accion){
   var caja = $("#aviso"), boton = $("#avisoBoton");
+  var destino = document.fullscreenElement || document.body;
+  if(caja.parentNode !== destino) destino.appendChild(caja);
   $("#avisoTexto").textContent = texto;
   clearTimeout(temporizadorAviso);
   if(etiqueta && accion){
@@ -6733,8 +7143,15 @@ function gpxEscribirCompanero(indiceGpx, firma, campos){
   if(!loc || (loc.datos && loc.datos.malformado)) return false;
   var actual = {};
   if(loc.datos){
-    try{ actual = JSON.parse(fuenteActual.slice(loc.datos.contenidoInicio, loc.datos.contenidoFin)) || {}; }
-    catch(e){ actual = {}; }
+    try{
+      var previo = JSON.parse(fuenteActual.slice(loc.datos.contenidoInicio, loc.datos.contenidoFin));
+      /* un array o un primitivo (string/numero/bool) tambien es JSON valido,
+         pero fusionar campos ahi arriba los pierde en silencio (un array solo
+         serializa indices numericos) o revienta (asignar una propiedad a un
+         primitivo en modo estricto). Si el companero existente no tiene la
+         forma esperada, se trata igual que si estuviera vacio. */
+      actual = (previo && typeof previo === "object" && !Array.isArray(previo)) ? previo : {};
+    }catch(e){ actual = {}; }
   }
   Object.keys(campos).forEach(function(k){
     if(campos[k] === null) delete actual[k];
@@ -6948,6 +7365,14 @@ function gpxActivarFigura(fig){
     var archivo = t.files && t.files[0];
     if(!archivo) return;
     if(!/^image\//.test(archivo.type)){ aviso("Elige un archivo de imagen."); return; }
+    if(archivo.size > 8 * 1024 * 1024){
+      /* tope duro: sin esto, un archivo enorme queda embebido en base64 y se
+         vuelve a parsear entero como markdown en cada tecla que se presione
+         despues (fuenteActual se re-renderiza con debounce, no una sola vez). */
+      aviso("Esta imagen pesa " + (archivo.size / 1024 / 1024).toFixed(1) + " MB; elige una menor de 8 MB.");
+      t.value = "";
+      return;
+    }
     if(archivo.size > 500000){
       aviso("Esta imagen pesa " + Math.round(archivo.size / 1024) + " KB; el documento va a crecer bastante.");
     }
@@ -6971,6 +7396,212 @@ function prepararGPX(){
     if(fig.dataset.gpxListo) return;
     fig.dataset.gpxListo = "1";
     gpxActivarFigura(fig);
+  });
+}
+
+/* ubica el n-esimo bloque ```pizarra dentro de `src` (mismo criterio de
+   vallas y misma logica que gpxLocalizarBloque, pero sin companero: todo
+   vive en el propio bloque). Devuelve offsets de caracter para escribir sin
+   reprocesar todo el documento; null si no calza (el documento cambio de
+   forma y el bloque n-esimo ya no esta donde se esperaba). */
+function pizarraLocalizarBloque(src, n){
+  var ls = src.split("\n"), top = [], pos = 0, i;
+  for(i = 0; i < ls.length; i++){ top.push(pos); pos += ls[i].length + 1; }
+  var contados = 0, k = 0;
+  while(k < ls.length){
+    var m = ls[k].match(RE_VALLA);
+    if(!m || m[2].length < 3){ k++; continue; }
+    var valla = m[2], sangria = m[1].length;
+    var etiqueta = (m[3] || "").toLowerCase().replace(/^lang(uage)?-/, "");
+    var j = k + 1, cerrada = false, c;
+    while(j < ls.length){
+      c = ls[j].match(RE_CIERRE);
+      if(c && c[1].charAt(0) === valla.charAt(0) && c[1].length >= valla.length){ cerrada = true; break; }
+      j++;
+    }
+    if(etiqueta !== "pizarra" || !cerrada){ k = cerrada ? j + 1 : ls.length; continue; }
+    contados++;
+    if(contados !== n){ k = j + 1; continue; }
+    return {
+      sangria: sangria, contenidoInicio: top[k + 1], contenidoFin: top[j],
+      cierreFin: (j + 1 < ls.length) ? top[j + 1] : src.length
+    };
+  }
+  return null;
+}
+/* misma huella y misma tolerancia a prefijo que gpxLocalizarBloqueVerificado:
+   el contenido puede crecer entre que se activa la figura y se pulsa Listo
+   (nuevos trazos dibujados en esta misma sesion), asi que compara por
+   prefijo en vez de por igualdad exacta. */
+function pizarraLocalizarBloqueVerificado(indice, firma){
+  var loc = pizarraLocalizarBloque(fuenteActual, indice);
+  if(!loc) return null;
+  if(firma){
+    var real = gpxFirma(fuenteActual.slice(loc.contenidoInicio, loc.contenidoFin));
+    if(real.indexOf(firma) !== 0 && firma.indexOf(real) !== 0) return null;
+  }
+  return loc;
+}
+function pizarraEscribir(indice, firma, datos){
+  var loc = pizarraLocalizarBloqueVerificado(indice, firma);
+  if(!loc) return false;
+  var sangriaTxt = gpxSangria(loc.sangria);
+  var contenido = pizarraSerializar(datos).split("\n").map(function(l){ return sangriaTxt + l; }).join("\n") + "\n";
+  fuenteActual = fuenteActual.slice(0, loc.contenidoInicio) + contenido + fuenteActual.slice(loc.contenidoFin);
+  return true;
+}
+
+/* dueño de un <figure> de pizarra de principio a fin: entrar y salir del modo
+   dibujo, y la captura de trazos en si, todo por delegacion de eventos sobre
+   el propio `fig` (sobrevive a que su innerHTML se reemplace al redibujar,
+   igual que gpxActivarFigura). */
+function pizarraActivarFigura(fig){
+  var payload;
+  try{ payload = JSON.parse(fig.dataset.pizarra || "{}"); }catch(e){ return; }
+  if(!payload.datos) return;
+  var indice = parseInt(fig.dataset.pizarraIndice, 10) || 0;
+  var estado = { color: PIZARRA_COLOR_DEF, grosor: 3, borrador: false };
+  var previo = null;    // copia de datos.trazos al entrar a dibujar, para "Cancelar"
+  var enCurso = null;   // {pointerId, puntos, path, svg} del trazo que se esta dibujando ahora mismo
+
+  function vistaHTML(){
+    return pizarraLienzoHTML(payload.datos) + '<button type="button" class="pizarra-boton-editar no-print">✎ Dibujar</button>';
+  }
+  function barraHTML(){
+    return '<div class="pizarra-barra no-print">' +
+      '<input type="color" class="pizarra-color" value="' + escUI(estado.color) + '" title="Color del trazo">' +
+      '<input type="range" class="pizarra-grosor" min="1" max="24" value="' + estado.grosor + '" title="Grosor del trazo">' +
+      '<button type="button" class="pizarra-boton-borrador" aria-pressed="false">Borrador</button>' +
+      '<button type="button" class="pizarra-boton-deshacer">Deshacer</button>' +
+      '<button type="button" class="pizarra-boton-limpiar">Limpiar</button>' +
+      '<button type="button" class="pizarra-boton-cancelar">Cancelar</button>' +
+      '<button type="button" class="pizarra-boton-listo">Listo</button>' +
+      "</div>";
+  }
+  function redibujarTrazos(){
+    var lienzo = fig.querySelector(".pizarra-lienzo");
+    if(lienzo) lienzo.innerHTML = pizarraSvgHTML(payload.datos);
+  }
+  function entrarDibujo(){
+    previo = payload.datos.trazos.slice();
+    fig.classList.add("pizarra-dibujando");
+    fig.innerHTML = pizarraLienzoHTML(payload.datos) + barraHTML();
+  }
+  function salirDibujo(guardado){
+    enCurso = null;
+    estado.borrador = false;
+    fig.classList.remove("pizarra-dibujando", "pizarra-borrador");
+    fig.innerHTML = vistaHTML();
+    if(guardado){ fig.dataset.pizarra = JSON.stringify(payload); trasRellenar(); }
+  }
+
+  fig.addEventListener("click", function(e){
+    var t = e.target, el;
+    el = t.closest ? t.closest(".pizarra-boton-editar") : null;
+    if(el){ entrarDibujo(); return; }
+    el = t.closest ? t.closest(".pizarra-boton-borrador") : null;
+    if(el){
+      estado.borrador = !estado.borrador;
+      el.setAttribute("aria-pressed", String(estado.borrador));
+      el.classList.toggle("activo", estado.borrador);
+      fig.classList.toggle("pizarra-borrador", estado.borrador);
+      return;
+    }
+    el = t.closest ? t.closest(".pizarra-boton-deshacer") : null;
+    if(el){
+      if(payload.datos.trazos.length){ payload.datos.trazos.pop(); enCurso = null; redibujarTrazos(); }
+      return;
+    }
+    el = t.closest ? t.closest(".pizarra-boton-limpiar") : null;
+    if(el){
+      if(!payload.datos.trazos.length) return;
+      aviso("¿Borrar todos los trazos de esta pizarra?", "Borrar", function(){
+        payload.datos.trazos = [];
+        enCurso = null;
+        redibujarTrazos();
+      });
+      return;
+    }
+    el = t.closest ? t.closest(".pizarra-boton-cancelar") : null;
+    if(el){ payload.datos.trazos = previo || []; salirDibujo(false); return; }
+    el = t.closest ? t.closest(".pizarra-boton-listo") : null;
+    if(el){
+      if(pizarraEscribir(indice, payload.firma, payload.datos)){
+        payload.firma = gpxFirma(pizarraSerializar(payload.datos));
+        salirDibujo(true);
+      }else{
+        aviso("No pude guardar los trazos: el texto cambió mientras dibujabas. Vuelve a intentarlo.");
+      }
+      return;
+    }
+  });
+
+  fig.addEventListener("input", function(e){
+    var t = e.target;
+    if(!t.classList) return;
+    if(t.classList.contains("pizarra-color")) estado.color = t.value;
+    else if(t.classList.contains("pizarra-grosor")) estado.grosor = Number(t.value) || 3;
+  });
+
+  fig.addEventListener("pointerdown", function(e){
+    if(!fig.classList.contains("pizarra-dibujando")) return;
+    if(!e.isPrimary) return;   // un segundo dedo (palma, otro dedo) no dibuja ni borra
+    var svgEl = e.target.closest ? e.target.closest(".pizarra-svg") : null;
+    if(!svgEl) return;
+    if(estado.borrador){
+      var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
+      if(trazoEl){
+        var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
+        if(isFinite(idx) && payload.datos.trazos[idx]){
+          payload.datos.trazos.splice(idx, 1);
+          enCurso = null;
+          redibujarTrazos();
+        }
+      }
+      return;
+    }
+    var rect = svgEl.getBoundingClientRect();
+    if(!rect.width || !rect.height) return;
+    try{ svgEl.setPointerCapture(e.pointerId); }catch(err){}
+    var pt = pizarraPuntoDesde(e, rect, payload.datos);
+    var d0 = pizarraTrazoAPath([pt]);
+    svgEl.insertAdjacentHTML("beforeend",
+      '<path class="pizarra-trazo-actual" d="' + escUI(d0) + '" stroke="' + escUI(estado.color) + '" stroke-width="' + estado.grosor + '"></path>');
+    enCurso = { pointerId: e.pointerId, puntos: [pt], d: d0, tope: false, path: svgEl.lastElementChild, svg: svgEl };
+  });
+  fig.addEventListener("pointermove", function(e){
+    if(!enCurso || e.pointerId !== enCurso.pointerId || enCurso.tope) return;
+    var rect = enCurso.svg.getBoundingClientRect();
+    if(!rect.width || !rect.height) return;
+    var pt = pizarraPuntoDesde(e, rect, payload.datos);
+    if(enCurso.puntos.length < 5000) enCurso.puntos.push(pt); else return;
+    var d = pizarraTrazoApendice(enCurso.d, enCurso.puntos);
+    if(d.length > PIZARRA_D_MAX){ enCurso.puntos.pop(); enCurso.tope = true; return; }
+    enCurso.d = d;
+    enCurso.path.setAttribute("d", d);
+  });
+  function soltarPuntero(e){
+    if(!enCurso || e.pointerId !== enCurso.pointerId) return;
+    if(payload.datos.trazos.length >= PIZARRA_TRAZOS_MAX){
+      if(enCurso.path && enCurso.path.parentNode) enCurso.path.parentNode.removeChild(enCurso.path);
+      enCurso = null;
+      aviso("Esta pizarra ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos.");
+      return;
+    }
+    var i = payload.datos.trazos.length;
+    payload.datos.trazos.push({ color: estado.color, grosor: estado.grosor, d: enCurso.path.getAttribute("d") });
+    enCurso.path.setAttribute("class", "pizarra-trazo");
+    enCurso.path.setAttribute("data-i", String(i));
+    enCurso = null;
+  }
+  fig.addEventListener("pointerup", soltarPuntero);
+  fig.addEventListener("pointercancel", soltarPuntero);
+}
+function prepararPizarra(){
+  Array.prototype.forEach.call(elDoc.querySelectorAll(".pizarra-viewer"), function(fig){
+    if(fig.dataset.pizarraListo) return;
+    fig.dataset.pizarraListo = "1";
+    pizarraActivarFigura(fig);
   });
 }
 
@@ -7074,6 +7705,7 @@ function pintar(md){
   botonesCopiar();
   prepararDiagramas();
   prepararGPX();
+  prepararPizarra();
   prepararPlegado();
   contarCampos();
   calcularHojas();
@@ -7081,6 +7713,22 @@ function pintar(md){
   /* contarCampos puede sacar o esconder el boton de rellenar, y con el cambia el
      alto de la barra: se vuelve a medir para que el hueco de arriba cuadre */
   medirAltoBarra();
+  /* si Presentar esta abierto, elDoc.children de arriba son nodos NUEVOS --
+     desinfectarFragmento rehace el <template> en cada pintar(), asi que
+     cualquier nodo que DIA.grupos guardara de antes queda huerfano aunque el
+     texto no haya cambiado. Sin este resincronizado, un repintado ajeno a
+     Presentar (el debounce de 200ms del editor disparando tarde, o un cambio
+     remoto sincronizado) deja tanto la diapositiva en pantalla como
+     diaLimiteFuente() mirando nodos desconectados -- y diaLimiteFuente
+     confunde "nodo no encontrado" con "es la ultima diapositiva". */
+  if(DIA){
+    DIA.grupos = trocearDiapositivas();
+    if(!DIA.grupos.length) cerrarPresentacion();
+    else{
+      if(DIA.i >= DIA.grupos.length) DIA.i = DIA.grupos.length - 1;
+      pintarDiapositiva();
+    }
+  }
 }
 
 function fijarTexto(txt, nombre, opc){
@@ -7166,7 +7814,7 @@ function guardarHtml(){
   var ta = clon.querySelector("#ed"); if(ta) ta.textContent = "";
   var be = clon.querySelector("#btnEditar"); if(be) be.innerHTML = "<b>&#9998;</b><span>Editar</span>";
   var velo = clon.querySelector("#velo"); if(velo) velo.hidden = true;
-  ["#velo2", "#esquema", "#buscador", "#aislado", "#barraForm", "#pestanas"].forEach(function(sel){
+  ["#velo2", "#esquema", "#buscador", "#aislado", "#barraForm", "#pestanas", "#menuTres"].forEach(function(sel){
     var x = clon.querySelector(sel); if(x) x.hidden = true;
   });
   Array.prototype.forEach.call(clon.querySelectorAll(".espejo-editor"), function(x){
@@ -7174,6 +7822,12 @@ function guardarHtml(){
   });
   var av = clon.querySelector("#aviso"); if(av) av.hidden = true;
   var ed = clon.querySelector("#estadoDoc"); if(ed) ed.hidden = true;
+  /* los submenús de Descargar/Compartir de esa píldora cuelgan de <body> en
+     vivo (ver colocarSubmenu), fuera de #estadoDoc: hay que quitarlos aparte
+     o quedarían sueltos y sin botón que los abra en el .html exportado. */
+  Array.prototype.forEach.call(clon.querySelectorAll(".estado-submenu"), function(x){
+    if(x.parentNode) x.parentNode.removeChild(x);
+  });
   clon.querySelector("body").className = "";
   var nombreHtml = nombreBaseDoc() + ".html";
   descargar(nombreHtml, "<!doctype html>\n" + clon.outerHTML, "text/html");
@@ -7812,12 +8466,10 @@ function abrirChico(titulo, html){
 }
 function cerrarChico(){
   $("#velo2").hidden = true;
-  /* cerrar cualquier dialogo chico (con "Cancelar", el fondo, Escape o una
-     accion elegida) tambien pliega la tira de pestañas -- asi los tres
-     toques del boton de tres puntos (pestañas -> opciones -> nada) siempre
-     vuelven al mismo punto de partida. Sin condicion: alternarMenuBarra() ya
-     no toca la bandera al abrir el dialogo, asi que este es el unico sitio
-     que la baja. */
+  /* por si este dialogo se abrio con la tira de pestañas visible (p.ej.
+     Rellenar, con el menu de los tres puntos aun abierto): que se pliegue
+     tambien, aunque en el uso normal cerrarMenuTres() ya se encarga de esto
+     antes de llegar aqui (ver el "click" delegado de #menuTres). */
   pestanasVisibles = false;
   pintarPestanas();
 }
@@ -8188,8 +8840,8 @@ function formPublicar(){
     });
   });
 }
-/* En el movil la barra entera vive detras de los tres puntos. El menu pone
-   nombre y explicacion a cada icono: el tooltip que un dedo no puede ver. */
+/* ya no la abre #btnMenu (ver #menuTres/abrirMenuTres mas abajo), pero se
+   deja tal cual: es parte de la API publica (window.plantilla.menu). */
 function menuBarra(){
   var editando = document.body.classList.contains("editando");
   var filas = [
@@ -8216,21 +8868,78 @@ function menuBarra(){
            "</b><span>" + f[3] + "</span></button>";
   }).join("") + "</div>");
 }
-/* el boton de tres puntos, en dos pasos: el primer toque solo saca la tira de
-   pestañas (si hay mas de un documento a mano); el segundo abre el dialogo
-   "Menú" con el resto de las acciones. Si no hay pestañas que mostrar, el
-   primer toque va directo al dialogo. cerrarChico() se encarga de que, al
-   cerrar ese dialogo por cualquier via, la tira tambien se pliegue -- asi
-   el ciclo completo siempre vuelve al punto de partida. */
-function alternarMenuBarra(){
-  if(HAY_ALMACEN && PESTANAS.length >= 2 && !pestanasVisibles){
+/* En el movil (y, de hecho, a cualquier ancho: ver el comentario de ".barra
+   > button{display:none}") la barra entera vive detras de los tres puntos.
+   #menuTres es ese menu: un panel fijo, sin caja de fondo, que cuelga de
+   #btnMenu -- ver colocarMenuTres. Cada fila ya existe en el HTML (con su
+   propio "title" de tooltip); aqui solo se sincroniza lo que cambia en
+   caliente: el icono/etiqueta de Editar y que filas se ocultan cuando su
+   boton real tambien esta oculto. */
+function sincronizarMenuTres(){
+  var editando = document.body.classList.contains("editando");
+  $("#menuEditar").title = editando
+    ? "Volver a la vista, sin el editor al lado"
+    : "Escribir aquí mismo, con el resultado al lado";
+  $("#menuEditarEtq").textContent = editando ? "Cerrar editor" : "Editar";
+  $("#menuEditarIco").innerHTML = editando ? "&#10007;" : "&#9998;";
+  Array.prototype.forEach.call($("#menuTres").querySelectorAll("[data-accion]"), function(f){
+    var real = document.getElementById(f.getAttribute("data-accion"));
+    f.hidden = !real || real.hidden;
+  });
+  $("#menuDescargar").closest(".item").hidden = !$("#btnDescargar") || $("#btnDescargar").hidden;
+  $("#menuCompartir").closest(".item").hidden = !$("#btnCompartir") || $("#btnCompartir").hidden;
+}
+/* fijo bajo #btnMenu, pegado a su borde derecho -- igual que colocarSubmenu,
+   pero midiendo desde el boton de los tres puntos en vez de desde un item de
+   la lista, y sin volteo horizontal (siempre hay sitio a la izquierda: el
+   panel ya nace pegado al borde derecho de la pantalla). */
+function colocarMenuTres(){
+  var panel = $("#menuTres"), boton = $("#btnMenu");
+  var r = boton.getBoundingClientRect();
+  var alto = panel.offsetHeight;
+  var arriba = Math.min(r.bottom + 6, window.innerHeight - alto - 8);
+  panel.style.top = Math.max(8, arriba) + "px";
+  panel.style.right = Math.max(8, window.innerWidth - r.right) + "px";
+}
+/* el boton de tres puntos ahora abre, de un solo toque, las pestañas (si hay
+   mas de un documento a mano) junto con el menu de iconos -- antes hacian
+   falta dos toques porque el dialogo grande de antes habria tapado la tira.
+   Un panel transparente y angosto no tapa nada, asi que pueden salir juntos.
+   Cerrar por cualquier via (un icono, fuera del panel, Escape) pliega los
+   dos a la vez: el ciclo completo siempre vuelve al mismo punto de partida. */
+function abrirMenuTres(){
+  if(HAY_ALMACEN && PESTANAS.length >= 2){
     pestanasVisibles = true;
     pintarPestanas();
-    return;
   }
-  menuBarra();
+  sincronizarMenuTres();
+  $("#menuTres").hidden = false;
+  colocarMenuTres();
+  $("#btnMenu").setAttribute("aria-expanded", "true");
 }
-
+function cerrarMenuTres(){
+  if($("#menuTres").hidden) return;
+  $("#menuTres").hidden = true;
+  $("#btnMenu").setAttribute("aria-expanded", "false");
+  Array.prototype.forEach.call($("#menuTres").querySelectorAll(".estado-submenu.mostrando"), function(o){
+    o.classList.remove("mostrando");
+  });
+  pestanasVisibles = false;
+  pintarPestanas();
+}
+function alternarMenuBarra(){
+  if($("#menuTres").hidden) abrirMenuTres(); else cerrarMenuTres();
+}
+function menuCreditos(){
+  abrirChico("Licencia y créditos", '<div class="chico-menu">' +
+    '<div class="chico-fila"><b>GNU GPL v3</b>' +
+    "<span>Copyright © 2026 Robin Gregorio. Software libre: úsalo, cópialo y modifícalo; si repartes tu versión, debe seguir siendo libre.</span></div>" +
+    '<a href="LICENSE" target="_blank" rel="noopener">' +
+    "<b>Ver la licencia completa</b><span>El texto de la licencia GPL v3, tal cual</span></a>" +
+    '<a href="https://crgm.app" target="_blank" rel="noopener">' +
+    "<b>crgm.app</b><span>Mantiene y publica esta aplicación</span></a>" +
+    "</div>");
+}
 /* ==========================================================================
    FORMULARIOS: rellenar el documento sobre la vista, sin abrir el editor
    Lo que se escribe va al texto en Markdown -- no a un lado -- asi que se
@@ -8668,6 +9377,8 @@ function pintarDiapositiva(){
   $("#diaContador").textContent = (DIA.i + 1) + " / " + DIA.grupos.length;
   $("#diaAnterior").disabled = DIA.i === 0;
   $("#diaSiguiente").disabled = DIA.i === DIA.grupos.length - 1;
+  diaLapizRedibujar();
+  diaActualizarBarra();
 }
 function moverDia(paso){
   if(!DIA) return;
@@ -8680,35 +9391,491 @@ function cerrarPresentacion(){
   if(!DIA) return;
   DIA = null;
   $("#diapositivas").hidden = true;
+  $("#diapositivas").classList.remove("dia-lapiz-activo", "dia-lapiz-borrador");
   document.removeEventListener("keydown", teclaDia);
   if(document.fullscreenElement) try{ document.exitFullscreen(); }catch(e){}
+}
+function diaEscribiendo(){
+  var a = document.activeElement;
+  if(!a) return false;
+  if(a.isContentEditable) return true;
+  return a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT";
 }
 function teclaDia(e){
   if(e.key === "Escape"){ cerrarPresentacion(); return; }
   if(e.key === "ArrowRight" || e.key === " " || e.key === "ArrowDown" || e.key === "PageDown"){ e.preventDefault(); moverDia(1); return; }
-  if(e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp"){ e.preventDefault(); moverDia(-1); }
+  if(e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp"){ e.preventDefault(); moverDia(-1); return; }
+  if(diaEscribiendo()) return;   // no robarle "l"/"b"/"c" a un campo de texto en foco
+  if(e.ctrlKey || e.metaKey || e.altKey) return;   // Ctrl/Cmd+C es copiar, no Limpiar
+  if(e.key === "l" || e.key === "L"){ diaLapizPoner(!DIA.lapiz); return; }
+  if(e.key === "b" || e.key === "B"){ diaBorradorAlternar(); return; }
+  if(e.key === "c" || e.key === "C"){ diaLapizLimpiar(); return; }
 }
 function abrirPresentacion(){
   var grupos = trocearDiapositivas();
   if(!grupos.length){ aviso("Este documento está vacío: no hay nada que presentar."); return; }
-  DIA = { grupos: grupos, i: 0 };
+  var sesion = { grupos: grupos, i: 0, lapiz: false, borrador: false, capas: {}, enCurso: null, enPantallaCompleta: false };
+  DIA = sesion;
   $("#diapositivas").hidden = false;
   pintarDiapositiva();
+  /* misma carrera que en abrirPizarron(): si se sale y se reabre Presentar muy
+     rapido, el "fullscreenchange" tardio de la salida anterior no debe cerrar
+     esta sesion nueva -- solo importa cuando ES esta sesion la que de verdad
+     entro a pantalla completa. */
   var caja = $("#diapositivas"), pedir = caja.requestFullscreen || caja.webkitRequestFullscreen;
-  if(pedir) try{ pedir.call(caja); }catch(e){}
+  if(pedir){
+    try{
+      var promesa = pedir.call(caja);
+      if(promesa && promesa.then) promesa.then(function(){
+        if(DIA !== sesion) return;
+        sesion.enPantallaCompleta = true;
+        diaRemedirCapasVacias();   // el rect de antes de fullscreen puede no ser el real (ver diaCapa)
+      }, function(){});
+    }catch(e){}
+  }
   document.addEventListener("keydown", teclaDia);
+}
+
+/* ---------- lapiz sobre la diapositiva (mdx-bloques-spec-v2.md seccion 12.3) ----------
+   Una capa transparente por diapositiva (DIA.capas[i]), mismo motor de trazos
+   que el bloque ```pizarra y el pizarron global. Temporal por defecto: vive
+   solo en DIA y se pierde entera al cerrar la presentacion. "Guardar
+   anotaciones" la vuelca a un bloque ```pizarra nuevo en el Markdown, en el
+   punto donde termina la seccion de esa diapositiva. */
+var DIA_LAPIZ_COLOR = PIZARRA_COLOR_DEF, DIA_LAPIZ_GROSOR = 4;
+function diaCapa(i){
+  var c = DIA.capas[i];
+  if(!c){
+    var rect = $(".dia-marco").getBoundingClientRect();
+    var ancho = Math.max(200, Math.round(rect.width) || PIZARRA_ANCHO_DEF);
+    var alto = Math.max(200, Math.round(rect.height) || PIZARRA_ALTO_DEF);
+    c = DIA.capas[i] = { datos: { ancho: ancho, alto: alto, trazos: [] } };
+  }
+  return c;
+}
+/* diaCapa() puede medir .dia-marco ANTES de que requestFullscreen() resuelva
+   (abrirPresentacion llama a pintarDiapositiva antes de pedir pantalla
+   completa) -- en movil, ocultar la barra del navegador cambia el alto
+   disponible, y ese ancho/alto ya quedo grabado en datos para siempre. Una
+   vez la promesa de fullscreen resuelve, se vuelve a medir para cualquier
+   capa que todavia no tenga trazos (a una que ya tenga algo dibujado no se
+   le toca la escala, para no desplazar lo que el usuario ya hizo). */
+function diaRemedirCapasVacias(){
+  if(!DIA) return;
+  var rect = $(".dia-marco").getBoundingClientRect();
+  var ancho = Math.max(200, Math.round(rect.width) || PIZARRA_ANCHO_DEF);
+  var alto = Math.max(200, Math.round(rect.height) || PIZARRA_ALTO_DEF);
+  for(var k in DIA.capas){
+    if(!DIA.capas.hasOwnProperty(k)) continue;
+    var c = DIA.capas[k];
+    if(!c.datos.trazos.length){ c.datos.ancho = ancho; c.datos.alto = alto; }
+  }
+  diaLapizRedibujar();
+}
+/* siempre reconstruye el SVG entero: cualquier trazo en curso de OTRA
+   diapositiva o de antes de este redibujado queda huerfano si no se avisa
+   (mismo bug que redibujarTrazos()/pizarronRedibujar() en 12.1/12.2) */
+function diaLapizRedibujar(){
+  if(!DIA) return;
+  var svg = $("#diaLapizSvg");
+  DIA.enCurso = null;
+  var capa = diaCapa(DIA.i);
+  svg.setAttribute("viewBox", "0 0 " + capa.datos.ancho + " " + capa.datos.alto);
+  svg.innerHTML = pizarraTrazosHTML(capa.datos);
+}
+function diaActualizarBarra(){
+  if(!DIA) return;
+  var capa = DIA.capas[DIA.i], hayTrazos = !!capa && capa.datos.trazos.length > 0;
+  var caja = $("#diapositivas");
+  caja.classList.toggle("dia-lapiz-activo", DIA.lapiz);
+  caja.classList.toggle("dia-lapiz-borrador", DIA.borrador);
+  $("#diaLapiz").setAttribute("aria-pressed", String(DIA.lapiz));
+  $("#diaLapiz").classList.toggle("activo", DIA.lapiz);
+  $("#diaBorrador").setAttribute("aria-pressed", String(DIA.borrador));
+  $("#diaBorrador").classList.toggle("activo", DIA.borrador);
+  $("#diaLimpiar").disabled = !hayTrazos;
+  $("#diaGuardarAnotaciones").disabled = !hayTrazos;
+}
+function diaLapizPoner(activo){
+  if(!DIA) return;
+  DIA.lapiz = !!activo;
+  if(!DIA.lapiz) DIA.borrador = false;
+  diaLapizRedibujar();
+  diaActualizarBarra();
+}
+function diaBorradorAlternar(){
+  if(!DIA) return;
+  DIA.borrador = !DIA.borrador;
+  if(DIA.borrador) DIA.lapiz = true;
+  diaLapizRedibujar();
+  diaActualizarBarra();
+}
+function diaLapizLimpiar(){
+  if(!DIA) return;
+  var capa = diaCapa(DIA.i);
+  if(!capa.datos.trazos.length) return;
+  aviso("¿Borrar el dibujo de esta diapositiva?", "Borrar", function(){
+    /* el aviso no bloquea: si mientras tanto se navego a otra diapositiva,
+       confirmar no debe borrar la de origen a escondidas -- se cancela sola */
+    if(!DIA || DIA.capas[DIA.i] !== capa) return;
+    capa.datos.trazos = [];
+    diaLapizRedibujar();
+    diaActualizarBarra();
+  });
+}
+function diaLapizPunteroAbajo(e){
+  if(!DIA || !DIA.lapiz) return;
+  if(!e.isPrimary) return;   // un segundo dedo (palma, otro dedo) no dibuja ni borra
+  var svg = $("#diaLapizSvg"), capa = diaCapa(DIA.i);
+  if(DIA.borrador){
+    var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
+    if(trazoEl){
+      var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
+      if(isFinite(idx) && capa.datos.trazos[idx]){
+        capa.datos.trazos.splice(idx, 1);
+        diaLapizRedibujar();
+        diaActualizarBarra();
+      }
+    }
+    return;
+  }
+  var rect = svg.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  try{ svg.setPointerCapture(e.pointerId); }catch(err){}
+  var pt = pizarraPuntoDesde(e, rect, capa.datos);
+  var d0 = pizarraTrazoAPath([pt]);
+  svg.insertAdjacentHTML("beforeend",
+    '<path class="pizarra-trazo-actual" d="' + escUI(d0) + '" stroke="' + DIA_LAPIZ_COLOR + '" stroke-width="' + DIA_LAPIZ_GROSOR + '"></path>');
+  DIA.enCurso = { pointerId: e.pointerId, puntos: [pt], d: d0, tope: false, path: svg.lastElementChild, svg: svg, capa: capa };
+}
+function diaLapizPunteroMueve(e){
+  var en = DIA && DIA.enCurso;
+  if(!en || e.pointerId !== en.pointerId || en.tope) return;
+  var rect = en.svg.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  var pt = pizarraPuntoDesde(e, rect, en.capa.datos);
+  if(en.puntos.length < 5000) en.puntos.push(pt); else return;
+  var d = pizarraTrazoApendice(en.d, en.puntos);
+  if(d.length > PIZARRA_D_MAX){ en.puntos.pop(); en.tope = true; return; }
+  en.d = d;
+  en.path.setAttribute("d", d);
+}
+function diaLapizSoltarPuntero(e){
+  var en = DIA && DIA.enCurso;
+  if(!en || e.pointerId !== en.pointerId) return;
+  if(en.capa.datos.trazos.length >= PIZARRA_TRAZOS_MAX){
+    if(en.path && en.path.parentNode) en.path.parentNode.removeChild(en.path);
+    DIA.enCurso = null;
+    aviso("Esta diapositiva ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos.");
+    return;
+  }
+  var i = en.capa.datos.trazos.length;
+  en.capa.datos.trazos.push({ color: DIA_LAPIZ_COLOR, grosor: DIA_LAPIZ_GROSOR, d: en.path.getAttribute("d") });
+  en.path.setAttribute("class", "pizarra-trazo");
+  en.path.setAttribute("data-i", String(i));
+  DIA.enCurso = null;
+  diaActualizarBarra();
+}
+/* donde en fuenteActual, en numero de linea (0-based), empieza el bloque de
+   nivel superior que viene justo despues de la diapositiva `indice` -- sea o
+   no ese el nodo que de hecho la corto (trocearDiapositivas descarta el "---"
+   pero conserva el "#" como primer nodo del grupo siguiente: cualquiera de
+   los dos sirve igual de limite). null si es la ultima: se agrega al final.
+   Se apoya en data-linea, el mismo atributo que ya usa el scroll sincronizado
+   (ver anclasDoc) -- nunca hace falta re-derivar donde empiezan los bloques. */
+function diaLimiteFuente(indice){
+  if(!DIA || !DIA.grupos[indice]) return null;
+  var hijos = Array.prototype.slice.call(elDoc.children);
+  var grupo = DIA.grupos[indice], ultimo = grupo[grupo.length - 1];
+  var pos = hijos.indexOf(ultimo);
+  if(pos < 0) return null;
+  var siguiente = hijos[pos + 1];
+  var n = siguiente && siguiente.getAttribute ? siguiente.getAttribute("data-linea") : null;
+  if(n === null || n === undefined) return null;
+  return parseInt(n, 10);
+}
+function posicionDeLinea(src, n){
+  var ls = src.split("\n"), pos = 0, i;
+  for(i = 0; i < n && i < ls.length; i++) pos += ls[i].length + 1;
+  return pos;
+}
+/* si el ultimo bloque de nivel superior del documento es una valla sin cerrar
+   (le falta el "```" de cierre y por eso se traga todo lo que sigue hasta el
+   final del archivo), diaLimiteFuente() de la ultima diapositiva devuelve null
+   igual que en el caso normal de "es la ultima" -- pero insertar ahi pega el
+   bloque nuevo DENTRO de esa valla abierta en vez de despues, y se pierde
+   como texto suelto en el proximo reparseo. Se detecta antes de insertar. */
+function fuenteTerminaEnFenceAbierto(src){
+  var ls = src.split("\n"), abierta = null, i, m, c;
+  for(i = 0; i < ls.length; i++){
+    if(!abierta){
+      m = ls[i].match(RE_VALLA);
+      if(m && m[2].length >= 3) abierta = m[2];
+    }else{
+      c = ls[i].match(RE_CIERRE);
+      if(c && c[1].charAt(0) === abierta.charAt(0) && c[1].length >= abierta.length) abierta = null;
+    }
+  }
+  return !!abierta;
+}
+function diaGuardarAnotaciones(){
+  if(!DIA) return;
+  var capa = DIA.capas[DIA.i];
+  if(!capa || !capa.datos.trazos.length){ aviso("No hay nada dibujado en esta diapositiva."); return; }
+  var lim = diaLimiteFuente(DIA.i);
+  if(lim === null && fuenteTerminaEnFenceAbierto(fuenteActual)){
+    aviso("No pude guardar: hay un bloque de código sin cerrar al final del documento.");
+    return;
+  }
+  var bloque = "```pizarra\n" + pizarraSerializar(capa.datos) + "\n```\n";
+  var pos = (lim === null) ? fuenteActual.length : posicionDeLinea(fuenteActual, lim);
+  var antes = fuenteActual.slice(0, pos), despues = fuenteActual.slice(pos);
+  if(antes.length && !/\n$/.test(antes)) antes += "\n";
+  if(antes.length && !/\n\n$/.test(antes)) antes += "\n";
+  if(despues.length && !/^\n/.test(despues)) bloque += "\n";
+  fuenteActual = antes + bloque + despues;
+  capa.datos.trazos = [];   // ya quedo guardado como figura: la capa viva no lo repite encima
+  topesLinea = null;
+  sincronizarEditor();
+  pintar(fuenteActual);     // pintar() ya deja DIA.grupos y la diapositiva actual al dia
+  guardarDoc();
+  pintarCuenta();
+  aviso("Anotación guardada en el documento.");
 }
 function prepararPresentacion(){
   $("#btnPresentar").addEventListener("click", abrirPresentacion);
   $("#diaAnterior").addEventListener("click", function(){ moverDia(-1); });
   $("#diaSiguiente").addEventListener("click", function(){ moverDia(1); });
   $("#diaSalir").addEventListener("click", cerrarPresentacion);
+  $("#diaLapiz").addEventListener("click", function(){ diaLapizPoner(!DIA.lapiz); });
+  $("#diaBorrador").addEventListener("click", diaBorradorAlternar);
+  $("#diaLimpiar").addEventListener("click", diaLapizLimpiar);
+  $("#diaGuardarAnotaciones").addEventListener("click", diaGuardarAnotaciones);
+  $("#diaLapizSvg").addEventListener("pointerdown", diaLapizPunteroAbajo);
+  $("#diaLapizSvg").addEventListener("pointermove", diaLapizPunteroMueve);
+  $("#diaLapizSvg").addEventListener("pointerup", diaLapizSoltarPuntero);
+  $("#diaLapizSvg").addEventListener("pointercancel", diaLapizSoltarPuntero);
   $("#diaCuerpo").addEventListener("click", function(e){
     if(e.target.closest && e.target.closest("a, button, input, select, label")) return;
     moverDia(1);
   });
   document.addEventListener("fullscreenchange", function(){
-    if(!document.fullscreenElement && DIA) cerrarPresentacion();
+    if(!document.fullscreenElement && DIA && DIA.enPantallaCompleta) cerrarPresentacion();
+  });
+}
+
+/* ==========================================================================
+   MODO PIZARRON GLOBAL (mdx-bloques-spec-v2.md seccion 12.2): un lienzo en
+   blanco a pantalla completa con la misma barra y el mismo motor de trazos
+   que el bloque ```pizarra (pizarraTrazoAPath, pizarraPuntoDesde,
+   pizarraSvgHTML/pizarraTrazosHTML, pizarraSerializar), pero sin documento
+   detras: al salir se elige insertar, descargar como PNG o descartar.
+   ========================================================================== */
+var PIZARRON = null;
+function pizarronRedibujar(){
+  var lienzo = $("#pizarronLienzo");
+  if(lienzo) lienzo.innerHTML = pizarraSvgHTML(PIZARRON.datos);
+}
+function cerrarPizarron(){
+  if(!PIZARRON) return;
+  PIZARRON = null;
+  $("#pizarron").hidden = true;
+  document.removeEventListener("keydown", teclaPizarron);
+  if(document.fullscreenElement) try{ document.exitFullscreen(); }catch(e){}
+}
+function pizarronDescartar(){
+  cerrarChico();
+  cerrarPizarron();
+}
+function pizarronInsertar(){
+  cerrarChico();
+  if(!PIZARRON || !PIZARRON.datos.trazos.length){ cerrarPizarron(); return; }
+  var bloque = "```pizarra\n" + pizarraSerializar(PIZARRON.datos) + "\n```\n";
+  var sep = (fuenteActual.length && !/\n$/.test(fuenteActual)) ? "\n" : "";
+  fuenteActual = fuenteActual + sep + bloque;
+  topesLinea = null;
+  sincronizarEditor();
+  pintar(fuenteActual);
+  guardarDoc();
+  pintarCuenta();
+  cerrarPizarron();
+}
+function pizarronDescargarPng(){
+  cerrarChico();
+  if(!PIZARRON) return;
+  var datos = PIZARRON.datos;
+  if(!datos.trazos.length){ aviso("No hay nada dibujado todavía."); cerrarPizarron(); return; }
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + datos.ancho + ' ' + datos.alto +
+    '" width="' + datos.ancho + '" height="' + datos.alto + '"><rect width="100%" height="100%" fill="#fff"/>' +
+    pizarraTrazosHTML(datos) + "</svg>";
+  var img = new Image();
+  img.onload = function(){
+    var esc = 2;
+    var lienzo = document.createElement("canvas");
+    lienzo.width = Math.round(datos.ancho * esc);
+    lienzo.height = Math.round(datos.alto * esc);
+    var g = lienzo.getContext("2d");
+    g.setTransform(esc, 0, 0, esc, 0, 0);
+    g.drawImage(img, 0, 0);
+    var nombre = "pizarron-" + nombreBaseDoc() + ".png";
+    if(lienzo.toBlob){
+      lienzo.toBlob(function(b){
+        if(!b){ aviso("No se pudo hacer la imagen"); return; }
+        descargarBlob(nombre, b);
+        cerrarPizarron();
+      }, "image/png");
+    }else{
+      var a = document.createElement("a");
+      a.href = lienzo.toDataURL("image/png"); a.download = nombre;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      cerrarPizarron();
+    }
+  };
+  img.onerror = function(){ aviso("No se pudo hacer la imagen."); };
+  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+function intentarSalirPizarron(){
+  if(!PIZARRON) return;
+  if(!PIZARRON.datos.trazos.length){ cerrarPizarron(); return; }
+  /* el menu de salida vive fuera de #pizarron (es el mismo #velo2 de siempre,
+     compartido con el resto de la app): si el navegador sigue realmente en
+     pantalla completa sobre #pizarron, ese menu queda tapado por la capa
+     nativa de fullscreen sin importar su z-index -- se sale de pantalla
+     completa antes de mostrarlo. Los 3 destinos del menu terminan la sesion
+     de todas formas, ninguno vuelve a dibujar, asi que no hace falta reentrar. */
+  if(document.fullscreenElement){
+    PIZARRON.enPantallaCompleta = false;
+    try{ document.exitFullscreen(); }catch(e){}
+  }
+  abrirChico("Salir del pizarrón", [
+    '<div class="chico-menu">',
+    '<button type="button" data-pizarron="insertar"><b>Insertar en el documento</b><span>Se agrega como un bloque nuevo al final</span></button>',
+    '<button type="button" data-pizarron="png"><b>Descargar como imagen</b><span>Un archivo .png con lo dibujado</span></button>',
+    '<button type="button" data-pizarron="descartar"><b>Descartar</b><span>No se guarda nada</span></button>',
+    "</div>"
+  ].join(""));
+}
+function teclaPizarron(e){
+  if(e.key === "Escape"){ e.preventDefault(); intentarSalirPizarron(); }
+}
+function abrirPizarron(){
+  var lienzoEl = $("#pizarronLienzo");
+  $("#pizarron").hidden = false;
+  var rect = lienzoEl.getBoundingClientRect();
+  var ancho = Math.max(200, Math.round(rect.width) || PIZARRA_ANCHO_DEF);
+  var alto = Math.max(200, Math.round(rect.height) || PIZARRA_ALTO_DEF);
+  var sesion = {
+    datos: { ancho: ancho, alto: alto, trazos: [] },
+    estado: { color: $("#pizarronColor").value || PIZARRA_COLOR_DEF, grosor: Number($("#pizarronGrosor").value) || 3, borrador: false },
+    previo: null, enCurso: null, enPantallaCompleta: false
+  };
+  PIZARRON = sesion;
+  pizarronRedibujar();
+  /* si "Salir" pide document.exitFullscreen() y de inmediato se reabre el
+     pizarron (doble click rapido), el "fullscreenchange" de esa salida llega
+     TARDE, cuando PIZARRON ya es esta sesion nueva -- sin enPantallaCompleta
+     (que solo se marca cuando ESTA sesion de verdad entro a pantalla
+     completa) ese evento atrasado se ignora en vez de cerrar la sesion recien
+     abierta por error. */
+  var caja = $("#pizarron"), pedir = caja.requestFullscreen || caja.webkitRequestFullscreen;
+  if(pedir){
+    try{
+      var promesa = pedir.call(caja);
+      if(promesa && promesa.then) promesa.then(function(){
+        if(PIZARRON !== sesion) return;
+        sesion.enPantallaCompleta = true;
+        /* el rect de arriba se midio ANTES de que fullscreen resolviera --
+           en movil, ocultar la barra del navegador cambia el alto disponible.
+           Si todavia no se dibujo nada, se vuelve a medir con el tamaño real
+           (a algo ya dibujado no se le toca la escala). */
+        if(!sesion.datos.trazos.length){
+          var rect2 = lienzoEl.getBoundingClientRect();
+          sesion.datos.ancho = Math.max(200, Math.round(rect2.width) || PIZARRA_ANCHO_DEF);
+          sesion.datos.alto = Math.max(200, Math.round(rect2.height) || PIZARRA_ALTO_DEF);
+          pizarronRedibujar();
+        }
+      }, function(){});
+    }catch(e){}
+  }
+  document.addEventListener("keydown", teclaPizarron);
+}
+function pizarronPointerDown(e){
+  if(!PIZARRON) return;
+  if(!e.isPrimary) return;   // un segundo dedo (palma, otro dedo) no dibuja ni borra
+  var svgEl = e.target.closest ? e.target.closest(".pizarra-svg") : null;
+  if(!svgEl) return;
+  if(PIZARRON.estado.borrador){
+    var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
+    if(trazoEl){
+      var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
+      if(isFinite(idx) && PIZARRON.datos.trazos[idx]){
+        PIZARRON.datos.trazos.splice(idx, 1);
+        PIZARRON.enCurso = null;
+        pizarronRedibujar();
+      }
+    }
+    return;
+  }
+  var rect = svgEl.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  try{ svgEl.setPointerCapture(e.pointerId); }catch(err){}
+  var pt = pizarraPuntoDesde(e, rect, PIZARRON.datos);
+  var d0 = pizarraTrazoAPath([pt]);
+  svgEl.insertAdjacentHTML("beforeend",
+    '<path class="pizarra-trazo-actual" d="' + escUI(d0) + '" stroke="' + escUI(PIZARRON.estado.color) + '" stroke-width="' + PIZARRON.estado.grosor + '"></path>');
+  PIZARRON.enCurso = { pointerId: e.pointerId, puntos: [pt], d: d0, tope: false, path: svgEl.lastElementChild, svg: svgEl };
+}
+function pizarronPointerMove(e){
+  if(!PIZARRON || !PIZARRON.enCurso || e.pointerId !== PIZARRON.enCurso.pointerId || PIZARRON.enCurso.tope) return;
+  var rect = PIZARRON.enCurso.svg.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  var pt = pizarraPuntoDesde(e, rect, PIZARRON.datos);
+  if(PIZARRON.enCurso.puntos.length < 5000) PIZARRON.enCurso.puntos.push(pt); else return;
+  var d = pizarraTrazoApendice(PIZARRON.enCurso.d, PIZARRON.enCurso.puntos);
+  if(d.length > PIZARRA_D_MAX){ PIZARRON.enCurso.puntos.pop(); PIZARRON.enCurso.tope = true; return; }
+  PIZARRON.enCurso.d = d;
+  PIZARRON.enCurso.path.setAttribute("d", d);
+}
+function pizarronSoltarPuntero(e){
+  if(!PIZARRON || !PIZARRON.enCurso || e.pointerId !== PIZARRON.enCurso.pointerId) return;
+  if(PIZARRON.datos.trazos.length >= PIZARRA_TRAZOS_MAX){
+    if(PIZARRON.enCurso.path && PIZARRON.enCurso.path.parentNode) PIZARRON.enCurso.path.parentNode.removeChild(PIZARRON.enCurso.path);
+    PIZARRON.enCurso = null;
+    aviso("Este pizarrón ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos.");
+    return;
+  }
+  var i = PIZARRON.datos.trazos.length;
+  PIZARRON.datos.trazos.push({ color: PIZARRON.estado.color, grosor: PIZARRON.estado.grosor, d: PIZARRON.enCurso.path.getAttribute("d") });
+  PIZARRON.enCurso.path.setAttribute("class", "pizarra-trazo");
+  PIZARRON.enCurso.path.setAttribute("data-i", String(i));
+  PIZARRON.enCurso = null;
+}
+function prepararPizarron(){
+  $("#btnPizarron").addEventListener("click", abrirPizarron);
+  $("#pizarronSalir").addEventListener("click", intentarSalirPizarron);
+  $("#pizarronColor").addEventListener("input", function(e){ if(PIZARRON) PIZARRON.estado.color = e.target.value; });
+  $("#pizarronGrosor").addEventListener("input", function(e){ if(PIZARRON) PIZARRON.estado.grosor = Number(e.target.value) || 3; });
+  $("#pizarronBorrador").addEventListener("click", function(e){
+    if(!PIZARRON) return;
+    PIZARRON.estado.borrador = !PIZARRON.estado.borrador;
+    e.target.setAttribute("aria-pressed", String(PIZARRON.estado.borrador));
+    e.target.classList.toggle("activo", PIZARRON.estado.borrador);
+  });
+  $("#pizarronDeshacer").addEventListener("click", function(){
+    if(PIZARRON && PIZARRON.datos.trazos.length){ PIZARRON.datos.trazos.pop(); PIZARRON.enCurso = null; pizarronRedibujar(); }
+  });
+  $("#pizarronLimpiar").addEventListener("click", function(){
+    if(!PIZARRON || !PIZARRON.datos.trazos.length) return;
+    aviso("¿Borrar todo lo dibujado?", "Borrar", function(){
+      if(PIZARRON){ PIZARRON.datos.trazos = []; PIZARRON.enCurso = null; pizarronRedibujar(); }
+    });
+  });
+  $("#pizarron").addEventListener("pointerdown", pizarronPointerDown);
+  $("#pizarron").addEventListener("pointermove", pizarronPointerMove);
+  $("#pizarron").addEventListener("pointerup", pizarronSoltarPuntero);
+  $("#pizarron").addEventListener("pointercancel", pizarronSoltarPuntero);
+  document.addEventListener("fullscreenchange", function(){
+    if(!document.fullscreenElement && PIZARRON && PIZARRON.enPantallaCompleta) intentarSalirPizarron();
   });
 }
 
@@ -9652,9 +10819,90 @@ $("#buscar").addEventListener("input", function(){ filtro = this.value; pintarGa
 $("#cerrarDialogo").addEventListener("click", cerrarGaleria);
 $("#velo").addEventListener("click", function(e){ if(e.target === this) cerrarGaleria(); });
 
-$("#estadoDescargar").addEventListener("click", descargarMd);
 $("#estadoTexto").addEventListener("click", verRecientes);
 $("#estadoRecientes").addEventListener("click", verRecientes);
+$("#estadoPresentar").addEventListener("click", abrirPresentacion);
+$("#estadoImprimir").addEventListener("click", function(){ window.print(); });
+$("#estadoGuardarPlantilla").addEventListener("click", guardarComoMiPlantilla);
+$("#estadoBajaMd").addEventListener("click", descargarMd);
+$("#estadoBajaHtml").addEventListener("click", guardarHtml);
+$("#estadoBajaPng").addEventListener("click", exportarPng);
+function manejarClicSubCompartir(e){
+  var b = e.target.closest("[data-esubcomp]");
+  if(!b) return;
+  var que = b.getAttribute("data-esubcomp");
+  if(que === "guardarmia"){ guardarComoMiPlantilla(); }
+  else if(que === "publicar"){ formPublicar(); }
+  else if(que === "enlace"){ copiar(enlaceDePlantilla()); aviso("Enlace copiado"); }
+  else if(que === "archivo"){ compartirArchivo(); }
+  else if(que === "copiar"){ copiar(fuenteActual.replace(/^\n+/, "")); aviso("Texto copiado"); }
+  else if(que === "formato"){ copiarFormato(); }
+}
+$("#estadoCompartirSub").addEventListener("click", manejarClicSubCompartir);
+/* el menú de los tres puntos, además, se cierra entero al elegir una opción
+   final -- a diferencia de la píldora de estado, que se queda abierta */
+$("#menuBajaMd").addEventListener("click", function(){ cerrarMenuTres(); descargarMd(); });
+$("#menuBajaHtml").addEventListener("click", function(){ cerrarMenuTres(); guardarHtml(); });
+$("#menuBajaPng").addEventListener("click", function(){ cerrarMenuTres(); exportarPng(); });
+$("#menuCompartirSub").addEventListener("click", function(e){
+  var eraOpcion = !!e.target.closest("[data-esubcomp]");
+  manejarClicSubCompartir(e);
+  if(eraOpcion) cerrarMenuTres();
+});
+/* el submenú es "position:fixed" (ver el comentario del CSS), así que hay
+   que darle sus coordenadas a mano: pegado a la derecha del botón que lo
+   abre y, si no cabe, se voltea a la izquierda o se sube para no salirse de
+   la pantalla. */
+function colocarSubmenu(boton, sub){
+  var r = boton.getBoundingClientRect();
+  var ancho = sub.offsetWidth, alto = sub.offsetHeight;
+  var izquierda = r.right + 6;
+  if(izquierda + ancho > window.innerWidth - 8) izquierda = Math.max(8, r.left - ancho - 6);
+  var arriba = Math.min(r.top, window.innerHeight - alto - 8);
+  sub.style.left = izquierda + "px";
+  sub.style.top = Math.max(8, arriba) + "px";
+}
+/* Descargar y Compartir abren un submenú a un lado (o, en el menú de los tres
+   puntos, hacia la izquierda: colocarSubmenu ya decide solo según el sitio
+   disponible). Se muestra y oculta con la clase "mostrando" en el propio
+   submenú (no hay ":hover"/":focus-within" en CSS: ver el comentario de
+   ".estado-submenu"), con un margen de tolerancia al salir con el ratón -- si
+   el cursor sale un instante y vuelve a entrar por el submenú (p.ej. cruzando
+   en diagonal hacia una opción de más abajo, como ".png"), no llega a
+   cerrarse. En pantalla táctil no hay hover: el propio toque en el botón
+   alterna abierto/cerrado. Se usa tanto para ".estado-doc .item" como para
+   ".menu-tres .item" (ver colocarMenuTres). */
+function prepararSubmenu(item){
+  var boton = item.firstElementChild, sub = item.querySelector(".estado-submenu");
+  if(!boton || !sub) return;
+  document.body.appendChild(sub);
+  var cerrarT = null;
+  function dentro(el){ return el && (item.contains(el) || sub.contains(el)); }
+  function abrir(){
+    clearTimeout(cerrarT);
+    colocarSubmenu(boton, sub);
+    sub.classList.add("mostrando");
+  }
+  function cerrarYa(){ sub.classList.remove("mostrando"); }
+  function cerrarConDemora(){
+    clearTimeout(cerrarT);
+    cerrarT = setTimeout(cerrarYa, 350);
+  }
+  item.addEventListener("mouseenter", abrir);
+  item.addEventListener("mouseleave", cerrarConDemora);
+  sub.addEventListener("mouseenter", function(){ clearTimeout(cerrarT); });
+  sub.addEventListener("mouseleave", cerrarConDemora);
+  item.addEventListener("focusin", abrir);
+  sub.addEventListener("focusin", abrir);
+  item.addEventListener("focusout", function(e){ if(!dentro(e.relatedTarget)) cerrarYa(); });
+  sub.addEventListener("focusout", function(e){ if(!dentro(e.relatedTarget)) cerrarYa(); });
+  boton.addEventListener("click", function(){
+    if(sub.classList.contains("mostrando")){ cerrarYa(); return; }
+    Array.prototype.forEach.call(document.querySelectorAll(".estado-submenu.mostrando"), function(o){ o.classList.remove("mostrando"); });
+    abrir();
+  });
+}
+Array.prototype.forEach.call(document.querySelectorAll(".estado-doc .item, .menu-tres .item"), prepararSubmenu);
 $("#estadoTirador").addEventListener("click", function(){
   ponerEstado(!$("#estadoDoc").classList.contains("abierta"));
 });
@@ -9701,6 +10949,22 @@ document.addEventListener("click", function(e){
     pestanasVisibles = false;
     pintarPestanas();
   }
+  /* mismo criterio para el menu de los tres puntos -- un toque fuera del
+     panel (o de las opciones desplegadas de Descargar/Compartir, que cuelgan
+     de <body> y por tanto ya no son descendientes de #menuTres: ver
+     prepararSubmenu) lo pliega */
+  if(!$("#menuTres").hidden && !$("#menuTres").contains(e.target) &&
+     !$("#barra").contains(e.target) && !e.target.closest(".estado-submenu")){
+    cerrarMenuTres();
+  }
+});
+$("#menuTres").addEventListener("click", function(e){
+  var acc = e.target.closest("[data-accion]");
+  if(!acc) return;
+  var idb = acc.getAttribute("data-accion");
+  cerrarMenuTres();
+  var bot = document.getElementById(idb);
+  if(bot) bot.click();
 });
 window.addEventListener("pagehide", function(){ guardarYa(); });
 document.addEventListener("visibilitychange", function(){ if(document.hidden) guardarYa(); });
@@ -9713,6 +10977,7 @@ $("#btnDescargar").addEventListener("click", menuDescargar);
 $("#btnCompartir").addEventListener("click", menuCompartir);
 $("#btnCuenta").addEventListener("click", menuCuenta);
 $("#btnMenu").addEventListener("click", alternarMenuBarra);
+$("#btnCreditos").addEventListener("click", menuCreditos);
 function documentoNuevo(){
   if(!confirmarReemplazo()) return;
   fijarTexto("---\ntitulo: \nautor: \nfecha: \n---\n\n", "documento.md", { origen: "nuevo" });
@@ -9823,6 +11088,7 @@ document.addEventListener("keydown", function(e){
     if(!$("#velo2").hidden){ cerrarChico(); }
     else if(!$("#velo").hidden){ cerrarGaleria(); }
     else if(!$("#buscador").hidden){ bsCerrarCaja(); }
+    else if(!$("#menuTres").hidden){ cerrarMenuTres(); }
     else if(!$("#esquema").hidden){
       $("#esquema").hidden = true;
       $("#btnEsquema").setAttribute("aria-pressed", "false");
@@ -9912,6 +11178,14 @@ $("#cuerpoChico").addEventListener("click", function(e){
     else if(q === "estilo") formEstilo();
     else if(q === "formula") formFormula();
     else if(q === "mas") formMas();
+    return;
+  }
+  var piz = e.target.closest("[data-pizarron]");
+  if(piz){
+    var accion = piz.getAttribute("data-pizarron");
+    if(accion === "insertar") pizarronInsertar();
+    else if(accion === "png") pizarronDescargarPng();
+    else if(accion === "descartar") pizarronDescartar();
     return;
   }
   var em = e.target.closest("[data-emoji]");
@@ -10194,6 +11468,7 @@ if(HAY_ALMACEN){
 
 prepararFormularios();
 prepararPresentacion();
+prepararPizarron();
 barraQueSeAparta();
 medirAltoBarra();
 window.addEventListener("resize", medirAltoBarra);
