@@ -4112,7 +4112,7 @@ var ETIQ_OK = conjunto(
   "data datalist dd del details dfn dialog div dl dt em fieldset figcaption figure footer form " +
   "h1 h2 h3 h4 h5 h6 header hgroup hr i img input ins kbd label legend li main mark menu meter nav " +
   "ol optgroup option output p picture pre progress q rp rt ruby s samp search section select small " +
-  "source span strong style sub summary sup table tbody td textarea tfoot th thead time tr track u ul var " +
+  "source span strong sub summary sup table tbody td textarea tfoot th thead time tr track u ul var " +
   "video audio wbr " +
   "svg g path rect circle ellipse line polyline polygon text tspan textpath defs marker symbol clippath " +
   "mask pattern lineargradient radialgradient stop desc use " +
@@ -4123,7 +4123,7 @@ var ETIQ_OK = conjunto(
 var ETIQ_CON_TODO = conjunto(
   "script iframe object embed applet base meta link frame frameset noscript noembed noframes template " +
   "title xmp plaintext listing animate animatetransform animatemotion set handler foreignobject " +
-  "annotation-xml mglyph malignmark portal");
+  "annotation-xml mglyph malignmark portal style");
 var ATR_URL_DOM = /^(href|src|action|formaction|data|poster|background|cite|longdesc|xlink:href|xlink:base|xml:base)$/i;
 var ESQUEMA_OK = conjunto("http https mailto tel ftp ftps sms geo bitcoin magnet callto irc ircs xmpp matrix");
 
@@ -4137,13 +4137,56 @@ function urlSegura(v, etiqueta){
   m = /^([a-zA-Z][a-zA-Z0-9+.\-]*):/.exec(s);
   return !m || ESQUEMA_OK[m[1].toLowerCase()] === 1;   /* sin dos puntos, es relativa */
 }
+/* fill/stroke/mask/clip-path/filter/cursor/marker-* tambien aceptan una URL
+   metida dentro de url(...) -- sin este chequeo, un fill="url(http://ajeno)"
+   se cuela como baliza de red sin pasar por ATR_URL_DOM. Su unico uso real
+   es apuntar a un <defs> del propio dibujo (igual que xlink:href en <use>),
+   asi que cualquier url() que no sea "#algo" se considera peligrosa -- ni
+   siquiera se le aplica la lista de esquemas de urlSegura, que sí deja pasar
+   http/https porque ahi hace falta para enlaces e imagenes normales */
+var ATR_URL_PRESENTACION = /^(fill|stroke|mask|clip-path|filter|cursor|marker|marker-start|marker-mid|marker-end)$/i;
+var RE_CSS_URL = /url\(\s*(['"]?)([^'")]*)\1\s*\)/gi;
+function tieneUrlPeligrosaEnValor(v){
+  var mala = false;
+  String(v).replace(RE_CSS_URL, function(m, comillas, u){
+    if(String(u).replace(BLANCOS, "").charAt(0) !== "#") mala = true;
+    return m;
+  });
+  return mala;
+}
+/* style nunca se filtraba: un position:fixed en cualquier etiqueta (svg, a...)
+   puede tapar TODA la interfaz, no solo el documento. En vez de intentar
+   detectar cada forma de escapar del flujo normal, solo se dejan pasar
+   declaraciones de una lista blanca de propiedades inofensivas (colores,
+   alineacion, texto) -- lo demas se descarta entero, incluida cualquier
+   declaracion que traiga un url(...) */
+var ATR_STYLE_PROP_OK = /^(color|background|background-color|border-color|border-left-color|border-right-color|border-top-color|border-bottom-color|text-align|font-weight|font-style|text-decoration)$/i;
+function estiloSeguro(v){
+  var decls = String(v).split(";"), out = [], i, p, prop, val;
+  for(i = 0; i < decls.length; i++){
+    p = decls[i].indexOf(":");
+    if(p < 0) continue;
+    prop = decls[i].slice(0, p).trim().toLowerCase();
+    val = decls[i].slice(p + 1).trim();
+    if(!val || !ATR_STYLE_PROP_OK.test(prop)) continue;
+    if(/url\(|expression\(|[<>]/i.test(val)) continue;
+    out.push(prop + ":" + val);
+  }
+  return out.join(";");
+}
 function limpiarAtributos(el){
-  var ats = el.attributes, i, a, nom, etq = String(el.localName || el.nodeName).toLowerCase();
+  var ats = el.attributes, i, a, nom, valor, etq = String(el.localName || el.nodeName).toLowerCase();
   for(i = ats.length - 1; i >= 0; i--){
     a = ats[i];
     nom = String(a.name).toLowerCase();
     if(/^on/i.test(nom) || ATR_NUNCA.test(nom)){ el.removeAttribute(a.name); continue; }
-    if(ATR_URL_DOM.test(nom) && !urlSegura(a.value, etq)) el.removeAttribute(a.name);
+    if(nom === "style"){
+      valor = estiloSeguro(a.value);
+      if(valor) el.setAttribute("style", valor); else el.removeAttribute("style");
+      continue;
+    }
+    if(ATR_URL_DOM.test(nom) && !urlSegura(a.value, etq)){ el.removeAttribute(a.name); continue; }
+    if(ATR_URL_PRESENTACION.test(nom) && tieneUrlPeligrosaEnValor(a.value)){ el.removeAttribute(a.name); continue; }
   }
   /* una pestaña nueva no debe poder tocar la que la abrio */
   if(etq === "a" && el.getAttribute("target")) el.setAttribute("rel", "noopener noreferrer");
@@ -4405,7 +4448,11 @@ function motor3dActivar(el, estado, redibujar){
   function pedir(){
     if(pendiente) return;
     pendiente = true;
-    requestAnimationFrame(function(){ pendiente = false; redibujar(); });
+    /* pintar() puede reemplazar todo #doc por una causa ajena (debounce del
+       editor, sondeo de sync) mientras un gesto sigue en curso sobre el nodo
+       viejo, ya huerfano; sin este chequeo seguiria redibujandose a si mismo
+       sin que nadie lo vea */
+    requestAnimationFrame(function(){ pendiente = false; if(el.isConnected) redibujar(); });
   }
   el.addEventListener("wheel", function(e){
     e.preventDefault();
@@ -5424,10 +5471,17 @@ var PLANO_PUERTA_ANCHO_DEF = 0.9, PLANO_VENTANA_ANCHO_DEF = 1.2;
 var RE_PLANO_PUNTO = /(-?[\d.]+)\s*,\s*(-?[\d.]+)/g;
 
 function planoPuntos(cadena){
-  var out = [], m;
+  var out = [], m, x, y;
   RE_PLANO_PUNTO.lastIndex = 0;
-  while((m = RE_PLANO_PUNTO.exec(cadena))) out.push({ x: parseFloat(m[1]), y: parseFloat(m[2]) });
+  while((m = RE_PLANO_PUNTO.exec(cadena))){
+    x = parseFloat(m[1]); y = parseFloat(m[2]);
+    if(isFinite(x) && isFinite(y)) out.push({ x: x, y: y });   /* "1,." u otro punto roto: se ignora, no envenena con NaN el resto */
+  }
   return out;
+}
+function planoNumOrDef(s, def){
+  var n = parseFloat(s);
+  return isFinite(n) ? n : def;   /* parseFloat(s)||def trataria un 0 explicito como "no puesto" */
 }
 function planoParsear(texto){
   var lineas = String(texto || "").split("\n");
@@ -5449,12 +5503,12 @@ function planoParsear(texto){
     }
     if((m = l.match(/^puerta\s+(-?[\d.]+\s*,\s*-?[\d.]+)(?:\s+ancho\s+([\d.]+))?/i))){
       var pp = planoPuntos(m[1])[0];
-      if(pp) datos.puertas.push({ x: pp.x, y: pp.y, ancho: parseFloat(m[2]) || PLANO_PUERTA_ANCHO_DEF });
+      if(pp) datos.puertas.push({ x: pp.x, y: pp.y, ancho: planoNumOrDef(m[2], PLANO_PUERTA_ANCHO_DEF) });
       continue;
     }
     if((m = l.match(/^ventana\s+(-?[\d.]+\s*,\s*-?[\d.]+)(?:\s+ancho\s+([\d.]+))?/i))){
       var pv = planoPuntos(m[1])[0];
-      if(pv) datos.ventanas.push({ x: pv.x, y: pv.y, ancho: parseFloat(m[2]) || PLANO_VENTANA_ANCHO_DEF });
+      if(pv) datos.ventanas.push({ x: pv.x, y: pv.y, ancho: planoNumOrDef(m[2], PLANO_VENTANA_ANCHO_DEF) });
       continue;
     }
     if((m = l.match(/^texto\s+(-?[\d.]+\s*,\s*-?[\d.]+)\s+(.+)$/i))){
@@ -5481,6 +5535,10 @@ function planoCerrado(pts){
   var a = pts[0], b = pts[pts.length - 1];
   return Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6;
 }
+/* shoelace puro: para un `muro` cerrado que se cruza a si mismo (un lazo en
+   forma de 8) da un area con signo matematicamente valida pero que no
+   corresponde a lo que se ve dibujado -- limitacion conocida del metodo
+   sobre poligonos no simples, no un caso a detectar aqui */
 function planoArea(pts){
   var i, n = pts.length, suma = 0, a, b;
   for(i = 0; i < n; i++){ a = pts[i]; b = pts[(i + 1) % n]; suma += a.x * b.y - b.x * a.y; }
@@ -5506,13 +5564,13 @@ function planoProyectar(p, seg){
   return { t: t * largo, largo: largo, dist: Math.sqrt(Math.pow(p.x - qx, 2) + Math.pow(p.y - qy, 2)) };
 }
 function planoSegmentoMasCercano(p, segs){
-  var mejor = null, mejorProy = null, i, proy;
+  var mejor = null, mejorProy = null, mejorIdx = -1, i, proy;
   for(i = 0; i < segs.length; i++){
     proy = planoProyectar(p, segs[i]);
-    if(!mejor || proy.dist < mejorProy.dist){ mejor = segs[i]; mejorProy = proy; }
+    if(!mejor || proy.dist < mejorProy.dist){ mejor = segs[i]; mejorProy = proy; mejorIdx = i; }
   }
   if(!mejor) return null;
-  return { seg: mejor, t: mejorProy.t, largo: mejorProy.largo };
+  return { seg: mejor, idx: mejorIdx, t: mejorProy.t, largo: mejorProy.largo };
 }
 /* huecos por segmento: centra el ancho pedido en el punto de proyeccion y lo
    recorta para que quepa entero dentro del propio segmento */
@@ -5528,7 +5586,7 @@ function planoCortes(segs, puertas, ventanas){
       if(t0 < 0){ t1 -= t0; t0 = 0; }
       if(t1 > u.largo){ t0 -= (t1 - u.largo); t1 = u.largo; }
       if(t0 < 0) t0 = 0;
-      cortes.push({ seg: u.seg, t0: t0, t1: t1, tipo: tipo, ancho: lista[i].ancho });
+      cortes.push({ seg: u.seg, idx: u.idx, t0: t0, t1: t1, tipo: tipo });
     }
   }
   agregar(puertas, "puerta");
@@ -5543,8 +5601,7 @@ function planoRenderSVG(datos){
   var porSegmento = [], i, j;
   for(i = 0; i < segs.length; i++) porSegmento.push([]);
   for(i = 0; i < cortes.length; i++){
-    var idx = segs.indexOf(cortes[i].seg);
-    if(idx >= 0) porSegmento[idx].push(cortes[i]);
+    if(cortes[i].idx >= 0) porSegmento[cortes[i].idx].push(cortes[i]);
   }
   var grosorPx = PLANO_GROSOR_MURO_M * k;
   var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -5577,8 +5634,17 @@ function planoRenderSVG(datos){
       }
       if(j < propios.length) cursor = propios[j].t1;
     }
+    /* dos puertas/ventanas que se solapan en el mismo tramo se funden en un
+       solo simbolo (el ancho ya recortado, t1-t0, decide su tamaño real) en
+       vez de dibujar dos hojas/arcos o dos ternas de linea uno sobre otro */
+    var simbolos = [];
     for(j = 0; j < propios.length; j++){
-      var c = propios[j], q0 = puntoEnT(c.t0), q1 = puntoEnT(c.t1);
+      var actual = propios[j], ultimo = simbolos.length ? simbolos[simbolos.length - 1] : null;
+      if(ultimo && actual.t0 < ultimo.t1){ if(actual.t1 > ultimo.t1) ultimo.t1 = actual.t1; }
+      else simbolos.push({ t0: actual.t0, t1: actual.t1, tipo: actual.tipo });
+    }
+    for(j = 0; j < simbolos.length; j++){
+      var c = simbolos[j], q0 = puntoEnT(c.t0), q1 = puntoEnT(c.t1), anchoReal = c.t1 - c.t0;
       var nx = -uy, ny = ux;
       if(c.tipo === "ventana"){
         var h = grosorPx * 0.6, lado;
@@ -5587,11 +5653,11 @@ function planoRenderSVG(datos){
             '" x2="' + r2(q1.x + nx * h * lado) + '" y2="' + r2(q1.y + ny * h * lado) + '"></line>');
         }
       }else{
-        var libre = { x: q0.x + nx * (c.ancho * k), y: q0.y + ny * (c.ancho * k) };
+        var libre = { x: q0.x + nx * (anchoReal * k), y: q0.y + ny * (anchoReal * k) };
         partes.push('<line class="plano-puerta-hoja" x1="' + r2(q0.x) + '" y1="' + r2(q0.y) +
           '" x2="' + r2(libre.x) + '" y2="' + r2(libre.y) + '"></line>');
         partes.push('<path class="plano-puerta-arco" d="M' + r2(libre.x) + "," + r2(libre.y) +
-          " A" + r2(c.ancho * k) + "," + r2(c.ancho * k) + " 0 0,1 " + r2(q1.x) + "," + r2(q1.y) + '"></path>');
+          " A" + r2(anchoReal * k) + "," + r2(anchoReal * k) + " 0 0,1 " + r2(q1.x) + "," + r2(q1.y) + '"></path>');
       }
     }
   }
@@ -5660,7 +5726,7 @@ function isoRenderSVG(datos){
   var i, j, cajas = datos.cajas.slice().sort(function(a, b){ return (a.x + a.y + a.z) - (b.x + b.y + b.z); });
   function pantallaCruda(x, y, z){
     var q = isoProyectar(x, y, z);
-    return { sx: q.px * ISO_ESCALA_PX, sy: -q.py * ISO_ESCALA_PX };   /* -py: mas altura sube en pantalla */
+    return { sx: q.px * ISO_ESCALA_PX, sy: q.py * ISO_ESCALA_PX };   /* py ya resta z: sin el signo de mas, la altura bajaba en vez de subir */
   }
   var cajasProy = [], minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   function marca(p){ if(p.sx < minX) minX = p.sx; if(p.sx > maxX) maxX = p.sx; if(p.sy < minY) minY = p.sy; if(p.sy > maxY) maxY = p.sy; }
@@ -5708,9 +5774,10 @@ function dibujarIso(codigo){
    BLOQUE ```3d -- alambrico rotable (spec seccion 7), mismo motor3d que la
    vista 3D del gpx (seccion 8: motor3dActivar/motor3dRotarX/Y/Proyectar).
    `caja` es azucar sintactico: 8 vertices + 12 aristas con nombres internos
-   que nunca chocan con los que escribe el usuario (prefijo "__cajaN_" que
-   "v NOMBRE" no puede producir por si solo, ya que NOMBRE viene de \S+ y
-   __cajaN_ no es un valor que un contador vaya a repetir).
+   con prefijo "__cajaN_", pensado para no chocar con los que escribe el
+   usuario -- aunque si alguien escribe a mano "v __caja1_0 ..." si puede
+   pisar ese vertice sintetico (NOMBRE viene de \S+, que admite cualquier
+   cosa); es un caso deliberado y raro, no algo que ocurra sin querer.
    ========================================================================== */
 var tresDContador = 0;
 var TRESD_RE_V = /^v\s+(\S+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s*$/i;
@@ -5771,7 +5838,7 @@ function tresDPrimitivas(datos, estado){
   var puntos = [];
   for(i = 0; i < nombres.length; i++){
     if(nombres[i].indexOf("__caja") === 0) continue;   /* los vertices de una caja no llevan bolita propia, solo aristas */
-    puntos.push('<circle class="tresd-vertice" cx="' + proyectados[nombres[i]].x + '" cy="' + proyectados[nombres[i]].y + '" r="3"><title>' + escUI(nombres[i]) + "</title></circle>");
+    puntos.push('<circle class="tresd-vertice" cx="' + proyectados[nombres[i]].x + '" cy="' + proyectados[nombres[i]].y + '" r="3"></circle>');
   }
   return lineas.map(function(x){ return x.html; }).join("") + puntos.join("");
 }
