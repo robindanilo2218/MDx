@@ -899,6 +899,82 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .diagrama-fuente{text-align:left; margin:.8rem 0 0}
 .diagrama-fuente[hidden]{display:none}
 
+/* bloques gpx */
+.gpx-viewer{margin:1.5rem 0; padding:1rem; border:1px solid var(--borde); border-radius:.6rem; background:var(--papel)}
+.gpx-mapa{position:relative; margin-bottom:1rem}
+.gpx-svg{width:100%; height:400px; display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:none; cursor:grab}
+.gpx-svg:active{cursor:grabbing}
+.gpx-planificada{stroke:var(--tenue); stroke-width:2; stroke-dasharray:6 5; opacity:.7}
+.gpx-wpt{cursor:pointer}
+.gpx-norte{position:absolute; top:.5rem; right:.6rem; font-size:11px; line-height:1.15; text-align:center; color:var(--tenue); background:var(--papel); border:1px solid var(--borde); border-radius:.3rem; padding:.15rem .4rem; pointer-events:none}
+.gpx-escala{position:absolute; left:.6rem; bottom:.6rem; height:0; border-bottom:3px solid var(--texto); font-size:11px; color:var(--texto); padding-top:1.1rem; text-align:center; pointer-events:none}
+.gpx-stats{display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:.6rem; margin-bottom:.8rem}
+.gpx-stat{padding:.6rem; text-align:center; background:var(--papel); border:1px solid var(--borde); border-radius:.5rem}
+.gpx-stat-e{display:block; font-size:.78em; color:var(--tenue)}
+.gpx-stat-v{display:block; font-weight:600}
+.gpx-cuestas{margin:0 0 .8rem; font-size:.92em; color:var(--tenue)}
+.gpx-aviso{margin:0 0 .8rem; font-size:.85em; color:var(--tenue); font-style:italic}
+.gpx-notas{list-style:none; margin:0 0 .8rem; padding:0; display:grid; gap:.6rem}
+.gpx-nota{padding:.6rem .8rem; background:var(--papel); border:1px solid var(--borde); border-left:4px solid; border-radius:.4rem; transition:box-shadow .2s}
+.gpx-nota.gpx-resaltada{box-shadow:0 0 0 2px var(--acento)}
+.gpx-nota-nombre{font-weight:600}
+.gpx-nota p{margin:.3rem 0 0}
+.gpx-nota-cmt{color:var(--tenue); font-style:italic}
+.gpx-miniatura{max-width:100%; max-height:120px; border-radius:.3rem; margin-top:.4rem; display:block}
+.gpx-leyenda{display:flex; flex-wrap:wrap; gap:.8rem; font-size:.85em; color:var(--tenue)}
+.gpx-leyenda i{display:inline-block; width:.8em; height:.8em; border-radius:50%; vertical-align:-.1em; margin-right:.35em}
+.gpx-error{padding:.9rem 1rem; border-radius:.5rem; background:var(--p-f); color:var(--p); border:1px solid var(--p)}
+.gpx-vistas{display:flex; gap:.4rem; margin-bottom:.8rem}
+.gpx-boton-vista{padding:.35rem .9rem; border:1px solid var(--borde); border-radius:999px; background:var(--papel); color:var(--texto); font-size:.85em; cursor:pointer}
+.gpx-boton-vista.activo{background:var(--acento); color:#fff; border-color:var(--acento)}
+.gpx-mapa3d{position:relative; margin-bottom:1rem}
+.gpx-svg3d{width:100%; height:400px; display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:none; cursor:grab}
+.gpx-svg3d:active{cursor:grabbing}
+.gpx-suelo3d{fill:var(--borde); fill-opacity:.35; stroke:none}
+.gpx-etq3d{font-size:11px; fill:var(--texto); pointer-events:none}
+.gpx-ayuda3d{margin:.4rem 0 0; font-size:.78em; color:var(--tenue); text-align:center}
+.gpx-mapa-perfil{position:relative; margin-bottom:1rem}
+.gpx-svg-perfil{width:100%; height:220px; display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:pan-y; cursor:crosshair}
+.gpx-perfil-relleno{fill:var(--acento); opacity:.12}
+.gpx-perfil-marca{stroke:var(--tenue); stroke-width:1; stroke-dasharray:3 3; opacity:.6}
+.gpx-perfil-punto{fill:var(--texto); stroke:var(--papel); stroke-width:1.5}
+.gpx-perfil-eje{position:absolute; left:.5rem; font-size:11px; color:var(--tenue); pointer-events:none}
+.gpx-perfil-eje-max{top:.4rem}
+.gpx-perfil-eje-min{bottom:.4rem}
+.gpx-perfil-tip{position:absolute; top:.5rem; transform:translateX(-50%); font-size:.8em; background:var(--papel); border:1px solid var(--borde); border-radius:.3rem; padding:.15rem .5rem; white-space:nowrap; pointer-events:none}
+.gpx-perfil-tip[hidden]{display:none}
+.gpx-contexto-via{stroke:var(--tenue); stroke-width:1.5; opacity:.6}
+.gpx-contexto-rio{stroke:#4a90d9; stroke-width:1.5; opacity:.55}
+.gpx-contexto-poi{fill:var(--tenue); opacity:.7}
+.gpx-atribucion{position:absolute; right:.6rem; bottom:.6rem; font-size:10px; color:var(--tenue); background:var(--papel); border:1px solid var(--borde); border-radius:.3rem; padding:.1rem .4rem; pointer-events:auto}
+.gpx-atribucion a{color:inherit}
+.gpx-contexto{margin-top:.8rem}
+.gpx-boton-contexto{padding:.45rem 1rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.88em; cursor:pointer}
+.gpx-boton-contexto:disabled{opacity:.6; cursor:wait}
+.gpx-pois{list-style:none; margin:0 0 .6rem; padding:0; display:grid; gap:.4rem}
+.gpx-poi{display:flex; align-items:center; justify-content:space-between; gap:.6rem; padding:.4rem .6rem; background:var(--papel); border:1px solid var(--borde); border-radius:.4rem; font-size:.9em}
+.gpx-boton-agregar-poi{padding:.25rem .6rem; border:1px solid var(--acento); border-radius:999px; background:none; color:var(--acento); font-size:.82em; cursor:pointer; white-space:nowrap}
+.gpx-atribucion-texto{margin:0; font-size:.8em; color:var(--tenue)}
+.gpx-captura-controles{margin-top:.6rem; display:flex; gap:.5rem; flex-wrap:wrap}
+.gpx-boton-subir-captura, .gpx-boton-recalibrar, .gpx-boton-quitar-fondo{
+  padding:.45rem 1rem; border:1px solid var(--borde); border-radius:.4rem;
+  background:var(--papel); color:var(--texto); font-size:.88em; cursor:pointer; display:inline-block;
+}
+.gpx-captura-nota{margin:.4rem 0 0; font-size:.85em; color:var(--tenue)}
+.gpx-captura-vacia{padding:1.5rem; text-align:center; color:var(--tenue); font-size:.9em}
+.gpx-captura-selector-puntos{margin-top:.6rem; display:grid; gap:.5rem}
+.gpx-captura-selector-puntos label{display:flex; align-items:center; gap:.5rem; font-size:.9em}
+.gpx-captura-previa{display:block; max-width:100%; max-height:220px; margin:0 auto; border-radius:.4rem}
+.gpx-captura-instruccion{margin:0 0 .5rem; font-size:.92em}
+.gpx-captura-lienzo{position:relative; line-height:0}
+.gpx-captura-img{display:block; width:100%; height:auto; border-radius:.4rem}
+.gpx-captura-calibrando .gpx-captura-img{cursor:crosshair}
+.gpx-captura-svg{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.gpx-boton-calibrar, .gpx-boton-cancelar-calibracion{
+  margin-top:.5rem; padding:.45rem 1rem; border:1px solid var(--acento); border-radius:.4rem;
+  background:none; color:var(--acento); font-size:.88em; cursor:pointer;
+}
+
 /* formulas */
 .formula{font-size:1.03em}
 .formula-caja{margin:1.3rem 0; overflow-x:auto; text-align:center}
@@ -942,6 +1018,12 @@ math mo{font-family:inherit}
     --c-morado:#5b2ea6; --c-rosa:#8f1350; --c-cian:#0a5a66;
   }
   figure.diagrama{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
+  .gpx-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
+  .gpx-svg, .gpx-svg3d{height:320px}
+  .gpx-svg-perfil{height:200px}
+  .gpx-norte, .gpx-escala, .gpx-vistas, .gpx-ayuda3d{display:none}
+  .gpx-boton-contexto, .gpx-boton-agregar-poi{display:none}
+  .gpx-captura-controles, .gpx-boton-calibrar, .gpx-boton-cancelar-calibracion{display:none}
   .formula-caja{break-inside:avoid; page-break-inside:avoid}
   .campo{
     background:none !important; box-shadow:none !important;
@@ -987,6 +1069,8 @@ math mo{font-family:inherit}
   #ed{font-size:16px; padding:3.6rem 1rem 3rem}
   .documento{padding:max(4rem, calc(var(--alto-barra, 0px) + 1.2rem)) 1.1rem 5rem}
   figure.diagrama{padding:.6rem .25rem; margin:1.2rem 0}
+  .gpx-svg, .gpx-svg3d{height:300px}
+  .gpx-svg-perfil{height:180px}
   .formula-bloque{font-size:1.06em}
   .ver-codigo{opacity:1}
   blockquote, .alerta{padding-left:.9rem; padding-right:.9rem}
@@ -1065,7 +1149,7 @@ math mo{font-family:inherit}
   <button type="button" id="btnEsquema"   title="Índice del documento: saltar de un título a otro (Ctrl+Mayús+O)" aria-pressed="false"><b>&#9776;</b><span>Esquema</span></button>
   <button type="button" id="btnRellenar" title="Rellenar los campos del documento aquí mismo" aria-pressed="false" hidden><b>&#9998;&#9648;</b><span>Rellenar</span></button>
   <button type="button" id="btnNuevo"     title="Empezar un documento en blanco"><b>&#65291;</b><span>Nuevo</span></button>
-  <button type="button" id="btnAbrir"     title="Abrir un archivo .md de tu equipo"><b>&#128194;</b><span>Abrir</span></button>
+  <button type="button" id="btnAbrir"     title="Abrir un archivo .md o .html de tu equipo"><b>&#128194;</b><span>Abrir</span></button>
   <button type="button" id="btnDescargar" title="Descargar el documento: el texto en .md, la página en .html o la vista en .png"><b>&#10515;</b><span>Descargar</span></button>
   <button type="button" id="btnCompartir" title="Compartir: el enlace, el archivo .md o publicar la plantilla en la comunidad"><b>&#10150;</b><span>Compartir</span></button>
   <button type="button" id="btnImprimir"  title="Imprimir o guardar como PDF (Ctrl+P)"><b>&#128424;</b><span>Imprimir</span></button>
@@ -1094,7 +1178,7 @@ math mo{font-family:inherit}
   </div>
 </div>
 
-<input type="file" id="archivo" accept=".md,.markdown,.mdown,.mkd,.txt,text/markdown,text/plain" hidden>
+<input type="file" id="archivo" accept=".md,.markdown,.mdown,.mkd,.txt,.html,.htm,text/markdown,text/plain,text/html" hidden>
 <input type="file" id="respaldo" accept=".json,application/json,text/plain" hidden>
 
 <div id="panel">
@@ -4002,6 +4086,903 @@ var ALERTAS = {
   "PRECAUCIÓN":{c:"precaucion", t:"Precaución", i:I_PREC}
 };
 
+/* ==========================================================================
+   MOTOR 3D COMPARTIDO
+   Rotacion + proyeccion en JS puro (sin WebGL ni libreria): lo usa la vista
+   3D del bloque gpx y, mas adelante, iso/3d (ver mdx-bloques-spec-v2.md
+   seccion 8). Estado por instancia: {yaw, pitch, escala}; gestos con Pointer
+   Events, sirven igual para mouse, dedo y stylus.
+   ========================================================================== */
+function motor3dRotarY(p, a){
+  var c = Math.cos(a), s = Math.sin(a);
+  return { x: p.x * c + p.z * s, y: p.y, z: -p.x * s + p.z * c };
+}
+function motor3dRotarX(p, a){
+  var c = Math.cos(a), s = Math.sin(a);
+  return { x: p.x, y: p.y * c - p.z * s, z: p.y * s + p.z * c };
+}
+function motor3dProyectar(p, d){
+  var f = (d || 800) / ((d || 800) + p.z);
+  return { x: p.x * f, y: -p.y * f };
+}
+function motor3dActivar(el, estado, redibujar){
+  var punteros = {}, distanciaInicial = 0, escalaInicial = 1, pendiente = false;
+  function limitar(){
+    if(estado.pitch < 0) estado.pitch = 0;
+    if(estado.pitch > 1.48) estado.pitch = 1.48;
+    if(estado.escala < 0.2) estado.escala = 0.2;
+    if(estado.escala > 6) estado.escala = 6;
+  }
+  function pedir(){
+    if(pendiente) return;
+    pendiente = true;
+    requestAnimationFrame(function(){ pendiente = false; redibujar(); });
+  }
+  el.addEventListener("wheel", function(e){
+    e.preventDefault();
+    estado.escala *= (e.deltaY < 0 ? 1.1 : 0.9);
+    limitar(); pedir();
+  }, { passive: false });
+  el.addEventListener("pointerdown", function(e){
+    el.setPointerCapture(e.pointerId);
+    punteros[e.pointerId] = { x: e.clientX, y: e.clientY };
+    var ids = Object.keys(punteros);
+    if(ids.length === 2){
+      var a = punteros[ids[0]], b = punteros[ids[1]];
+      distanciaInicial = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) || 1;
+      escalaInicial = estado.escala;
+    }
+  });
+  el.addEventListener("pointermove", function(e){
+    if(!punteros[e.pointerId]) return;
+    var ids = Object.keys(punteros);
+    if(ids.length === 1){
+      var previo = punteros[e.pointerId];
+      estado.yaw += (e.clientX - previo.x) * 0.01;
+      estado.pitch += (e.clientY - previo.y) * 0.01;
+      punteros[e.pointerId] = { x: e.clientX, y: e.clientY };
+      limitar(); pedir();
+    }else if(ids.length === 2){
+      punteros[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var a2 = punteros[ids[0]], b2 = punteros[ids[1]];
+      var dist = Math.sqrt(Math.pow(a2.x - b2.x, 2) + Math.pow(a2.y - b2.y, 2)) || 1;
+      estado.escala = escalaInicial * (dist / distanciaInicial);
+      limitar(); pedir();
+    }
+  });
+  function soltar(e){ delete punteros[e.pointerId]; }
+  el.addEventListener("pointerup", soltar);
+  el.addEventListener("pointercancel", soltar);
+  el.style.touchAction = "none";
+}
+
+/* ==========================================================================
+   BLOQUE ```gpx
+   Rutas GPS con estadisticas y notas geolocalizadas. SVG propio: sin Leaflet,
+   sin CDN, sin conexion (ver mdx-bloques-spec-v2.md). Fase 1: parser,
+   estadisticas (con cuestas) y vista 2D con zoom/paneo. Fase 2: motor3d,
+   vista 3D (cortina de elevacion) y vista Perfil.
+   ========================================================================== */
+var GPX_COLOR_TIPO = { combustible:"#e3b341", incidente:"#e5484d", cliente:"#2fae4e", parada:"#f5a623" };
+var GPX_COLOR_PALABRA = [
+  ["Accidente","#e5484d"], ["Parada","#f5a623"], ["Entrega","#2fae4e"],
+  ["Carga","#1f6feb"], ["Combustible","#e3b341"], ["Revisión","#c297ff"]
+];
+function gpxColorWaypoint(w){
+  var tipo = (w.tipo || "").toLowerCase();
+  if(Object.prototype.hasOwnProperty.call(GPX_COLOR_TIPO, tipo)) return GPX_COLOR_TIPO[tipo];
+  var nombre = w.nombre || "", i;
+  for(i = 0; i < GPX_COLOR_PALABRA.length; i++) if(nombre.indexOf(GPX_COLOR_PALABRA[i][0]) >= 0) return GPX_COLOR_PALABRA[i][1];
+  return "#0099ff";
+}
+function gpxParametros(cadena){
+  var out = {}, partes = String(cadena || "").trim().split(/\s+/), i, kv;
+  for(i = 0; i < partes.length; i++){
+    if(!partes[i]) continue;
+    kv = partes[i].split("=");
+    if(kv[0]) out[kv[0].toLowerCase()] = kv.slice(1).join("=").toLowerCase();
+  }
+  return out;
+}
+function gpxTexto(nodo, tag){
+  var el = nodo.getElementsByTagName(tag)[0];
+  return el && el.textContent ? el.textContent.trim() : "";
+}
+function gpxMinMax(arr, obtener){
+  var min = Infinity, max = -Infinity, i, v;
+  for(i = 0; i < arr.length; i++){
+    v = obtener ? obtener(arr[i]) : arr[i];
+    if(v < min) min = v;
+    if(v > max) max = v;
+  }
+  return { min: min, max: max };
+}
+function gpxN(n){ return Math.round(n * 10) / 10; }
+
+function parseGPX(xmlTexto){
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(String(xmlTexto || ""), "text/xml");
+  if(doc.getElementsByTagName("parsererror").length) throw new Error("el GPX no es un XML válido");
+
+  function leerPuntos(tagPunto, contenedorTag){
+    var out = [], contenedores = contenedorTag ? doc.getElementsByTagName(contenedorTag) : [doc], c, i, p;
+    for(c = 0; c < contenedores.length; c++){
+      var pts = contenedores[c].getElementsByTagName(tagPunto);
+      for(i = 0; i < pts.length; i++){
+        p = pts[i];
+        out.push({
+          lat: parseFloat(p.getAttribute("lat")),
+          lon: parseFloat(p.getAttribute("lon")),
+          ele: parseFloat(gpxTexto(p, "ele") || "0"),
+          tiempo: gpxTexto(p, "time") || null
+        });
+      }
+    }
+    return out;
+  }
+
+  var puntos = leerPuntos("trkpt");
+  if(!puntos.length) throw new Error("el GPX no trae puntos de ruta (trkpt)");
+  var planificada = leerPuntos("rtept", "rte");
+
+  var waypoints = [], wpts = doc.getElementsByTagName("wpt"), i, w, enlaceEl;
+  for(i = 0; i < wpts.length; i++){
+    w = wpts[i];
+    enlaceEl = w.getElementsByTagName("link")[0];
+    waypoints.push({
+      lat: parseFloat(w.getAttribute("lat")),
+      lon: parseFloat(w.getAttribute("lon")),
+      ele: parseFloat(gpxTexto(w, "ele") || "0"),
+      nombre: gpxTexto(w, "name") || "Nota",
+      desc: gpxTexto(w, "desc"),
+      cmt: gpxTexto(w, "cmt"),
+      tipo: gpxTexto(w, "type"),
+      tiempo: gpxTexto(w, "time") || null,
+      enlace: enlaceEl ? (enlaceEl.getAttribute("href") || "") : ""
+    });
+  }
+  return { puntos: puntos, planificada: planificada, waypoints: waypoints };
+}
+
+function gpxDistanciaM(a, b){
+  var dx = (b.lon - a.lon) * 111320 * Math.cos((a.lat * Math.PI) / 180);
+  var dy = (b.lat - a.lat) * 110574;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function gpxEstadisticas(puntos){
+  var distanciaM = 0, desnivel = 0, tiempoTotalMs = 0;
+  var velocidades = [], velMax = 0, velMin = Infinity;
+  var sumaPendienteAbs = 0, nPendientes = 0, pendienteMax = 0;
+  var subida = { suma: 0, n: 0 }, llano = { suma: 0, n: 0 }, bajada = { suma: 0, n: 0 };
+  var huboSinTiempo = false, i, a, b, segM, eleDiff, pendiente, ms, vel, tieneVel;
+
+  puntos[0].distAcumM = 0;
+  for(i = 1; i < puntos.length; i++){
+    a = puntos[i - 1]; b = puntos[i];
+    segM = gpxDistanciaM(a, b);
+    distanciaM += segM;
+    b.distAcumM = distanciaM;
+
+    eleDiff = b.ele - a.ele;
+    if(eleDiff > 0) desnivel += eleDiff;
+
+    pendiente = segM > 1 ? (eleDiff / segM) * 100 : 0;
+    sumaPendienteAbs += Math.abs(pendiente);
+    nPendientes++;
+    if(Math.abs(pendiente) > pendienteMax) pendienteMax = Math.abs(pendiente);
+
+    vel = 0; tieneVel = false;
+    if(a.tiempo && b.tiempo){
+      ms = new Date(b.tiempo).getTime() - new Date(a.tiempo).getTime();
+      if(ms > 0){
+        vel = (segM / 1000) / (ms / 3600000);
+        tieneVel = true;
+        velocidades.push(vel);
+        tiempoTotalMs += ms;
+        if(vel > velMax) velMax = vel;
+        if(vel < velMin) velMin = vel;
+      }
+    }
+    if(!tieneVel) huboSinTiempo = true;
+
+    b.vel = vel; b.tieneVel = tieneVel; b.pendiente = pendiente;
+
+    if(tieneVel){
+      if(pendiente > 2){ subida.suma += vel; subida.n++; }
+      else if(pendiente < -2){ bajada.suma += vel; bajada.n++; }
+      else { llano.suma += vel; llano.n++; }
+    }
+  }
+  if(velMin === Infinity) velMin = 0;
+
+  var ordenadas = velocidades.slice().sort(function(x, y){ return x - y; });
+  function cuartil(p){
+    if(!ordenadas.length) return 0;
+    return ordenadas[Math.min(ordenadas.length - 1, Math.floor(ordenadas.length * p))];
+  }
+
+  return {
+    distanciaKm: distanciaM / 1000,
+    velMedia: velocidades.length ? (velocidades.reduce(function(s, v){ return s + v; }, 0) / velocidades.length) : 0,
+    velMax: velMax, velMin: velMin,
+    desnivel: desnivel,
+    tiempoMs: tiempoTotalMs,
+    sinVelocidadAlguna: velocidades.length === 0,
+    parcial: huboSinTiempo && velocidades.length > 0,
+    cuartiles: { q1: cuartil(0.25), q2: cuartil(0.5), q3: cuartil(0.75) },
+    pendienteMedia: nPendientes ? sumaPendienteAbs / nPendientes : 0,
+    pendienteMax: pendienteMax,
+    cuestas: {
+      subida: subida.n ? subida.suma / subida.n : null,
+      llano: llano.n ? llano.suma / llano.n : null,
+      bajada: bajada.n ? bajada.suma / bajada.n : null
+    }
+  };
+}
+
+function gpxColorPorVelocidad(vel, tieneVel, q){
+  if(!tieneVel) return "#9aa7b4";
+  if(vel >= q.q3) return "#e5484d";
+  if(vel >= q.q2) return "#f5a623";
+  if(vel >= q.q1) return "#f7d038";
+  return "#2fae4e";
+}
+function gpxColorPorPendiente(p){
+  if(p === undefined) return "#9aa7b4";
+  if(p < -2) return "#1f6feb";
+  if(p <= 2) return "#2fae4e";
+  if(p <= 8) return "#f5a623";
+  return "#e5484d";
+}
+function gpxTrazoColoreado(puntos, proy, colorFn){
+  var partes = [], colorActual = null, d = "", i, a, b, pa, pb, color;
+  for(i = 1; i < puntos.length; i++){
+    a = puntos[i - 1]; b = puntos[i];
+    color = colorFn(b);
+    if(color !== colorActual){
+      if(d) partes.push({ d: d, color: colorActual });
+      pa = proy(a);
+      d = "M" + gpxN(pa.x) + " " + gpxN(pa.y);
+      colorActual = color;
+    }
+    pb = proy(b);
+    d += " L" + gpxN(pb.x) + " " + gpxN(pb.y);
+  }
+  if(d) partes.push({ d: d, color: colorActual });
+  return partes;
+}
+
+/* carreteras/rios/POIs de Overpass, dibujados detras de la ruta (ver
+   mdx-bloques-spec-v2.md seccion 3.7). Comparten la misma proyeccion que el
+   resto del mapa 2D para quedar alineados con la ruta real. */
+function gpxContextoSvgPartes(contexto, proy){
+  if(!contexto) return [];
+  var partes = [];
+  (contexto.vias || []).forEach(function(via){
+    if(!via.pts || via.pts.length < 2) return;
+    var d = "", j, q;
+    for(j = 0; j < via.pts.length; j++){
+      q = proy({ lat: via.pts[j][0], lon: via.pts[j][1] });
+      d += (j ? " L" : "M") + gpxN(q.x) + " " + gpxN(q.y);
+    }
+    var clase = via.clase === "rio" ? "gpx-contexto-rio" : "gpx-contexto-via";
+    partes.push('<path d="' + d + '" class="' + clase + '" fill="none" vector-effect="non-scaling-stroke"/>');
+  });
+  (contexto.pois || []).forEach(function(poi){
+    var q = proy({ lat: poi.lat, lon: poi.lon });
+    partes.push('<circle class="gpx-contexto-poi" cx="' + gpxN(q.x) + '" cy="' + gpxN(q.y) +
+      '" r="3" vector-effect="non-scaling-stroke">' +
+      (poi.nombre ? "<title>" + X(poi.nombre) + "</title>" : "") + "</circle>");
+  });
+  return partes;
+}
+function gpxSvg2D(datos, stats, modoColor){
+  var puntos = datos.puntos, waypoints = datos.waypoints, planificada = datos.planificada;
+  var todos = puntos.concat(waypoints);
+  var mmLat = gpxMinMax(todos, function(p){ return p.lat; });
+  var mmLon = gpxMinMax(todos, function(p){ return p.lon; });
+  var lat0 = mmLat.min, k = Math.cos(lat0 * Math.PI / 180) || 1;
+  function xM(lon){ return (lon - mmLon.min) * 111320 * k; }
+  function yM(lat){ return (lat - lat0) * 110574; }
+  function proy(p){ return { x: xM(p.lon), y: -yM(p.lat) }; }
+
+  var anchoM = Math.max(xM(mmLon.max), 1), altoM = Math.max(yM(mmLat.max), 1);
+  var margenM = Math.max(anchoM, altoM) * 0.05 || 10;
+  var vb = [gpxN(-margenM), gpxN(-altoM - margenM), gpxN(anchoM + margenM * 2), gpxN(altoM + margenM * 2)];
+  var radioMarcador = Math.max(anchoM, altoM) * 0.012 || 5;
+
+  var partes = gpxContextoSvgPartes(datos.contexto, proy);
+  if(planificada.length > 1){
+    var dPlan = "", j, qp;
+    for(j = 0; j < planificada.length; j++){
+      qp = proy(planificada[j]);
+      dPlan += (j ? " L" : "M") + gpxN(qp.x) + " " + gpxN(qp.y);
+    }
+    partes.push('<path d="' + dPlan + '" class="gpx-planificada" fill="none" vector-effect="non-scaling-stroke"/>');
+  }
+
+  var tramos = gpxTrazoColoreado(puntos, proy, function(p){
+    return modoColor === "pendiente" ? gpxColorPorPendiente(p.pendiente) : gpxColorPorVelocidad(p.vel, p.tieneVel, stats.cuartiles);
+  });
+  tramos.forEach(function(t){
+    partes.push('<path d="' + t.d + '" stroke="' + t.color + '" fill="none" stroke-width="3" ' +
+      'stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>');
+  });
+
+  function circulo(p, r, color, titulo){
+    return '<circle cx="' + gpxN(p.x) + '" cy="' + gpxN(p.y) + '" r="' + gpxN(r) +
+      '" fill="' + color + '" stroke="#fff" stroke-width="1.5" vector-effect="non-scaling-stroke">' +
+      "<title>" + X(titulo) + "</title></circle>";
+  }
+  partes.push(circulo(proy(puntos[0]), radioMarcador, "#1a7f37", "Inicio"));
+  partes.push(circulo(proy(puntos[puntos.length - 1]), radioMarcador, "#cf222e", "Fin"));
+
+  waypoints.forEach(function(w, i){
+    var q = proy(w);
+    partes.push('<circle class="gpx-wpt" data-widx="' + i + '" cx="' + gpxN(q.x) + '" cy="' + gpxN(q.y) +
+      '" r="' + gpxN(radioMarcador * 0.85) + '" fill="' + gpxColorWaypoint(w) +
+      '" stroke="#fff" stroke-width="1.5" vector-effect="non-scaling-stroke"><title>' + X(w.nombre) + "</title></circle>");
+  });
+
+  var svg = '<svg class="gpx-svg" viewBox="' + vb.join(" ") + '" preserveAspectRatio="xMidYMid meet" ' +
+    'role="img" aria-label="Mapa de la ruta">' + partes.join("") + "</svg>";
+
+  return '<div class="gpx-mapa">' + svg +
+    '<div class="gpx-norte" aria-hidden="true">▲<br>N</div>' +
+    '<div class="gpx-escala"></div>' +
+    (datos.contexto ? '<div class="gpx-atribucion">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>' : "") +
+    "</div>";
+}
+
+function gpxStatsHTML(s){
+  function caja(etq, valor){
+    return '<div class="gpx-stat"><span class="gpx-stat-e">' + etq + '</span><span class="gpx-stat-v">' + valor + "</span></div>";
+  }
+  var horas = Math.floor(s.tiempoMs / 3600000), min = Math.floor((s.tiempoMs % 3600000) / 60000);
+  var tiempoTxt = s.tiempoMs ? (horas + "h " + min + "m") : "—";
+  var velTxt = s.sinVelocidadAlguna ? "—" : s.velMedia.toFixed(1) + " km/h";
+  var velMaxTxt = s.sinVelocidadAlguna ? "—" : s.velMax.toFixed(1) + " km/h";
+  var out = '<div class="gpx-stats">' +
+    caja("Distancia", s.distanciaKm.toFixed(2) + " km") +
+    caja("Vel. media", velTxt) +
+    caja("Vel. máxima", velMaxTxt) +
+    caja("Desnivel +", Math.round(s.desnivel) + " m") +
+    caja("Pendiente media", s.pendienteMedia.toFixed(1) + " %") +
+    caja("Pendiente máx.", s.pendienteMax.toFixed(1) + " %") +
+    caja("Tiempo", tiempoTxt) +
+    "</div>";
+  if(s.cuestas.subida !== null || s.cuestas.llano !== null || s.cuestas.bajada !== null){
+    out += '<p class="gpx-cuestas"><strong>Cómo maneja en cuesta:</strong> subida ' +
+      (s.cuestas.subida !== null ? s.cuestas.subida.toFixed(1) + " km/h" : "—") + " · llano " +
+      (s.cuestas.llano !== null ? s.cuestas.llano.toFixed(1) + " km/h" : "—") + " · bajada " +
+      (s.cuestas.bajada !== null ? s.cuestas.bajada.toFixed(1) + " km/h" : "—") + "</p>";
+  }
+  if(s.parcial) out += '<p class="gpx-aviso">Algunos tramos no tienen hora: su velocidad queda parcial.</p>';
+  return out;
+}
+
+function gpxWaypointsHTML(waypoints){
+  var items = waypoints.map(function(w, i){
+    var color = gpxColorWaypoint(w);
+    var extra = "";
+    if(w.enlace && /\.(jpe?g|png|gif|webp|avif)(\?|#|$)/i.test(w.enlace)){
+      extra = '<img class="gpx-miniatura" src="' + escUI(hrefSeguro(w.enlace)) + '" alt="" loading="lazy">';
+    }else if(w.enlace){
+      extra = '<a href="' + escUI(hrefSeguro(w.enlace)) + '" target="_blank" rel="noopener">enlace</a>';
+    }
+    var hora = w.tiempo ? "<time>" + X(new Date(w.tiempo).toLocaleString()) + "</time>" : "";
+    return '<li class="gpx-nota" data-widx="' + i + '" style="border-left-color:' + color + '">' +
+      '<span class="gpx-nota-nombre" style="color:' + color + '">' + X(w.nombre) + "</span>" +
+      (w.desc ? "<p>" + X(w.desc) + "</p>" : "") +
+      (w.cmt ? '<p class="gpx-nota-cmt">' + X(w.cmt) + "</p>" : "") +
+      extra + hora + "</li>";
+  }).join("");
+  return '<ul class="gpx-notas">' + items + "</ul>";
+}
+
+function gpxLeyendaHTML(stats, modoColor){
+  if(modoColor === "pendiente"){
+    return '<div class="gpx-leyenda">' +
+      '<span><i style="background:#1f6feb"></i>bajada &lt; -2%</span>' +
+      '<span><i style="background:#2fae4e"></i>llano</span>' +
+      '<span><i style="background:#f5a623"></i>subida 2-8%</span>' +
+      '<span><i style="background:#e5484d"></i>subida &gt; 8%</span></div>';
+  }
+  if(stats.sinVelocidadAlguna) return "";
+  var q = stats.cuartiles;
+  return '<div class="gpx-leyenda">' +
+    '<span><i style="background:#2fae4e"></i>&lt; ' + q.q1.toFixed(1) + " km/h</span>" +
+    '<span><i style="background:#f7d038"></i>' + q.q1.toFixed(1) + "–" + q.q2.toFixed(1) + " km/h</span>" +
+    '<span><i style="background:#f5a623"></i>' + q.q2.toFixed(1) + "–" + q.q3.toFixed(1) + " km/h</span>" +
+    '<span><i style="background:#e5484d"></i>&gt; ' + q.q3.toFixed(1) + " km/h</span></div>";
+}
+
+/* punto de track mas cercano a un waypoint por lat/lon: el wpt de un GPX casi
+   nunca trae <ele>, y las notas no siempre caen justo sobre el track. Sirve
+   de aproximacion tanto para "a que altura va la aguja" (3D) como para "a que
+   distancia recorrida cae" (Perfil). */
+function gpxPuntoCercano(puntos, w){
+  var mejor = puntos[0], mejorD = Infinity, i, dlat, dlon, d;
+  for(i = 0; i < puntos.length; i++){
+    dlat = puntos[i].lat - w.lat; dlon = puntos[i].lon - w.lon;
+    d = dlat * dlat + dlon * dlon;
+    if(d < mejorD){ mejorD = d; mejor = puntos[i]; }
+  }
+  return mejor;
+}
+
+/* conversion a coordenadas locales en metros (x=este, y=norte, z=altura
+   exagerada) para la vista 3D. Ver mdx-bloques-spec-v2.md seccion 3.5. */
+function gpxAMundo(datos, exageracion){
+  var puntos = datos.puntos, waypoints = datos.waypoints, planificada = datos.planificada;
+  var todos = puntos.concat(waypoints).concat(planificada);
+  var mmLat = gpxMinMax(todos, function(p){ return p.lat; });
+  var mmLon = gpxMinMax(todos, function(p){ return p.lon; });
+  var mmEle = gpxMinMax(puntos, function(p){ return p.ele; });
+  var lat0 = mmLat.min, lon0 = mmLon.min, k = Math.cos((lat0 * Math.PI) / 180) || 1;
+  var eleMin = mmEle.min, exag = exageracion > 0 ? exageracion : 3;
+  function conv(lat, lon, ele){
+    return { x: (lon - lon0) * 111320 * k, y: (lat - lat0) * 110574, z: (ele - eleMin) * exag };
+  }
+  var puntosMundo = puntos.map(function(p){
+    var m = conv(p.lat, p.lon, p.ele);
+    m.vel = p.vel; m.tieneVel = p.tieneVel; m.pendiente = p.pendiente;
+    return m;
+  });
+  var waypointsMundo = waypoints.map(function(w){
+    var cercano = gpxPuntoCercano(puntos, w);
+    var m = conv(w.lat, w.lon, cercano ? cercano.ele : eleMin);
+    m.nombre = w.nombre; m.color = gpxColorWaypoint(w);
+    return m;
+  });
+  var planificadaMundo = planificada.map(function(p){ return conv(p.lat, p.lon, p.ele || eleMin); });
+  return { puntosMundo: puntosMundo, waypointsMundo: waypointsMundo, planificadaMundo: planificadaMundo, eleMin: eleMin, eleMax: mmEle.max, exageracion: exag };
+}
+
+function gpxDistPuntoSegmento3D(p, a, b){
+  var abx = b.x - a.x, aby = b.y - a.y, abz = b.z - a.z;
+  var apx = p.x - a.x, apy = p.y - a.y, apz = p.z - a.z;
+  var lenSq = abx * abx + aby * aby + abz * abz;
+  var t = lenSq ? Math.max(0, Math.min(1, (apx * abx + apy * aby + apz * abz) / lenSq)) : 0;
+  var dx = p.x - (a.x + abx * t), dy = p.y - (a.y + aby * t), dz = p.z - (a.z + abz * t);
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+/* Douglas-Peucker iterativo (pila explicita, no recursion): un track de GPS
+   de varias horas puede traer decenas de miles de puntos, y una version
+   recursiva puede desbordar la pila con una ruta muy irregular. */
+function gpxSimplificar(pts, tol){
+  if(pts.length < 3) return pts;
+  var mantener = new Array(pts.length), pila = [[0, pts.length - 1]], rango, ini, fin, i, d, dmax, imax;
+  mantener[0] = true; mantener[pts.length - 1] = true;
+  while(pila.length){
+    rango = pila.pop(); ini = rango[0]; fin = rango[1];
+    if(fin - ini < 2) continue;
+    dmax = 0; imax = ini;
+    for(i = ini + 1; i < fin; i++){
+      d = gpxDistPuntoSegmento3D(pts[i], pts[ini], pts[fin]);
+      if(d > dmax){ dmax = d; imax = i; }
+    }
+    if(dmax > tol){
+      mantener[imax] = true;
+      pila.push([ini, imax]); pila.push([imax, fin]);
+    }
+  }
+  var out = [];
+  for(i = 0; i < pts.length; i++) if(mantener[i]) out.push(pts[i]);
+  return out;
+}
+function gpxSimplificarA(pts, maxPuntos){
+  if(pts.length <= maxPuntos) return pts;
+  var mmX = gpxMinMax(pts, function(p){ return p.x; });
+  var mmY = gpxMinMax(pts, function(p){ return p.y; });
+  var escala = Math.max(1, mmX.max - mmX.min, mmY.max - mmY.min);
+  var tol = escala * 0.0005, intentos = 0, out = pts;
+  while(out.length > maxPuntos && intentos < 20){
+    out = gpxSimplificar(pts, tol);
+    tol *= 1.6;
+    intentos++;
+  }
+  return out;
+}
+
+function gpxPrimitivas3D(datos, stats, modoColor, exageracion, estado){
+  var mundo = gpxAMundo(datos, exageracion);
+  var simplificados = gpxSimplificarA(mundo.puntosMundo, 400);
+  var mmX = gpxMinMax(mundo.puntosMundo, function(p){ return p.x; });
+  var mmY = gpxMinMax(mundo.puntosMundo, function(p){ return p.y; });
+  var anchoM = Math.max(mmX.max, 1), altoM = Math.max(mmY.max, 1);
+  var alturaZ = Math.max(1, (mundo.eleMax - mundo.eleMin) * mundo.exageracion);
+  var centro = { x: anchoM / 2, y: altoM / 2, z: alturaZ / 2 };
+  var radioMundo = Math.sqrt(centro.x * centro.x + centro.y * centro.y + centro.z * centro.z) || 1;
+  var LADO = 640, D = 800;
+  var escalaFinal = ((LADO * 0.4) / radioMundo) * (estado.escala || 1);
+
+  function rotar(p){
+    var rel = { x: p.x - centro.x, y: p.y - centro.y, z: p.z - centro.z };
+    return motor3dRotarX(motor3dRotarY(rel, estado.yaw), estado.pitch);
+  }
+  function pantalla(r){
+    var q = motor3dProyectar(r, D);
+    return { x: gpxN(q.x * escalaFinal + LADO / 2), y: gpxN(q.y * escalaFinal + LADO / 2) };
+  }
+
+  var primitivas = [], agujaAltura = radioMundo * 0.18;
+
+  var esquinas = [
+    { x: 0, y: 0, z: 0 }, { x: anchoM, y: 0, z: 0 },
+    { x: anchoM, y: altoM, z: 0 }, { x: 0, y: altoM, z: 0 }
+  ].map(rotar);
+  var puntosSuelo = esquinas.map(pantalla).map(function(p){ return p.x + "," + p.y; }).join(" ");
+  primitivas.push({
+    z: (esquinas[0].z + esquinas[1].z + esquinas[2].z + esquinas[3].z) / 4,
+    html: '<polygon points="' + puntosSuelo + '" class="gpx-suelo3d"/>'
+  });
+
+  var i, a, b, ra, rb, ra0, rb0, pa, pb, pa0, pb0, color;
+  for(i = 1; i < simplificados.length; i++){
+    a = simplificados[i - 1]; b = simplificados[i];
+    ra = rotar(a); rb = rotar(b);
+    ra0 = rotar({ x: a.x, y: a.y, z: 0 }); rb0 = rotar({ x: b.x, y: b.y, z: 0 });
+    pa = pantalla(ra); pb = pantalla(rb); pa0 = pantalla(ra0); pb0 = pantalla(rb0);
+    color = modoColor === "pendiente" ? gpxColorPorPendiente(b.pendiente) : gpxColorPorVelocidad(b.vel, b.tieneVel, stats.cuartiles);
+    primitivas.push({
+      z: (ra.z + rb.z + ra0.z + rb0.z) / 4,
+      html: '<polygon points="' + pa0.x + "," + pa0.y + " " + pa.x + "," + pa.y + " " + pb.x + "," + pb.y + " " + pb0.x + "," + pb0.y +
+        '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="1.5"/>'
+    });
+  }
+
+  primitivas.sort(function(x, y){ return y.z - x.z; });
+  var terreno = primitivas.map(function(p){ return p.html; }).join("");
+
+  /* las agujas van siempre encima del terreno (como un pin de mapa): con el
+     orden por profundidad, una cortina cercana tapaba la aguja del waypoint
+     que cae justo en su vertice. */
+  var agujas = mundo.waypointsMundo.map(function(w, idx){
+    var pBase = pantalla(rotar({ x: w.x, y: w.y, z: w.z }));
+    var pTope = pantalla(rotar({ x: w.x, y: w.y, z: w.z + agujaAltura }));
+    return '<g><line x1="' + pBase.x + '" y1="' + pBase.y + '" x2="' + pTope.x + '" y2="' + pTope.y + '" stroke="' + w.color + '" stroke-width="2"/>' +
+      '<circle class="gpx-wpt" data-widx="' + idx + '" cx="' + pTope.x + '" cy="' + pTope.y + '" r="5" fill="' + w.color + '" stroke="#fff" stroke-width="1.5"><title>' + X(w.nombre) + "</title></circle>" +
+      '<text x="' + (pTope.x + 7) + '" y="' + (pTope.y + 4) + '" class="gpx-etq3d">' + X(w.nombre) + "</text></g>";
+  }).join("");
+
+  return terreno + agujas;
+}
+function gpxRenderizar3D(datos, stats, modoColor, exageracion, estado){
+  return '<div class="gpx-mapa3d"><svg class="gpx-svg3d" viewBox="0 0 640 640" role="img" aria-label="Vista 3D de la ruta">' +
+    gpxPrimitivas3D(datos, stats, modoColor, exageracion, estado) + "</svg>" +
+    '<p class="gpx-ayuda3d">Arrastra para girar · rueda o pellizco para acercar</p></div>';
+}
+
+/* datos en pantalla de la vista Perfil, compartidos entre el dibujo inicial
+   (gpxSvgPerfil) y el manejador de arrastre/toque (gpxActivarPerfil), para
+   no calcular la proyeccion dos veces con formulas que podrian desalinearse. */
+function gpxPerfilDatos(datos){
+  var puntos = datos.puntos;
+  var mmEle = gpxMinMax(puntos, function(p){ return p.ele; });
+  var margenEle = Math.max((mmEle.max - mmEle.min) * 0.15, 1);
+  var altoTotal = (mmEle.max - mmEle.min) + margenEle * 2;
+  var distTotalM = Math.max(puntos[puntos.length - 1].distAcumM || 0, 1);
+  var ANCHO = 1000, ALTO = 320;
+  function xDe(distM){ return (distM / distTotalM) * ANCHO; }
+  function yDe(ele){ return ALTO - ((ele - mmEle.min + margenEle) / altoTotal) * ALTO; }
+  var serie = puntos.map(function(p){
+    return { x: gpxN(xDe(p.distAcumM || 0)), y: gpxN(yDe(p.ele)), d: p.distAcumM || 0, ele: p.ele, vel: p.vel, tieneVel: p.tieneVel, pendiente: p.pendiente };
+  });
+  return { serie: serie, ancho: ANCHO, alto: ALTO, distTotalM: distTotalM, mmEle: mmEle };
+}
+function gpxSvgPerfil(datos, stats, modoColor){
+  var pd = gpxPerfilDatos(datos), serie = pd.serie, i;
+  var relleno = "M" + serie[0].x + " " + pd.alto + " ";
+  for(i = 0; i < serie.length; i++) relleno += "L" + serie[i].x + " " + serie[i].y + " ";
+  relleno += "L" + serie[serie.length - 1].x + " " + pd.alto + " Z";
+
+  var partes = ['<path d="' + relleno + '" class="gpx-perfil-relleno" stroke="none"/>'];
+  var tramos = gpxTrazoColoreado(serie, function(p){ return p; }, function(p){
+    return modoColor === "pendiente" ? gpxColorPorPendiente(p.pendiente) : gpxColorPorVelocidad(p.vel, p.tieneVel, stats.cuartiles);
+  });
+  tramos.forEach(function(t){
+    partes.push('<path d="' + t.d + '" stroke="' + t.color + '" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>');
+  });
+
+  datos.waypoints.forEach(function(w, idx){
+    var cercano = gpxPuntoCercano(datos.puntos, w);
+    var x = gpxN(((cercano.distAcumM || 0) / pd.distTotalM) * pd.ancho);
+    partes.push('<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + pd.alto + '" class="gpx-perfil-marca"/>');
+    partes.push('<circle class="gpx-wpt" data-widx="' + idx + '" cx="' + x + '" cy="' + pd.alto + '" r="5" fill="' + gpxColorWaypoint(w) + '" stroke="#fff" stroke-width="1.5"><title>' + X(w.nombre) + "</title></circle>");
+  });
+  partes.push('<circle class="gpx-perfil-punto" cx="0" cy="0" r="5" style="display:none"/>');
+
+  var svg = '<svg class="gpx-svg-perfil" viewBox="0 0 ' + pd.ancho + " " + pd.alto + '" preserveAspectRatio="none" role="img" aria-label="Perfil de elevación">' + partes.join("") + "</svg>";
+  return '<div class="gpx-mapa-perfil">' + svg +
+    '<div class="gpx-perfil-eje gpx-perfil-eje-max">' + X(Math.round(pd.mmEle.max) + " m") + "</div>" +
+    '<div class="gpx-perfil-eje gpx-perfil-eje-min">' + X(Math.round(pd.mmEle.min) + " m") + "</div>" +
+    '<div class="gpx-perfil-tip" hidden></div></div>';
+}
+
+function gpxRenderizarVista(vista, payload, estado3d, calibEstado){
+  if(vista === "3d") return gpxRenderizar3D(payload.datos, payload.stats, payload.modoColor, payload.exageracion, estado3d);
+  if(vista === "perfil") return gpxSvgPerfil(payload.datos, payload.stats, payload.modoColor);
+  if(vista === "captura") return gpxRenderizarCaptura(payload.datos, calibEstado);
+  return gpxSvg2D(payload.datos, payload.stats, payload.modoColor);
+}
+function gpxBotonesVistaHTML(vistaActual, datos){
+  var opciones = [["2d", "2D"], ["3d", "3D"], ["perfil", "Perfil"]];
+  if(datos && datos.imagen) opciones.push(["captura", "Captura"]);
+  return '<div class="gpx-vistas" role="group" aria-label="Vista del mapa">' + opciones.map(function(o){
+    return '<button type="button" class="gpx-boton-vista' + (o[0] === vistaActual ? " activo" : "") + '" data-vista="' + o[0] + '" aria-pressed="' + (o[0] === vistaActual) + '">' + o[1] + "</button>";
+  }).join("") + "</div>";
+}
+
+var GPX_POI_TEXTO = {
+  fuel: "Gasolinera", restaurant: "Restaurante", cafe: "Café", hospital: "Hospital",
+  pharmacy: "Farmacia", police: "Policía", drinking_water: "Agua potable",
+  toilets: "Baños", shelter: "Refugio", viewpoint: "Mirador", camp_site: "Camping"
+};
+function gpxClasePoiTexto(clase){
+  return (Object.prototype.hasOwnProperty.call(GPX_POI_TEXTO, clase) && GPX_POI_TEXTO[clase]) || "Punto de interés";
+}
+
+/* rectangulo geografico de la ruta, con margen, para pedirle a Overpass solo
+   lo que rodea el trazado (ver mdx-bloques-spec-v2.md seccion 3.7). */
+function gpxBboxDatos(datos){
+  var todos = datos.puntos.concat(datos.waypoints).concat(datos.planificada);
+  var mmLat = gpxMinMax(todos, function(p){ return p.lat; });
+  var mmLon = gpxMinMax(todos, function(p){ return p.lon; });
+  var margenLat = Math.max((mmLat.max - mmLat.min) * 0.15, 0.002);
+  var margenLon = Math.max((mmLon.max - mmLon.min) * 0.15, 0.002);
+  return { s: mmLat.min - margenLat, o: mmLon.min - margenLon, n: mmLat.max + margenLat, e: mmLon.max + margenLon };
+}
+function gpxConsultaOverpass(bbox){
+  var cuadro = bbox.s.toFixed(6) + "," + bbox.o.toFixed(6) + "," + bbox.n.toFixed(6) + "," + bbox.e.toFixed(6);
+  return "[out:json][timeout:25];(" +
+    'way[highway~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|track|path)$"](' + cuadro + ");" +
+    'way[waterway~"^(river|stream|canal)$"](' + cuadro + ");" +
+    "way[natural=water](" + cuadro + ");" +
+    'node[amenity~"^(fuel|restaurant|cafe|hospital|pharmacy|police|drinking_water|toilets|shelter)$"](' + cuadro + ");" +
+    'node[tourism~"^(viewpoint|camp_site)$"](' + cuadro + ");" +
+    ");out geom;";
+}
+/* respuesta cruda de Overpass -> {vias:[{clase,pts}], pois:[{lat,lon,nombre,clase}]},
+   la forma que se guarda en el bloque companero ```gpx-datos. Un tope de
+   cantidad evita documentos enormes si la ruta cruza una ciudad grande. */
+function gpxSimplificarContexto(json){
+  var vias = [], pois = [], elementos = (json && json.elements) || [], i, el, tags, pts, j;
+  for(i = 0; i < elementos.length; i++){
+    el = elementos[i];
+    tags = el.tags || {};
+    if(el.type === "way" && el.geometry && el.geometry.length > 1){
+      pts = [];
+      for(j = 0; j < el.geometry.length; j++){
+        if(el.geometry[j]) pts.push([el.geometry[j].lat, el.geometry[j].lon]);
+      }
+      if(pts.length > 1) vias.push({ clase: (tags.waterway || tags.natural === "water") ? "rio" : "via", pts: pts });
+    }else if(el.type === "node" && (tags.amenity || tags.tourism)){
+      pois.push({ lat: el.lat, lon: el.lon, nombre: tags.name || "", clase: tags.amenity || tags.tourism });
+    }
+  }
+  return { vias: vias.slice(0, 400), pois: pois.slice(0, 60) };
+}
+/* la misma forma/tope que gpxSimplificarContexto, pero para un contexto que
+   viene de un bloque ```gpx-datos ya guardado en el documento (Overpass en
+   vivo o escrito a mano por cualquiera): sin esto, un .md compartido podria
+   meter cualquier forma de datos directo en los mismos sitios de render que
+   usa el contexto real. */
+function gpxNumeroValido(n){ return typeof n === "number" && isFinite(n); }
+function gpxValidarContexto(contexto){
+  if(!contexto || typeof contexto !== "object") return null;
+  var vias = Array.isArray(contexto.vias) ? contexto.vias : [];
+  var pois = Array.isArray(contexto.pois) ? contexto.pois : [];
+  var viasOk = [], poisOk = [], i, v, p, pts, j, pt;
+  for(i = 0; i < vias.length && viasOk.length < 400; i++){
+    v = vias[i];
+    if(!v || !Array.isArray(v.pts)) continue;
+    pts = [];
+    for(j = 0; j < v.pts.length; j++){
+      pt = v.pts[j];
+      if(Array.isArray(pt) && gpxNumeroValido(pt[0]) && gpxNumeroValido(pt[1])) pts.push([pt[0], pt[1]]);
+    }
+    if(pts.length > 1) viasOk.push({ clase: v.clase === "rio" ? "rio" : "via", pts: pts });
+  }
+  for(i = 0; i < pois.length && poisOk.length < 60; i++){
+    p = pois[i];
+    if(!p || !gpxNumeroValido(p.lat) || !gpxNumeroValido(p.lon)) continue;
+    poisOk.push({
+      lat: p.lat, lon: p.lon,
+      nombre: typeof p.nombre === "string" ? p.nombre.slice(0, 200) : "",
+      clase: typeof p.clase === "string" ? p.clase.slice(0, 60) : ""
+    });
+  }
+  return { vias: viasOk, pois: poisOk };
+}
+
+/* metros locales (x=este, y=sur, mismo signo que usa proy() en gpxSvg2D)
+   anclados en datos.puntos[0] -- a diferencia del origen de gpxSvg2D (borde
+   del bbox), este NO se corre si despues se agregan waypoints, asi que una
+   calibracion guardada (seccion 3.8) sigue valiendo aunque la ruta gane
+   puntos nuevos. */
+/* mismo cuidado que gpxValidarContexto: un `imagen`/`calibracion` de un
+   ```gpx-datos escrito a mano no debe llegar sin forma a los sitios que
+   asumen un dataURL o cuatro numeros (seccion 3.8). */
+function gpxValidarImagen(imagen){ return (typeof imagen === "string" && /^data:image\//.test(imagen)) ? imagen : null; }
+function gpxValidarCalibracion(cal){
+  if(!cal || typeof cal !== "object") return null;
+  if(!gpxNumeroValido(cal.a) || !gpxNumeroValido(cal.b) || !gpxNumeroValido(cal.tx) || !gpxNumeroValido(cal.ty)) return null;
+  return { a: cal.a, b: cal.b, tx: cal.tx, ty: cal.ty };
+}
+function gpxLocalDe(datos){
+  var origen = datos.puntos[0];
+  var lat0 = origen.lat, lon0 = origen.lon, k = Math.cos(lat0 * Math.PI / 180) || 1;
+  return function(p){ return { x: (p.lon - lon0) * 111320 * k, y: -((p.lat - lat0) * 110574) }; };
+}
+/* transformacion de semejanza a partir de 2 pares (g en metros locales, p en
+   pixeles de la imagen de fondo) -- formula exacta de mdx-bloques-spec-v2.md
+   seccion 3.8 (metodo del numero complejo). null si los dos puntos geo
+   coinciden (division por cero). */
+function gpxCalibrar(g1, p1, g2, p2){
+  var gx = g2.x - g1.x, gy = g2.y - g1.y;
+  var px = p2.x - p1.x, py = p2.y - p1.y;
+  var d = gx * gx + gy * gy;
+  if(!(d > 0)) return null;
+  var a = (gx * px + gy * py) / d, b = (gx * py - gy * px) / d;
+  return { a: a, b: b, tx: p1.x - (a * g1.x - b * g1.y), ty: p1.y - (b * g1.x + a * g1.y) };
+}
+function gpxGeoAPixel(g, c){ return { x: c.a * g.x - c.b * g.y + c.tx, y: c.b * g.x + c.a * g.y + c.ty }; }
+/* puntos conocidos que el usuario puede tocar en su captura para calibrar:
+   inicio, fin, y cada waypoint con nombre (por si inicio/fin quedan muy
+   juntos en la imagen). */
+function gpxPuntosCalibrables(datos){
+  var out = [{ clave: "inicio", nombre: "Inicio", geo: datos.puntos[0] }];
+  if(datos.puntos.length > 1) out.push({ clave: "fin", nombre: "Fin", geo: datos.puntos[datos.puntos.length - 1] });
+  datos.waypoints.forEach(function(w, i){ out.push({ clave: "wpt:" + i, nombre: w.nombre || ("Punto " + (i + 1)), geo: w }); });
+  return out;
+}
+function gpxPuntoCalibrablePorClave(datos, clave){
+  var lista = gpxPuntosCalibrables(datos), i;
+  for(i = 0; i < lista.length; i++) if(lista[i].clave === clave) return lista[i];
+  return null;
+}
+
+/* boton para pedir el contexto (si no hay) o la lista de POIs cercanos con
+   "agregar a la ruta" mas la atribucion obligatoria (si ya hay). Vive debajo
+   del mapa, fuera de cualquier vista, para que se vea sin importar si estas
+   en 2D/3D/Perfil. */
+function gpxContextoHTML(contexto){
+  if(!contexto){
+    return '<div class="gpx-contexto"><button type="button" class="gpx-boton-contexto">Obtener contexto del mapa (una vez)</button></div>';
+  }
+  var pois = contexto.pois || [];
+  var lista = pois.length
+    ? '<ul class="gpx-pois">' + pois.map(function(p, i){
+        return '<li class="gpx-poi"><span>' + X(p.nombre || gpxClasePoiTexto(p.clase)) + "</span>" +
+          '<button type="button" class="gpx-boton-agregar-poi" data-poi-idx="' + i + '">Agregar a la ruta</button></li>';
+      }).join("") + "</ul>"
+    : "";
+  return '<div class="gpx-contexto">' + lista +
+    '<p class="gpx-atribucion-texto">Mapa de contexto: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.</p></div>';
+}
+
+/* controles de la captura de fondo (seccion 3.8) que se ven sin importar la
+   vista activa: subir imagen si no hay una, aviso mientras falta calibrar
+   (la calibracion en si vive en la pestaña "Captura"), o recalibrar/quitar
+   si ya esta lista. */
+function gpxCapturaControlesHTML(datos){
+  if(!datos.imagen){
+    return '<div class="gpx-captura-controles"><label class="gpx-boton-subir-captura">Usar captura como fondo' +
+      '<input type="file" accept="image/*" class="gpx-input-captura" hidden></label></div>';
+  }
+  if(!datos.calibracion){
+    return '<div class="gpx-captura-controles"><p class="gpx-captura-nota">Imagen cargada — anda a la pestaña “Captura” para calibrarla.</p></div>';
+  }
+  return '<div class="gpx-captura-controles">' +
+    '<button type="button" class="gpx-boton-recalibrar">Recalibrar</button>' +
+    '<button type="button" class="gpx-boton-quitar-fondo">Quitar fondo</button></div>';
+}
+/* selector de los 2 puntos conocidos para arrancar la calibracion. */
+function gpxSelectorCalibracionHTML(datos){
+  var pts = gpxPuntosCalibrables(datos);
+  function opciones(sel){
+    return pts.map(function(p){ return '<option value="' + escUI(p.clave) + '"' + (p.clave === sel ? " selected" : "") + ">" + X(p.nombre) + "</option>"; }).join("");
+  }
+  var claveB = pts.length > 1 ? pts[1].clave : pts[0].clave;
+  return '<div class="gpx-captura-selector-puntos">' +
+    "<p>Elige dos puntos conocidos de la ruta y toca dónde están en tu imagen.</p>" +
+    '<label>Punto A <select class="gpx-captura-a">' + opciones(pts[0].clave) + "</select></label>" +
+    '<label>Punto B <select class="gpx-captura-b">' + opciones(claveB) + "</select></label>" +
+    '<button type="button" class="gpx-boton-calibrar">Empezar calibración</button></div>';
+}
+/* ruta/contexto/waypoints proyectados a pixeles de la imagen via calibracion
+   -- overlay transparente, ancho/alto = resolucion natural de la imagen
+   (se conoce recien en runtime, ver gpxActivarCapturaVista). Sin <title>:
+   el saneador los quita en el primer pintado (deuda conocida, no vale la
+   pena reproducirla aqui). */
+function gpxCapturaOverlayHTML(datos, cal, w, h){
+  var local = gpxLocalDe(datos);
+  function proy(p){ return gpxGeoAPixel(local(p), cal); }
+  var partes = gpxContextoSvgPartes(datos.contexto, proy);
+  var d = "", i, q;
+  for(i = 0; i < datos.puntos.length; i++){
+    q = proy(datos.puntos[i]);
+    d += (i ? " L" : "M") + gpxN(q.x) + " " + gpxN(q.y);
+  }
+  partes.push('<path d="' + d + '" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>');
+  partes.push('<path d="' + d + '" fill="none" stroke="#e5484d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>');
+  function circulo(p, color){
+    var q2 = proy(p);
+    return '<circle cx="' + gpxN(q2.x) + '" cy="' + gpxN(q2.y) + '" r="6" fill="' + color + '" stroke="#fff" stroke-width="1.5"/>';
+  }
+  partes.push(circulo(datos.puntos[0], "#1a7f37"));
+  partes.push(circulo(datos.puntos[datos.puntos.length - 1], "#cf222e"));
+  datos.waypoints.forEach(function(w2){
+    var q3 = proy(w2);
+    partes.push('<circle cx="' + gpxN(q3.x) + '" cy="' + gpxN(q3.y) + '" r="5" fill="' + gpxColorWaypoint(w2) + '" stroke="#fff" stroke-width="1.5"/>');
+  });
+  return '<svg class="gpx-captura-svg" viewBox="0 0 ' + gpxN(w) + " " + gpxN(h) + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ruta sobre la captura">' + partes.join("") + "</svg>";
+}
+/* contenido de la pestaña "Captura": segun el estado de calibracion en curso
+   (transitorio, vive en el cierre de gpxActivarFigura, nunca se persiste). */
+function gpxRenderizarCaptura(datos, calibEstado){
+  if(!datos.imagen) return '<div class="gpx-captura-vacia"><p>Todavía no hay una captura de fondo.</p></div>';
+  if(calibEstado && (calibEstado.paso === "tocarA" || calibEstado.paso === "tocarB")){
+    var pt = gpxPuntoCalibrablePorClave(datos, calibEstado.paso === "tocarA" ? calibEstado.claveA : calibEstado.claveB);
+    return '<div class="gpx-captura-calibrando">' +
+      '<p class="gpx-captura-instruccion">Toca en la imagen dónde está: <strong>' + X(pt ? pt.nombre : "") + "</strong></p>" +
+      '<div class="gpx-captura-lienzo"><img src="' + escUI(datos.imagen) + '" alt="Captura de fondo" class="gpx-captura-img" draggable="false"></div>' +
+      '<button type="button" class="gpx-boton-cancelar-calibracion">Cancelar</button></div>';
+  }
+  if(!datos.calibracion || (calibEstado && calibEstado.paso === "seleccion")){
+    return '<div class="gpx-captura-selector"><img src="' + escUI(datos.imagen) + '" alt="Captura de fondo" class="gpx-captura-previa">' +
+      gpxSelectorCalibracionHTML(datos) + "</div>";
+  }
+  return '<div class="gpx-captura-lienzo"><img src="' + escUI(datos.imagen) + '" alt="Captura de fondo" class="gpx-captura-img" draggable="false"></div>';
+}
+
+/* todo lo de dentro de <figure>, aparte para poder reconstruirlo entero tras
+   agregar contexto o un waypoint sin duplicar este armado en dos sitios. */
+function gpxContenidoFigura(payload, vista, estado3d, calibEstado){
+  var datos = payload.datos, stats = payload.stats;
+  return gpxBotonesVistaHTML(vista, datos) +
+    '<div class="gpx-vista-actual">' + gpxRenderizarVista(vista, payload, estado3d, calibEstado) + "</div>" +
+    gpxStatsHTML(stats) +
+    (datos.waypoints.length ? gpxWaypointsHTML(datos.waypoints) : "") +
+    gpxLeyendaHTML(stats, payload.modoColor) +
+    gpxCapturaControlesHTML(datos) +
+    gpxContextoHTML(datos.contexto);
+}
+
+var gpxContador = 0;
+function dibujarGPX(xmlTexto, params, datosGpxTexto, indiceGpx){
+  var datos;
+  try{ datos = parseGPX(xmlTexto); }
+  catch(e){ return '<div class="gpx-error"><strong>No se pudo leer el GPX.</strong><p>' + X(e.message) + "</p></div>"; }
+  try{
+    if(datosGpxTexto && datosGpxTexto.trim()){
+      try{
+        var companero = JSON.parse(datosGpxTexto);
+        if(companero && companero.contexto) datos.contexto = gpxValidarContexto(companero.contexto);
+        if(companero && companero.imagen) datos.imagen = gpxValidarImagen(companero.imagen);
+        if(companero && companero.calibracion) datos.calibracion = gpxValidarCalibracion(companero.calibracion);
+      }catch(e){ /* companero corrupto: se ignora, el mapa sigue sin contexto */ }
+    }
+    var stats = gpxEstadisticas(datos.puntos);
+    var modoColor = params.color === "pendiente" ? "pendiente" : (stats.sinVelocidadAlguna ? "pendiente" : "velocidad");
+    var exageracion = parseFloat(params.exageracion);
+    if(!(exageracion > 0)) exageracion = 3;
+    var vista = "2d";
+    if(params.vista === "3d" || params.vista === "perfil") vista = params.vista;
+    else if(params.vista === "captura" && datos.imagen) vista = "captura";
+    gpxContador++;
+    var payload = { datos: datos, stats: stats, modoColor: modoColor, exageracion: exageracion, firma: gpxFirma(xmlTexto) };
+    var estado3d = { yaw: -0.6, pitch: 0.55, escala: 1 };
+    return '<figure class="gpx-viewer no-romper" id="gpx-' + gpxContador + '" translate="no" data-vista="' + vista +
+      '" data-gpx-indice="' + (indiceGpx || 0) + '" data-gpx="' + escUI(JSON.stringify(payload)) + '">' +
+      gpxContenidoFigura(payload, vista, estado3d) + "</figure>";
+  }catch(e){
+    return '<div class="gpx-error"><strong>No se pudo dibujar la ruta.</strong><p>' + X(e.message) + "</p></div>";
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 function mdAHtml(fuente){
   var Z = String.fromCharCode(0);        // marca interna, invisible
@@ -4018,6 +4999,7 @@ function mdAHtml(fuente){
   var meta = {};
   var metaOrden = [];
   var hayTOC = false;
+  var indiceGpx = 0;    // el n-esimo bloque ```gpx de ESTE documento (para localizarlo despues en fuenteActual)
 
   function g(html){ G.push(html); return Z + (G.length - 1) + Z; }
   function abrirTodo(s){
@@ -4363,6 +5345,36 @@ function mdAHtml(fuente){
         }
         var codigo = buf.join("\n");
         var etiqueta = leng.toLowerCase().replace(/^lang(uage)?-/, "");
+        var parametrosGpx = m[4] || "";
+        if(etiqueta === "gpx"){
+          /* el bloque ```gpx-datos que sigue de inmediato (si existe) es del
+             propio programa: lo consume aqui en vez de mostrarlo como codigo
+             suelto. Ver mdx-bloques-spec-v2.md seccion 2.3. */
+          var datosGpxTexto = "";
+          if(i < ls.length){
+            var mD = ls[i].match(RE_VALLA);
+            if(mD && mD[2].length >= 3 && (mD[3] || "").toLowerCase() === "gpx-datos"){
+              var sangriaD = mD[1].length, vallaD = mD[2];
+              var reSangriaD = new RegExp("^ {0," + sangriaD + "}");
+              var bufD = [], iD = i + 1;
+              while(iD < ls.length){
+                var cD = ls[iD].match(RE_CIERRE);
+                if(cD && cD[1].charAt(0) === vallaD.charAt(0) && cD[1].length >= vallaD.length){ iD++; break; }
+                bufD.push(ls[iD].replace(reSangriaD, ""));
+                iD++;
+              }
+              datosGpxTexto = bufD.join("\n");
+              i = iD;
+            }
+          }
+          indiceGpx++;
+          if(meta.gpx === "no"){
+            apunta('<pre translate="no"><code class="lenguaje-xml">' + esc(codigo) + "</code></pre>");
+          }else{
+            apunta(dibujarGPX(codigo, gpxParametros(parametrosGpx), datosGpxTexto, indiceGpx));
+          }
+          continue;
+        }
         if(etiqueta === "mermaid" || etiqueta === "diagrama" || etiqueta === "grafico" || etiqueta === "gr\u00e1fico"){
           var svg = dibujarDiagrama(codigo);
           if(svg){
@@ -4613,6 +5625,188 @@ function mdAHtml(fuente){
   }
 
   return { html: abrirTodo(cuerpo), meta: meta, metaOrden: metaOrden, toc: toc };
+}
+
+/* ==========================================================================
+   HTML -> MARKDOWN: para pegar contenido copiado de la web (Word, Google
+   Docs, Confluence, un blog...) y quedarse con algo razonable en Markdown.
+   No es la vuelta exacta de mdAHtml: es "lo mejor posible" con las etiquetas
+   mas comunes -- conviene revisar el resultado, sobre todo tablas y formato
+   raro.
+   ========================================================================== */
+function htmlAMd(html){
+  var doc = new DOMParser().parseFromString(String(html), "text/html");
+  var FUERA = { script: 1, style: 1, noscript: 1, template: 1, head: 1 };
+  var BLOQUE = { p: 1, div: 1, section: 1, article: 1, header: 1, footer: 1,
+    aside: 1, main: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1, ul: 1, ol: 1,
+    blockquote: 1, pre: 1, table: 1, hr: 1, figure: 1, figcaption: 1, dl: 1 };
+
+  function repetir(c, n){ return new Array(n + 1).join(c); }
+  function esc(s){ return String(s).replace(/[\\`*_[\]]/g, "\\$&"); }
+  function unaLinea(s){ return String(s).replace(/[ \t\r\n]+/g, " "); }
+  function envolver(s, marca){
+    var t = s.replace(/^\s+|\s+$/g, "");
+    return t ? marca + t + marca : "";
+  }
+  function prefijar(s, pre){
+    return s.split("\n").map(function(l){ return l ? pre + l : pre.replace(/\s+$/, ""); }).join("\n");
+  }
+  /* si el parrafo empieza como si fuera un titulo, una lista o una cita,
+     se escapa esa marca para que no se confunda al releerlo */
+  function protegerInicio(s){
+    var m = s.match(/^( {0,3})(#{1,6}|[-*+]|>)(\s)/);
+    if(m) return m[1] + "\\" + s.slice(m[1].length);
+    m = s.match(/^( {0,3}\d{1,9})([.)])(\s)/);
+    if(m) return m[1] + "\\" + s.slice(m[1].length);
+    return s;
+  }
+
+  /* contenido en linea: negrita, cursiva, enlaces, codigo... sin parrafos */
+  function inline(n){
+    var out = "", i, c, t;
+    for(i = 0; i < n.childNodes.length; i++){
+      c = n.childNodes[i];
+      if(c.nodeType === 3){ out += esc(unaLinea(c.nodeValue)); continue; }
+      if(c.nodeType !== 1) continue;
+      t = c.tagName.toLowerCase();
+      if(FUERA[t]) continue;
+      if(t === "br"){ out += "\\\n"; continue; }
+      if(t === "strong" || t === "b"){ out += envolver(inline(c), "**"); continue; }
+      if(t === "em" || t === "i"){ out += envolver(inline(c), "*"); continue; }
+      if(t === "del" || t === "s" || t === "strike"){ out += envolver(inline(c), "~~"); continue; }
+      if(t === "code"){ out += "`" + unaLinea(c.textContent).replace(/`/g, "'") + "`"; continue; }
+      if(t === "a"){
+        var href = c.getAttribute("href") || "";
+        var txt = inline(c).replace(/\s+/g, " ").trim();
+        out += href ? "[" + (txt || href) + "](" + href + ")" : txt;
+        continue;
+      }
+      if(t === "img"){
+        var src = c.getAttribute("src") || "";
+        var alt = c.getAttribute("alt") || "";
+        out += src ? "![" + alt + "](" + src + ")" : "";
+        continue;
+      }
+      out += inline(c);
+    }
+    return out;
+  }
+
+  /* recorre los hijos de un nodo agrupando texto suelto en parrafos
+     implicitos, y delega cada etiqueta de bloque a bloqueUnico() */
+  function renderBlocks(node){
+    var partes = [], buffer = "", i, c, t;
+    function flush(){
+      var p = buffer.replace(/^\s+|\s+$/g, "");
+      if(p) partes.push(protegerInicio(p));
+      buffer = "";
+    }
+    for(i = 0; i < node.childNodes.length; i++){
+      c = node.childNodes[i];
+      if(c.nodeType === 3){
+        if(c.nodeValue.replace(/[ \t\r\n]/g, "") !== "") buffer += esc(unaLinea(c.nodeValue));
+        continue;
+      }
+      if(c.nodeType !== 1) continue;
+      t = c.tagName.toLowerCase();
+      if(FUERA[t]) continue;
+      if(BLOQUE[t]){
+        flush();
+        var b = bloqueUnico(c);
+        if(b) partes.push(b);
+      }else{
+        buffer += inline(c);
+      }
+    }
+    flush();
+    return partes;
+  }
+
+  function bloqueUnico(n){
+    var t = n.tagName.toLowerCase(), texto;
+    switch(t){
+      case "h1": case "h2": case "h3": case "h4": case "h5": case "h6":
+        texto = inline(n).replace(/\s+/g, " ").trim();
+        return texto ? repetir("#", +t.charAt(1)) + " " + texto : "";
+      case "p":
+        texto = inline(n).replace(/^\s+|\s+$/g, "");
+        return texto ? protegerInicio(texto) : "";
+      case "hr":
+        return "---";
+      case "pre":
+        return bloquePre(n);
+      case "ul":
+        return renderLista(n, false);
+      case "ol":
+        return renderLista(n, true);
+      case "table":
+        return renderTabla(n);
+      case "blockquote":
+        texto = renderBlocks(n).join("\n\n");
+        return texto ? prefijar(texto, "> ") : "";
+      default:
+        return renderBlocks(n).join("\n\n");
+    }
+  }
+
+  function renderLista(n, ordenada){
+    var out = [], i, c, contador = 1, marcador, contenido, relleno, lineas;
+    for(i = 0; i < n.children.length; i++){
+      c = n.children[i];
+      if(c.tagName.toLowerCase() !== "li") continue;
+      marcador = ordenada ? (contador++) + ". " : "- ";
+      contenido = renderBlocks(c).join("\n\n");
+      lineas = contenido.split("\n");
+      relleno = repetir(" ", marcador.length);
+      out.push(marcador + lineas[0] +
+        (lineas.length > 1
+          ? "\n" + lineas.slice(1).map(function(l){ return l ? relleno + l : l; }).join("\n")
+          : ""));
+    }
+    return out.join("\n");
+  }
+
+  function bloquePre(n){
+    var nodoCodigo = n.querySelector("code");
+    var fuente = nodoCodigo || n;
+    var texto = fuente.textContent.replace(/\n$/, "");
+    var clase = fuente.className || n.className || "";
+    var m = clase.match(/(?:^|\s)language-(\S+)/);
+    var lang = m ? m[1] : "";
+    var valla = texto.indexOf("```") >= 0 ? "~~~" : "```";
+    return valla + lang + "\n" + texto + "\n" + valla;
+  }
+
+  function celdaTexto(n){
+    var t = inline(n).replace(/\s+/g, " ").trim().replace(/\|/g, "\\|");
+    return t || " ";
+  }
+  function renderTabla(n){
+    var filas = n.rows, out = [], anchoCols = 0, i, j, cols, sep;
+    if(!filas || !filas.length) return "";
+    for(i = 0; i < filas.length; i++) anchoCols = Math.max(anchoCols, filas[i].cells.length);
+    if(!anchoCols) return "";
+    for(i = 0; i < filas.length; i++){
+      cols = [];
+      for(j = 0; j < anchoCols; j++) cols.push(filas[i].cells[j] ? celdaTexto(filas[i].cells[j]) : " ");
+      out.push("| " + cols.join(" | ") + " |");
+      if(i === 0){
+        sep = [];
+        for(j = 0; j < anchoCols; j++) sep.push("---");
+        out.push("| " + sep.join(" | ") + " |");
+      }
+    }
+    return out.join("\n");
+  }
+
+  var md = renderBlocks(doc.body).join("\n\n");
+  return md.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").replace(/\s+$/, "") + "\n";
+}
+
+/* convierte al abrir un .html/.htm: nombre y contenido listos para fijarTexto() */
+function comoMarkdown(nombre, texto){
+  if(!/\.html?$/i.test(nombre)) return { texto: texto, nombre: nombre, convertido: false };
+  return { texto: htmlAMd(texto), nombre: nombre.replace(/\.html?$/i, "") + ".md", convertido: true };
 }
 
 /* ==========================================================================
@@ -5310,6 +6504,476 @@ function prepararDiagramas(){
   });
 }
 
+/* bloques gpx: zoom/paneo del viewBox con Pointer Events (mismo mecanismo
+   para mouse, dedo y stylus) y click en un waypoint resalta su nota abajo. */
+function gpxEscalaRedonda(metros){
+  var candidatos = [10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000];
+  var mejor = candidatos[0], i;
+  for(i = 0; i < candidatos.length; i++){
+    if(candidatos[i] <= metros) mejor = candidatos[i]; else break;
+  }
+  return mejor;
+}
+function gpxActivarInteraccion(fig){
+  var svg = fig.querySelector(".gpx-svg"), escalaEl = fig.querySelector(".gpx-escala");
+  if(!svg) return;
+  var cajaBase = svg.getAttribute("viewBox").split(/\s+/).map(Number);
+  var caja = cajaBase.slice();
+  var punteros = {}, distanciaInicial = 0, cajaInicial = null;
+
+  function aplicar(){ svg.setAttribute("viewBox", caja.join(" ")); actualizarEscala(); }
+  function actualizarEscala(){
+    if(!escalaEl) return;
+    var rect = svg.getBoundingClientRect();
+    if(!rect.width) return;
+    var metrosPorPx = caja[2] / rect.width;
+    var longitud = gpxEscalaRedonda(metrosPorPx * 120);
+    escalaEl.style.width = Math.max(20, Math.round(longitud / metrosPorPx)) + "px";
+    escalaEl.textContent = longitud >= 1000 ? (longitud / 1000) + " km" : longitud + " m";
+  }
+  function puntoSVG(cx, cy){
+    var rect = svg.getBoundingClientRect();
+    if(!rect.width || !rect.height) return { x: caja[0], y: caja[1] };
+    return { x: caja[0] + (cx - rect.left) / rect.width * caja[2], y: caja[1] + (cy - rect.top) / rect.height * caja[3] };
+  }
+  function escalar(factor, cx, cy){
+    var nuevoW = caja[2] * factor, nuevoH = caja[3] * factor;
+    if(nuevoW > cajaBase[2] * 3 || nuevoH > cajaBase[3] * 3) return;
+    if(nuevoW < cajaBase[2] * 0.02) return;
+    caja[0] = cx - (cx - caja[0]) * factor;
+    caja[1] = cy - (cy - caja[1]) * factor;
+    caja[2] = nuevoW; caja[3] = nuevoH;
+    aplicar();
+  }
+
+  svg.addEventListener("wheel", function(e){
+    e.preventDefault();
+    var p = puntoSVG(e.clientX, e.clientY);
+    escalar(e.deltaY < 0 ? 0.9 : 1.1, p.x, p.y);
+  }, { passive: false });
+
+  svg.addEventListener("pointerdown", function(e){
+    svg.setPointerCapture(e.pointerId);
+    punteros[e.pointerId] = { x: e.clientX, y: e.clientY };
+    var ids = Object.keys(punteros);
+    if(ids.length === 2){
+      var a = punteros[ids[0]], b = punteros[ids[1]];
+      distanciaInicial = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) || 1;
+      cajaInicial = caja.slice();
+    }
+  });
+  svg.addEventListener("pointermove", function(e){
+    if(!punteros[e.pointerId]) return;
+    var ids = Object.keys(punteros);
+    if(ids.length === 1){
+      var previo = punteros[e.pointerId], rect = svg.getBoundingClientRect();
+      if(rect.width && rect.height){
+        caja[0] -= (e.clientX - previo.x) / rect.width * caja[2];
+        caja[1] -= (e.clientY - previo.y) / rect.height * caja[3];
+        aplicar();
+      }
+      punteros[e.pointerId] = { x: e.clientX, y: e.clientY };
+    }else if(ids.length === 2){
+      punteros[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var a2 = punteros[ids[0]], b2 = punteros[ids[1]];
+      var dist = Math.sqrt(Math.pow(a2.x - b2.x, 2) + Math.pow(a2.y - b2.y, 2)) || 1;
+      var mitad = { x: (a2.x + b2.x) / 2, y: (a2.y + b2.y) / 2 };
+      var p = puntoSVG(mitad.x, mitad.y);
+      caja = cajaInicial.slice();
+      escalar(distanciaInicial / dist, p.x, p.y);
+    }
+  });
+  function soltar(e){ delete punteros[e.pointerId]; }
+  svg.addEventListener("pointerup", soltar);
+  svg.addEventListener("pointercancel", soltar);
+  svg.addEventListener("dblclick", function(){ caja = cajaBase.slice(); aplicar(); });
+  svg.style.touchAction = "none";
+  actualizarEscala();
+}
+/* vista 3D: el motor3d gira/escala; el svg se conserva y solo se redibuja su
+   contenido (reemplazar el propio <svg> perderia la captura del puntero a
+   mitad de un arrastre). */
+function gpxActivar3D(contenedor, payload, estado){
+  var svg = contenedor.querySelector(".gpx-svg3d");
+  if(!svg) return;
+  motor3dActivar(svg, estado, function(){
+    svg.innerHTML = gpxPrimitivas3D(payload.datos, payload.stats, payload.modoColor, payload.exageracion, estado);
+  });
+}
+/* vista Captura ya calibrada: el overlay necesita el tamaño natural de la
+   imagen, que solo se conoce cuando termina de cargar (no se persiste, para
+   no duplicar una fuente de verdad que ya tiene el propio archivo). */
+function gpxActivarCapturaVista(contenedor, payload){
+  var img = contenedor.querySelector(".gpx-captura-img");
+  var lienzo = contenedor.querySelector(".gpx-captura-lienzo");
+  if(!img || !lienzo) return;
+  function pintar(){
+    if(!img.naturalWidth || !img.naturalHeight) return;
+    var previo = lienzo.querySelector(".gpx-captura-svg");
+    if(previo) previo.remove();
+    lienzo.insertAdjacentHTML("beforeend", gpxCapturaOverlayHTML(payload.datos, payload.datos.calibracion, img.naturalWidth, img.naturalHeight));
+  }
+  if(img.complete) pintar();
+  else img.addEventListener("load", pintar, { once: true });
+}
+/* vista Perfil: recalcula la misma proyeccion que gpxSvgPerfil para no
+   duplicar formulas, y mueve un punto + una etiqueta flotante con el cursor
+   o el dedo. */
+function gpxActivarPerfil(contenedor, payload){
+  var svg = contenedor.querySelector(".gpx-svg-perfil");
+  var punto = contenedor.querySelector(".gpx-perfil-punto");
+  var tip = contenedor.querySelector(".gpx-perfil-tip");
+  if(!svg || !punto || !tip) return;
+  var serie = gpxPerfilDatos(payload.datos).serie;
+  function masCercano(xSvg){
+    var mejor = serie[0], mejorD = Infinity, i, d;
+    for(i = 0; i < serie.length; i++){
+      d = Math.abs(serie[i].x - xSvg);
+      if(d < mejorD){ mejorD = d; mejor = serie[i]; }
+    }
+    return mejor;
+  }
+  function mover(e){
+    var rect = svg.getBoundingClientRect();
+    if(!rect.width) return;
+    var p = masCercano(((e.clientX - rect.left) / rect.width) * 1000);
+    punto.setAttribute("cx", p.x); punto.setAttribute("cy", p.y);
+    punto.style.display = "";
+    tip.hidden = false;
+    tip.textContent = (p.d / 1000).toFixed(2) + " km · " + Math.round(p.ele) + " m · " + (p.tieneVel ? gpxN(p.vel) + " km/h" : "—");
+    tip.style.left = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)) + "%";
+  }
+  svg.addEventListener("pointermove", mover);
+  svg.addEventListener("pointerdown", mover);
+  svg.addEventListener("pointerleave", function(){ punto.style.display = "none"; tip.hidden = true; });
+  svg.style.touchAction = "pan-y";
+}
+function gpxSangria(n){ return n > 0 ? new Array(n + 1).join(" ") : ""; }
+
+/* ubica el n-esimo bloque ```gpx dentro del texto fuente (mismo criterio de
+   vallas que mdAHtml) y, si existe, el ```gpx-datos que lo acompaña justo
+   despues. Devuelve offsets de caracter en `src` para poder escribir sin
+   tener que reprocesar todo el documento. null si no se pudo ubicar (el
+   documento cambio de forma que ya no calza, p.ej. el bloque ya no existe). */
+function gpxLocalizarBloque(src, n){
+  var ls = src.split("\n"), top = [], pos = 0, i;
+  for(i = 0; i < ls.length; i++){ top.push(pos); pos += ls[i].length + 1; }
+  var contados = 0, k = 0;
+  while(k < ls.length){
+    var m = ls[k].match(RE_VALLA);
+    if(!m || m[2].length < 3){ k++; continue; }
+    var sangria = m[1].length, valla = m[2];
+    var etiqueta = (m[3] || "").toLowerCase().replace(/^lang(uage)?-/, "");
+    var iniLinea = k, j = k + 1, cerrada = false, c;
+    while(j < ls.length){
+      c = ls[j].match(RE_CIERRE);
+      if(c && c[1].charAt(0) === valla.charAt(0) && c[1].length >= valla.length){ cerrada = true; break; }
+      j++;
+    }
+    if(etiqueta !== "gpx" || !cerrada){ k = cerrada ? j + 1 : ls.length; continue; }
+    contados++;
+    if(contados !== n){ k = j + 1; continue; }
+
+    var cierreFin = (j + 1 < ls.length) ? top[j + 1] : src.length;
+    var datosLoc = null, kSig = j + 1;
+    if(kSig < ls.length){
+      var mD = ls[kSig].match(RE_VALLA);
+      if(mD && mD[2].length >= 3 && (mD[3] || "").toLowerCase() === "gpx-datos"){
+        var vallaD = mD[2], kD = kSig + 1, cD, cerradaD = false;
+        while(kD < ls.length){
+          cD = ls[kD].match(RE_CIERRE);
+          if(cD && cD[1].charAt(0) === vallaD.charAt(0) && cD[1].length >= vallaD.length){ cerradaD = true; break; }
+          kD++;
+        }
+        if(cerradaD){
+          datosLoc = {
+            bloqueInicio: top[kSig], bloqueFin: (kD + 1 < ls.length) ? top[kD + 1] : src.length,
+            contenidoInicio: top[kSig + 1], contenidoFin: top[kD]
+          };
+        }else{
+          /* abre ```gpx-datos pero nunca cierra: bloque roto a mano. Mejor
+             negarse (el que llama avisa) que insertar uno nuevo pegado al
+             remanente, que es como quedaba corrupto antes. */
+          datosLoc = { malformado: true };
+        }
+      }
+    }
+    return { sangria: sangria, contenidoInicio: top[iniLinea + 1], contenidoFin: top[j], cierreFin: cierreFin, datos: datosLoc };
+  }
+  return null;
+}
+
+/* huella corta (espacios colapsados, primeros 80 caracteres) del contenido
+   crudo de un bloque ```gpx. gpxLocalizarBloque cuenta vallas en base a las
+   lineas SIN la sangria que `lista()` les quita cuando el bloque esta dentro
+   de un item con sangria >=4 espacios, asi que un documento con esa forma
+   puede desincronizar el indice; y aunque no sea asi, el usuario puede editar
+   el documento durante los 200ms de debounce entre un click y el repintado.
+   Comparar contra esta huella antes de escribir convierte un "escribio en el
+   bloque equivocado sin avisar" en un "se nego a escribir y avisa". */
+function gpxFirma(texto){ return String(texto || "").replace(/\s+/g, "").slice(0, 80); }
+function gpxLocalizarBloqueVerificado(indiceGpx, firma){
+  var loc = gpxLocalizarBloque(fuenteActual, indiceGpx);
+  if(!loc) return null;
+  if(firma){
+    var real = gpxFirma(fuenteActual.slice(loc.contenidoInicio, loc.contenidoFin));
+    if(real.indexOf(firma) !== 0 && firma.indexOf(real) !== 0) return null;
+  }
+  return loc;
+}
+
+/* escribe o reemplaza el bloque ```gpx-datos que sigue al bloque ```gpx nro
+   indiceGpx, FUSIONANDO `campos` sobre lo que ya hubiera ahi (contexto de
+   Fase 3, imagen/calibracion de 3.8 pueden convivir en el mismo bloque). Un
+   valor null en `campos` borra esa clave (usado por "Quitar fondo"). El GPX
+   en si nunca se toca: este bloque vive aparte y borrarlo a mano reinicia el
+   estado sin perder la ruta (seccion 2.3 del spec). */
+function gpxEscribirCompanero(indiceGpx, firma, campos){
+  var loc = gpxLocalizarBloqueVerificado(indiceGpx, firma);
+  if(!loc || (loc.datos && loc.datos.malformado)) return false;
+  var actual = {};
+  if(loc.datos){
+    try{ actual = JSON.parse(fuenteActual.slice(loc.datos.contenidoInicio, loc.datos.contenidoFin)) || {}; }
+    catch(e){ actual = {}; }
+  }
+  Object.keys(campos).forEach(function(k){
+    if(campos[k] === null) delete actual[k];
+    else actual[k] = campos[k];
+  });
+  var sangriaTxt = gpxSangria(loc.sangria);
+  var json = JSON.stringify(actual, null, 2).split("\n").map(function(l){ return sangriaTxt + l; }).join("\n");
+  var bloque = sangriaTxt + "```gpx-datos\n" + json + "\n" + sangriaTxt + "```\n";
+  if(loc.datos){
+    fuenteActual = fuenteActual.slice(0, loc.datos.bloqueInicio) + bloque + fuenteActual.slice(loc.datos.bloqueFin);
+  }else{
+    /* si el bloque ```gpx es lo ultimo del documento y no termina en salto de
+       linea, cierreFin cae en src.length: sin este separador la valla nueva
+       queda pegada a la de cierre y el documento se corrompe al re-renderizar. */
+    var antes = fuenteActual.slice(0, loc.cierreFin);
+    var separador = (antes.length && !/\n$/.test(antes)) ? "\n" : "";
+    fuenteActual = antes + separador + bloque + fuenteActual.slice(loc.cierreFin);
+  }
+  return true;
+}
+function gpxEscribirContexto(indiceGpx, contexto, firma){
+  return gpxEscribirCompanero(indiceGpx, firma, { contexto: contexto });
+}
+function gpxWaypointXML(w){
+  var lat = Number(w.lat), lon = Number(w.lon), ele = Number(w.ele);
+  if(!isFinite(lat) || !isFinite(lon)) return "";
+  var l = ['  <wpt lat="' + lat.toFixed(6) + '" lon="' + lon.toFixed(6) + '">'];
+  if(isFinite(ele) && ele) l.push("    <ele>" + ele.toFixed(1) + "</ele>");
+  l.push("    <name>" + X(w.nombre) + "</name>");
+  if(w.tipo) l.push("    <type>" + X(w.tipo) + "</type>");
+  l.push("  </wpt>\n");
+  return l.join("\n");
+}
+/* mete un <wpt> nuevo justo antes de </gpx>, dentro del texto crudo del
+   bloque n-esimo (no del XML ya parseado: hay que tocar fuenteActual). */
+function gpxEscribirWaypoint(indiceGpx, wpt, firma){
+  var loc = gpxLocalizarBloqueVerificado(indiceGpx, firma);
+  if(!loc) return false;
+  var xml = gpxWaypointXML(wpt);
+  if(!xml) return false;
+  var contenido = fuenteActual.slice(loc.contenidoInicio, loc.contenidoFin);
+  var pos = contenido.search(/<\/gpx>/i);
+  if(pos < 0) return false;
+  var abs = loc.contenidoInicio + pos;
+  fuenteActual = fuenteActual.slice(0, abs) + xml + fuenteActual.slice(abs);
+  return true;
+}
+
+function gpxObtenerContexto(fig, payload, indice, alTerminar){
+  var boton = fig.querySelector(".gpx-boton-contexto");
+  if(boton){ boton.disabled = true; boton.textContent = "Consultando OpenStreetMap…"; }
+  var bbox = gpxBboxDatos(payload.datos);
+  fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "data=" + encodeURIComponent(gpxConsultaOverpass(bbox))
+  }).then(function(r){
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }, function(e){ throw sinRed(e); }).then(function(json){
+    var contexto = gpxSimplificarContexto(json);
+    if(indice && !gpxEscribirContexto(indice, contexto, payload.firma)){
+      throw new Error("no se pudo guardar el contexto en el documento");
+    }
+    payload.datos.contexto = contexto;
+    fig.dataset.gpx = JSON.stringify(payload);
+    trasRellenar();
+    alTerminar();
+  })["catch"](function(e){
+    if(boton){ boton.disabled = false; boton.textContent = "Obtener contexto del mapa (una vez)"; }
+    aviso("No se pudo obtener el contexto del mapa: " + (e && e.message ? e.message : "error desconocido"));
+  });
+}
+function gpxAgregarPoi(fig, payload, indice, idx, alTerminar){
+  var contexto = payload.datos.contexto;
+  if(!contexto || !contexto.pois || !contexto.pois[idx]) return;
+  var poi = contexto.pois[idx];
+  var lat = Number(poi.lat), lon = Number(poi.lon);
+  if(!isFinite(lat) || !isFinite(lon)){
+    aviso("Este punto no tiene coordenadas válidas.");
+    return;
+  }
+  var wpt = {
+    lat: lat, lon: lon, ele: 0,
+    nombre: (poi.nombre || gpxClasePoiTexto(poi.clase)).replace(/[\r\n]+/g, " "),
+    tipo: poi.clase
+  };
+  if(indice && !gpxEscribirWaypoint(indice, wpt, payload.firma)){
+    aviso("No pude agregar este punto: no encontré dónde cerrar el <gpx> en el texto.");
+    return;
+  }
+  payload.datos.waypoints.push(wpt);
+  contexto.pois.splice(idx, 1);
+  fig.dataset.gpx = JSON.stringify(payload);
+  trasRellenar();
+  alTerminar();
+}
+
+/* dueño de un <figure> de principio a fin: cambio de vista, pedir contexto y
+   agregar un POI a la ruta, todo por delegacion de click en el propio `fig`
+   (asi sobrevive a que refrescarTodo reemplace su innerHTML por completo). */
+function gpxActivarFigura(fig){
+  var payload;
+  try{ payload = JSON.parse(fig.dataset.gpx || "{}"); }catch(e){ return; }
+  if(!payload.datos) return;
+  var estado3d = { yaw: -0.6, pitch: 0.55, escala: 1 };
+  var indice = parseInt(fig.dataset.gpxIndice, 10) || 0;
+  var calibEstado = null;    // transitorio: paso de calibracion en curso, nunca se persiste
+
+  function activarVistaActual(){
+    var vista = fig.dataset.vista || "2d";
+    var contenedor = fig.querySelector(".gpx-vista-actual");
+    if(vista === "3d") gpxActivar3D(contenedor, payload, estado3d);
+    else if(vista === "perfil") gpxActivarPerfil(contenedor, payload);
+    else if(vista === "captura"){
+      if(payload.datos.calibracion && !(calibEstado && calibEstado.paso)) gpxActivarCapturaVista(contenedor, payload);
+    }else gpxActivarInteraccion(fig);
+  }
+  function mostrarVista(vista){
+    fig.dataset.vista = vista;
+    fig.querySelector(".gpx-vista-actual").innerHTML = gpxRenderizarVista(vista, payload, estado3d, calibEstado);
+    Array.prototype.forEach.call(fig.querySelectorAll(".gpx-boton-vista"), function(b){
+      var activo = b.getAttribute("data-vista") === vista;
+      b.classList.toggle("activo", activo);
+      b.setAttribute("aria-pressed", String(activo));
+    });
+    activarVistaActual();
+  }
+  function refrescarTodo(){
+    fig.innerHTML = gpxContenidoFigura(payload, fig.dataset.vista || "2d", estado3d, calibEstado);
+    activarVistaActual();
+  }
+  function guardarCompanero(campos, avisoSiFalla){
+    if(indice && !gpxEscribirCompanero(indice, payload.firma, campos)) aviso(avisoSiFalla);
+    fig.dataset.gpx = JSON.stringify(payload);
+    trasRellenar();
+  }
+
+  fig.addEventListener("click", function(e){
+    var t = e.target, el;
+    el = t.closest ? t.closest(".gpx-boton-vista") : null;
+    if(el){ mostrarVista(el.getAttribute("data-vista")); return; }
+    el = t.closest ? t.closest(".gpx-boton-contexto") : null;
+    if(el){ gpxObtenerContexto(fig, payload, indice, refrescarTodo); return; }
+    el = t.closest ? t.closest(".gpx-boton-agregar-poi") : null;
+    if(el){ gpxAgregarPoi(fig, payload, indice, parseInt(el.getAttribute("data-poi-idx"), 10), refrescarTodo); return; }
+    el = t.closest ? t.closest(".gpx-boton-calibrar") : null;
+    if(el){
+      var selA = fig.querySelector(".gpx-captura-a"), selB = fig.querySelector(".gpx-captura-b");
+      var claveA = selA ? selA.value : "inicio", claveB = selB ? selB.value : "fin";
+      if(claveA === claveB){ aviso("Elige dos puntos distintos para calibrar."); return; }
+      calibEstado = { paso: "tocarA", claveA: claveA, claveB: claveB, p1: null };
+      refrescarTodo();
+      return;
+    }
+    el = t.closest ? t.closest(".gpx-boton-cancelar-calibracion") : null;
+    if(el){ calibEstado = null; refrescarTodo(); return; }
+    el = t.closest ? t.closest(".gpx-boton-recalibrar") : null;
+    if(el){ calibEstado = { paso: "seleccion" }; mostrarVista("captura"); return; }
+    el = t.closest ? t.closest(".gpx-boton-quitar-fondo") : null;
+    if(el){
+      payload.datos.imagen = null;
+      payload.datos.calibracion = null;
+      calibEstado = null;
+      if(fig.dataset.vista === "captura") fig.dataset.vista = "2d";
+      guardarCompanero({ imagen: null, calibracion: null }, "No pude quitar el fondo del documento.");
+      refrescarTodo();
+      return;
+    }
+    el = (t.classList && t.classList.contains("gpx-captura-img")) ? t : null;
+    if(el && calibEstado && (calibEstado.paso === "tocarA" || calibEstado.paso === "tocarB")){
+      var rect = el.getBoundingClientRect();
+      if(!rect.width || !el.naturalWidth) return;
+      var px = { x: (e.clientX - rect.left) / rect.width * el.naturalWidth, y: (e.clientY - rect.top) / rect.height * el.naturalHeight };
+      if(calibEstado.paso === "tocarA"){
+        calibEstado.p1 = px;
+        calibEstado.paso = "tocarB";
+        refrescarTodo();
+        return;
+      }
+      var ptA = gpxPuntoCalibrablePorClave(payload.datos, calibEstado.claveA);
+      var ptB = gpxPuntoCalibrablePorClave(payload.datos, calibEstado.claveB);
+      var local = gpxLocalDe(payload.datos);
+      var cal = (ptA && ptB) ? gpxCalibrar(local(ptA.geo), calibEstado.p1, local(ptB.geo), px) : null;
+      if(!cal){
+        aviso("No pude calibrar con esos dos puntos; toca de nuevo.");
+        calibEstado = { paso: "tocarA", claveA: calibEstado.claveA, claveB: calibEstado.claveB, p1: null };
+        refrescarTodo();
+        return;
+      }
+      payload.datos.calibracion = cal;
+      calibEstado = null;
+      fig.dataset.vista = "captura";
+      guardarCompanero({ calibracion: cal }, "La calibración se aplicó pero no pude guardarla en el documento.");
+      refrescarTodo();
+      return;
+    }
+    el = t.closest ? t.closest(".gpx-wpt") : null;
+    if(el){
+      var li = fig.querySelector('.gpx-nota[data-widx="' + el.getAttribute("data-widx") + '"]');
+      if(!li) return;
+      Array.prototype.forEach.call(fig.querySelectorAll(".gpx-nota.gpx-resaltada"), function(x){ x.classList.remove("gpx-resaltada"); });
+      li.classList.add("gpx-resaltada");
+      li.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  });
+
+  fig.addEventListener("change", function(e){
+    var t = e.target;
+    if(!t.classList || !t.classList.contains("gpx-input-captura")) return;
+    var archivo = t.files && t.files[0];
+    if(!archivo) return;
+    if(!/^image\//.test(archivo.type)){ aviso("Elige un archivo de imagen."); return; }
+    if(archivo.size > 500000){
+      aviso("Esta imagen pesa " + Math.round(archivo.size / 1024) + " KB; el documento va a crecer bastante.");
+    }
+    var lector = new FileReader();
+    lector.onload = function(){
+      payload.datos.imagen = String(lector.result);
+      payload.datos.calibracion = null;
+      calibEstado = { paso: "seleccion" };
+      fig.dataset.vista = "captura";
+      guardarCompanero({ imagen: payload.datos.imagen, calibracion: null }, "No pude guardar la imagen en el documento.");
+      refrescarTodo();
+    };
+    lector.onerror = function(){ aviso("No pude leer esa imagen."); };
+    lector.readAsDataURL(archivo);
+  });
+
+  activarVistaActual();
+}
+function prepararGPX(){
+  Array.prototype.forEach.call(elDoc.querySelectorAll(".gpx-viewer"), function(fig){
+    if(fig.dataset.gpxListo) return;
+    fig.dataset.gpxListo = "1";
+    gpxActivarFigura(fig);
+  });
+}
+
 /* cuanto ocupa la barra flotante: el documento deja ese hueco arriba para que
    el titulo no se quede debajo. Cambia al salir o entrar la fila de pestañas y
    al girar el telefono, asi que se vuelve a medir en esos dos momentos. */
@@ -5409,6 +7073,7 @@ function pintar(md){
   marcarIdioma(r.meta);
   botonesCopiar();
   prepararDiagramas();
+  prepararGPX();
   prepararPlegado();
   contarCampos();
   calcularHojas();
@@ -6476,9 +8141,18 @@ function menuCompartir(){
   filas.push("</div>");
   abrirChico("Compartir", filas.join(""));
 }
+/* aviso de licencias solo en el momento justo de publicar (seccion 3.8 del
+   spec): una busqueda liviana del bloque companero basta, esto es solo un
+   texto informativo, no una verificacion de seguridad. */
+function gpxDocumentoTieneCaptura(src){
+  return /```[`~]{0,}gpx-datos\b[\s\S]*?"imagen"\s*:\s*"data:image/.test(src);
+}
 function formPublicar(){
   var t = ((docActual && docActual.titulo) || (document.title || "").replace(/ · MDx$/, "")).trim();
   if(t === "MDx") t = "";
+  var notaCaptura = gpxDocumentoTieneCaptura(fuenteActual)
+    ? '<p class="chico-nota">Esta ruta lleva una captura de mapa como fondo: si es de un mapa con dueño (Google Maps y similares), no la publiques así; si es de OpenStreetMap, deja la atribución "© OpenStreetMap contributors" en el documento.</p>'
+    : "";
   abrirChico("Publicar en la comunidad", [
     '<div class="chico-form">',
     '<label>Título <input type="text" id="pubTitulo" maxlength="80" value="' + escUI(t) + '"></label>',
@@ -6486,6 +8160,7 @@ function formPublicar(){
     '<p class="chico-nota">Se publica ANÓNIMA y PÚBLICA: no es de nadie y es de todos. ' +
       'Cualquiera podrá verla y usarla desde Plantillas → Comunidad, y después no se puede editar. ' +
       'Te llevas un enlace para compartirla donde quieras.</p>',
+    notaCaptura,
     '<div class="chico-pie"><button type="button" class="principal" id="pubHacer">Publicar</button></div>',
     "</div>"
   ].join(""));
@@ -6525,7 +8200,7 @@ function menuBarra(){
     ["btnEsquema",    "&#9776;",        "Esquema",    "Índice del documento: saltar de un título a otro"],
     ["btnRellenar",   "&#9998;&#9648;", "Rellenar",   "Rellenar los campos del documento aquí mismo"],
     ["btnNuevo",      "&#65291;",       "Nuevo",      "Empezar un documento en blanco"],
-    ["btnAbrir",      "&#128194;",      "Abrir",      "Abrir un archivo .md de tu equipo"],
+    ["btnAbrir",      "&#128194;",      "Abrir",      "Abrir un archivo .md o .html de tu equipo"],
     ["btnDescargar",  "&#10515;",       "Descargar",  "El texto en .md, la página en .html o la vista en .png"],
     ["btnCompartir",  "&#10150;",       "Compartir",  "El enlace, el archivo .md, o publicar la plantilla"],
     ["btnImprimir",   "&#128424;",      "Imprimir",   "Imprimir o guardar como PDF, limpio y sin botones"],
@@ -8052,11 +9727,13 @@ $("#archivo").addEventListener("change", function(){
   if(!confirmarReemplazo()) return;
   var fr = new FileReader();
   fr.onload = function(){
-    var texto = String(fr.result);
-    fijarTexto(texto, f.name, {
+    var r = comoMarkdown(f.name, String(fr.result));
+    if(r.convertido && !r.texto.trim()){ aviso("Ese HTML no tiene texto para convertir"); return; }
+    fijarTexto(r.texto, r.nombre, {
       origen: "local", version: 1, descargado: f.lastModified || Date.now(),
-      nombreDescarga: f.name, firmaDescarga: firma(texto)
+      nombreDescarga: r.nombre, firmaDescarga: firma(r.texto)
     });
+    if(r.convertido) aviso("Convertido de HTML a Markdown: revisá el resultado, sobre todo tablas y formato raro");
   };
   fr.readAsText(f);
 });
@@ -8108,21 +9785,23 @@ $("#respaldo").addEventListener("change", function(){
   fr.readAsText(f);
 });
 
-/* arrastrar y soltar un .md sobre la página */
+/* arrastrar y soltar un .md o .html sobre la página */
 ["dragover", "drop"].forEach(function(ev){
   document.addEventListener(ev, function(e){
     e.preventDefault();
     if(ev !== "drop") return;
     var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if(!f || !/\.(md|markdown|mdown|mkd|txt)$/i.test(f.name)) return;
+    if(!f || !/\.(md|markdown|mdown|mkd|txt|html?)$/i.test(f.name)) return;
     if(!confirmarReemplazo()) return;
     var fr = new FileReader();
     fr.onload = function(){
-      var texto = String(fr.result);
-      fijarTexto(texto, f.name, {
+      var r = comoMarkdown(f.name, String(fr.result));
+      if(r.convertido && !r.texto.trim()){ aviso("Ese HTML no tiene texto para convertir"); return; }
+      fijarTexto(r.texto, r.nombre, {
         origen: "local", version: 1, descargado: f.lastModified || Date.now(),
-        nombreDescarga: f.name, firmaDescarga: firma(texto)
+        nombreDescarga: r.nombre, firmaDescarga: firma(r.texto)
       });
+      if(r.convertido) aviso("Convertido de HTML a Markdown: revisá el resultado, sobre todo tablas y formato raro");
     };
     fr.readAsText(f);
   });

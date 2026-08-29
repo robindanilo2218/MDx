@@ -1,0 +1,555 @@
+# MDx — Especificación v2: Sistema de Bloques Extensibles
+
+> Reemplaza a `gpx-integracion-mdcrgm-spec.md` (v1). Consolida el bloque GPX corregido
+> (SVG propio, sin Leaflet, sin CDN) y lo generaliza a un sistema de bloques con vallas
+> para toda la app: planos, 3D, pizarra, diagramas eléctricos y más.
+> Pensado para ser leído por Claude Code antes de tocar código.
+
+---
+
+## 0. Qué cambia respecto a la v1
+
+1. **Bloques con vallas, no divisores.** `--- GPX ---` se descarta: en MDx cada `---`
+   ya abre diapositivas, y el mecanismo de extensión establecido son los bloques con
+   vallas (` ```mermaid `). Todo lo nuevo usa ` ```tipo `. Bonus: en GitHub o cualquier
+   otro visor, un bloque con vallas degrada a un bloque de código legible.
+2. **Sin Leaflet, sin CDN, sin teselas.** La v1 contradecía la filosofía de la app
+   (sin librerías, sin CDN, sin peticiones a internet). La ruta, colores, waypoints y
+   estadísticas son geometría pura → SVG propio, offline. El contexto de mapa se
+   obtiene **una sola vez** como datos vectoriales (Overpass) y se incrusta en el
+   documento. Nota de política: el servidor de teselas de OSM prohíbe guardar teselas
+   para uso sin conexión; los **datos** de OSM sí son libres (con atribución).
+3. **Nuevas vistas GPX:** 3D con cortina de elevación, perfil de elevación,
+   zoom/paneo/rotación, estadísticas de cuestas.
+4. **Fondo por captura del usuario** con calibración de 2 puntos.
+5. **Nuevos bloques:** `svg`, `plano`, `iso`, `3d`, `ladder`, `chart`, `qr`, `pizarra`.
+6. **Pizarrón global** y **lápiz en modo Presentar**.
+7. **Motor 3D compartido** (se escribe una vez, lo usan `gpx`, `iso` y `3d`).
+
+---
+
+## 1. Filosofía y restricciones (innegociables)
+
+- Toda la app vive en `index.html`: motor propio, sin librerías, sin CDN, sin
+  peticiones a internet en el uso normal.
+- Cada renderer nuevo son **líneas añadidas a index.html** — ese es el presupuesto.
+  El motor actual de Markdown ronda las 900 líneas; el total de esta spec añade
+  ~1 800–2 200 líneas repartidas en fases (sección 13).
+- El documento descargado como `.html` único lleva los renderers dentro: un informe
+  de ruta o un plano sigue siendo interactivo dentro de diez años, sin conexión.
+- APIs permitidas: solo las nativas del navegador (`DOMParser`, `FileReader`,
+  Pointer Events, SVG, canvas, `requestAnimationFrame`).
+- Excepción única y explícita a "sin internet": el botón **opcional** de contexto
+  OSM (sección 3.7), que hace **una** petición, incrusta el resultado en el
+  documento y no vuelve a pedir nada.
+
+---
+
+## 2. Convención general: bloques con vallas + despacho
+
+### 2.1 Sintaxis
+
+````
+```gpx vista=3d exageracion=3
+<contenido del bloque>
+```
+````
+
+- La palabra tras las vallas es el **tipo**; lo que sigue en la misma línea son
+  **parámetros** `clave=valor` (la "info string", igual que ya se lee `mermaid`).
+- Fuera de los bloques, todo es Markdown normal de MDx (imágenes, tablas,
+  formularios, fórmulas…) arriba, abajo y entre bloques.
+
+### 2.2 Tabla de despacho interna
+
+```javascript
+const BLOQUES = {
+  mermaid: dibujarMermaid,          // ya existe
+  gpx:     dibujarGpx,
+  svg:     dibujarSvgCrudo,
+  plano:   dibujarPlano,
+  iso:     dibujarIso,
+  '3d':    dibujar3d,
+  ladder:  dibujarLadder,
+  chart:   dibujarChart,
+  qr:      dibujarQr,
+  pizarra: dibujarPizarra
+};
+// En el motor: si el lenguaje de la valla está en BLOQUES, se despacha;
+// si no, sigue siendo un bloque de código coloreado como hasta ahora.
+```
+
+### 2.3 Bloques gestionados (companion)
+
+Algunos bloques necesitan guardar datos que la **app** genera (contexto OSM,
+imagen calibrada). Van en un bloque companion inmediatamente después, escrito y
+reescrito por la app, que el usuario no edita a mano:
+
+````
+```gpx
+<gpx>…</gpx>
+```
+```gpx-datos
+{ "contexto": {…}, "imagen": "data:image/png;base64,…", "calibracion": {…} }
+```
+````
+
+Razón: el GPX queda puro y portable a cualquier otra app; el enriquecimiento vive
+aparte; borrar el bloque `gpx-datos` reinicia el estado sin perder la ruta.
+(Mismo patrón que ya usa MDx: los formularios guardan lo rellenado dentro del
+propio Markdown.)
+
+---
+
+## 3. Bloque ```gpx (v2)
+
+### 3.1 Sintaxis y parámetros
+
+````
+```gpx vista=2d exageracion=3 color=velocidad
+<?xml version="1.0"?>
+<gpx version="1.1">…</gpx>
+```
+````
+
+| Parámetro | Valores | Default |
+|---|---|---|
+| `vista` | `2d` \| `3d` \| `perfil` | `2d` |
+| `exageracion` | factor vertical del 3D | `3` |
+| `color` | `velocidad` \| `pendiente` | `velocidad` |
+
+La vista inicial la fija el parámetro; el usuario alterna con botones 2D / 3D / Perfil
+en el bloque renderizado (la elección de sesión no reescribe el documento).
+
+### 3.2 Parser (qué se lee del GPX)
+
+- `<trkpt lat lon>` con `<ele>` y `<time>` → puntos del recorrido real.
+- `<rtept>` dentro de `<rte>` → ruta **planificada** (si existe, se dibuja punteada
+  gris bajo el track real: comparación plan vs realidad).
+- `<wpt lat lon>` → notas y puntos de referencia, con:
+  - `<name>`, `<desc>`, `<cmt>` (comentario corto)
+  - `<sym>` (símbolo estándar, p. ej. `Gas Station`)
+  - `<type>` (categoría libre: `combustible`, `cliente`, `parada`, `incidente`…)
+  - `<link href="…">` (URLs — fotos del punto, p. ej. Drive; se muestran en el
+    popup y en la lista)
+  - `<time>`, `<extensions>` (se conservan tal cual; Garmin guarda ahí dirección
+    y teléfono — un negocio completo cabe en un waypoint)
+- `<metadata>`: nombre, autor, fecha, bounds (si vienen, se usan para el encuadre).
+
+**Color de waypoint:** por `<type>` contra una tabla (`combustible→#FFD700`,
+`incidente→#FF0000`, `cliente→#00AA00`, `parada→#FF8800`, default `#0099FF`);
+si no hay `<type>`, fallback por palabra clave en `<name>` (compatibilidad v1).
+
+### 3.3 Estadísticas
+
+Las de la v1 (distancia por aproximación equirectangular, velocidad media/máx/mín,
+desnivel positivo, tiempo total, cuartiles de velocidad) **más**:
+
+- **Pendiente media y máxima** (%): `Δele / Δdist_horizontal × 100` por segmento.
+- **Comportamiento en cuestas:** velocidad media clasificando cada segmento por
+  pendiente — *subida* (> +2 %), *llano* (−2 % a +2 %), *bajada* (< −2 %). Tres
+  números que responden "¿cómo maneja en cuesta?".
+- Segmentos sin timestamps: sin velocidad calculable → esos segmentos van en gris
+  y las estadísticas de velocidad indican "parcial".
+
+### 3.4 Vista 2D — marco limpio (default, cero internet)
+
+- `viewBox` ajustado al bounding box de la ruta + 5 % de margen.
+- **Barra de escala** (longitud redonda: 100 m / 500 m / 1 km según extensión),
+  **flecha norte**, cuadrícula tenue opcional.
+- Polilínea coloreada por cuartil (verde/amarillo/naranja/rojo), marcadores de
+  inicio (verde) y fin (rojo), waypoints con su color de `<type>` y popup
+  (nombre, desc, hora, miniaturas de `<link>` si son imágenes).
+- **Zoom y paneo:** rueda del mouse / pellizco de dos dedos escala el `viewBox`;
+  arrastre lo desplaza. ~60 líneas con Pointer Events. Doble clic/tap: reencuadrar.
+
+### 3.5 Vista 3D — cortina de elevación
+
+**Conversión a mundo local** (ejes: `x` = este en metros, `y` = norte en metros,
+`z` = altura exagerada):
+
+```javascript
+const lat0 = latMin, lon0 = lonMin, k = Math.cos(lat0 * Math.PI / 180);
+const x = (lon - lon0) * 111320 * k;
+const y = (lat - lat0) * 110574;
+const z = (ele - eleMin) * EXAGERACION;   // default 3; el desnivel real es
+                                          // diminuto frente a la distancia
+```
+
+**Dibujo:** la ruta es la arista superior; bajo cada segmento se pinta un
+cuadrilátero semitransparente hasta el suelo (la "cortina") — las cuestas se ven:
+
+```javascript
+// un cuadrilátero por segmento (conceptual; R() = rotar+proyectar del motor 3D)
+const a  = R(p[i]),            b  = R(p[i+1]);
+const a0 = R({...p[i], z: 0}), b0 = R({...p[i+1], z: 0});
+poligonos.push({
+  d: `M${a0.x} ${a0.y} L${a.x} ${a.y} L${b.x} ${b.y} L${b0.x} ${b0.y} Z`,
+  color: colorSegmento(i)   // por velocidad o por pendiente según `color=`
+});
+```
+
+Además: rectángulo de suelo tenue, la sombra de la ruta proyectada en z=0, y los
+waypoints como agujas verticales con su etiqueta.
+
+**Interacción:** arrastrar rota (`yaw += dx·0.01`, `pitch += dy·0.01`, pitch
+acotado 0–85°); rueda/pellizco escala; botones 2D / 3D / Perfil alternan vista.
+Redibujo dentro de `requestAnimationFrame`.
+
+**Rendimiento:** para la vista 3D interactiva, simplificar el track a ≤ 400 puntos
+con Douglas-Peucker (la 2D y las estadísticas usan todos los puntos):
+
+```javascript
+function simplificar(pts, tol) {
+  if (pts.length < 3) return pts;
+  const a = pts[0], b = pts[pts.length - 1];
+  let imax = 0, dmax = 0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const d = distPuntoSegmento(pts[i], a, b);   // distancia perpendicular estándar
+    if (d > dmax) { dmax = d; imax = i; }
+  }
+  if (dmax > tol) {
+    const izq = simplificar(pts.slice(0, imax + 1), tol);
+    const der = simplificar(pts.slice(imax), tol);
+    return izq.slice(0, -1).concat(der);
+  }
+  return [a, b];
+}
+```
+
+### 3.6 Vista Perfil
+
+Gráfica 2D: `x` = distancia acumulada, `y` = elevación, línea coloreada por el
+mismo criterio (`velocidad` o `pendiente`). Tocar/pasar el cursor muestra
+km recorridos, velocidad y altitud del punto. Los waypoints aparecen como marcas
+verticales con su nombre. ~120 líneas.
+
+### 3.7 Contexto OSM incrustado (una sola vez, opcional)
+
+- El bloque renderizado muestra un botón **"Obtener contexto del mapa (una vez)"**
+  cuando no hay contexto en `gpx-datos`.
+- Al pulsarlo: una consulta a Overpass API con el bbox de la ruta:
+
+```
+[out:json][timeout:25][bbox:S,O,N,E];
+(
+  way[highway~"motorway|trunk|primary|secondary|tertiary|residential|unclassified"];
+  way[waterway~"river|stream"];
+  node[amenity~"fuel|restaurant|hospital|police"];
+);
+out geom;
+```
+
+  `out geom` devuelve coordenadas inline, listas para dibujar sin resolver
+  referencias. Endpoint por defecto: `https://overpass-api.de/api/interpreter`
+  (configurable, pregunta abierta 14.6).
+- La respuesta se **simplifica** (solo coordenadas + una etiqueta de clase por
+  elemento) y se escribe en `gpx-datos.contexto`. Desde entonces el render es
+  100 % offline.
+- **Dibujo:** calles en gris (grosor por clase), ríos en azul tenue, POIs como
+  puntitos con nombre — todo detrás de la ruta, respetando tema claro/oscuro.
+- **Atribución obligatoria y visible** en la esquina del dibujo:
+  `© OpenStreetMap contributors` (los datos son ODbL; la atribución no es opcional).
+- **Botón "añadir a la ruta":** cualquier POI del contexto se convierte en `<wpt>`
+  del GPX con `<type>` y `<sym>` — "qué hay alrededor" pasa a ser parte del archivo.
+
+### 3.8 Fondo por captura del usuario (calibración de 2 puntos)
+
+Para quien prefiere su propia captura de pantalla de cualquier mapa:
+
+1. Botón **"Usar captura como fondo"** → `FileReader` → dataURL → se guarda en
+   `gpx-datos.imagen`.
+2. **Calibración:** la app resalta dos puntos conocidos de la ruta (por defecto
+   inicio y fin; el usuario puede elegir dos waypoints) y pide: *"toca en la
+   imagen dónde está el inicio… ahora dónde está el fin"*. Dos pares
+   (geo → píxel) bastan para resolver escala + rotación + traslación:
+
+```javascript
+// Transformación de semejanza a partir de 2 pares (método del número complejo).
+// g* en metros locales (sección 3.5), p* en píxeles de la imagen.
+function calibrar(g1, p1, g2, p2) {
+  const gx = g2.x - g1.x, gy = g2.y - g1.y;
+  const px = p2.x - p1.x, py = p2.y - p1.y;
+  const d = gx * gx + gy * gy;
+  const a = (gx * px + gy * py) / d;      // parte real  (escala·cos θ)
+  const b = (gx * py - gy * px) / d;      // parte imag. (escala·sen θ)
+  return { a, b, tx: p1.x - (a * g1.x - b * g1.y),
+                 ty: p1.y - (b * g1.x + a * g1.y) };
+}
+function geoAPixel(g, c) {
+  return { x: c.a * g.x - c.b * g.y + c.tx,
+           y: c.b * g.x + c.a * g.y + c.ty };
+}
+```
+
+3. La calibración se guarda en `gpx-datos.calibracion`; el render pone
+   `<image href="dataURL">` como capa base y la ruta encima en coordenadas de
+   imagen. Determinista, offline, para siempre. Ajuste fino opcional: arrastrar /
+   escalar la capa de ruta con dos tiradores.
+4. **Peso:** avisar si la imagen incrustada supera ~500 KB (el documento crece).
+5. **Licencias, en el momento justo:** al **Publicar en Comunidad** un documento
+   con captura de fondo, mostrar aviso: capturas de mapas propietarios (Google,
+   etc.) no deben republicarse; capturas basadas en OSM requieren la atribución
+   `© OpenStreetMap contributors`. Para uso personal no se molesta al usuario.
+
+---
+
+## 4. Bloque ```svg — vectores crudos
+
+Pasa el SVG del bloque directo al DOM, **saneado**: se eliminan `<script>`,
+`<foreignObject>`, atributos `on*` y cualquier `href`/`xlink:href` que empiece
+por `javascript:`. Lista blanca simple, ~40 líneas. Poder total para quien sabe
+SVG; base de pruebas para todos los demás bloques.
+
+---
+
+## 5. Bloque ```plano — planos 2D con estadísticas
+
+### 5.1 DSL
+
+````
+```plano
+escala 1m = 40px
+muro 0,0 → 10,0 → 10,8 → 0,8 → 0,0
+muro 6,0 → 6,8
+puerta 2,0 ancho 1
+puerta 6,4 ancho 0.9
+ventana 10,3 ancho 1.5
+texto 3,4 Sala
+texto 8,4 Dormitorio
+cota 0,0 → 10,0
+```
+````
+
+- `muro` acepta cadenas de puntos (polilínea) — una casa en pocas líneas.
+- `puerta` y `ventana` se colocan **sobre** el muro más cercano al punto dado
+  (se proyecta a la pared y se abre el hueco): el usuario no calcula ángulos.
+- `cota` dibuja línea de medida acotada con flechas y el valor en metros.
+
+### 5.2 Render y simbología
+
+SVG propio: muros como trazo grueso (0.2 m a escala), puertas como arco de
+apertura (simbología arquitectónica), ventanas como línea triple, textos
+centrados, cotas con flechas. Tema claro/oscuro. La vista sale por el export PNG
+que ya existe.
+
+### 5.3 Estadísticas automáticas (la jugada del GPX aplicada a planos)
+
+- **Área por recinto cerrado** (fórmula del polígono/shoelace sobre los ciclos
+  cerrados de muros) y área total.
+- **Metros lineales de muro** y conteo de aberturas → base para estimar
+  materiales (block, pintura) en una tabla bajo el dibujo.
+
+Presupuesto: ~200–250 líneas.
+
+---
+
+## 6. Bloque ```iso — vista isométrica (2.5D)
+
+````
+```iso
+caja 0,0,0 4,3,2.5 Sala
+caja 4,0,0 3,3,2.5 Cocina
+```
+````
+
+Cada `caja x,y,z ancho,fondo,alto etiqueta` se proyecta con la isométrica clásica:
+
+```javascript
+const iso = (x, y, z) => ({ px: (x - y) * 0.866, py: (x + y) * 0.5 - z });
+```
+
+Orden de pintado por profundidad (ordenar cajas por `x + y + z`, algoritmo del
+pintor simple), tres caras visibles con tres tonos del mismo color. ~100–150 líneas.
+
+---
+
+## 7. Bloque ```3d — alámbrico rotable
+
+````
+```3d
+v A 0 0 0
+v B 4 0 0
+v C 4 3 0
+arista A B
+arista B C
+caja 0,0,0 4,3,2.5
+```
+````
+
+`v nombre x y z` define vértices, `arista` los une, `caja` es azúcar sintáctico
+(8 vértices + 12 aristas). Rotación y zoom idénticos al GPX 3D — mismo motor
+(sección 8). **Frontera declarada:** caras sólidas con luces y texturas quedan
+fuera (eso es territorio de librerías de 600 kb); el alámbrico es el límite sano
+y para planos se lee incluso mejor. ~150 líneas sobre el motor compartido.
+
+---
+
+## 8. Motor 3D compartido (`motor3d`)
+
+Se escribe **una vez** (~120 líneas); lo usan `gpx vista=3d`, `iso` y `3d`.
+
+```javascript
+// Estado por instancia: { yaw, pitch, escala, cx, cy }
+function rotarY(p, a) { const c = Math.cos(a), s = Math.sin(a);
+  return { x: p.x * c + p.z * s, y: p.y, z: -p.x * s + p.z * c }; }
+function rotarX(p, a) { const c = Math.cos(a), s = Math.sin(a);
+  return { x: p.x, y: p.y * c - p.z * s, z: p.y * s + p.z * c }; }
+function proyectar(p, d = 800) { const f = d / (d + p.z);
+  return { x: p.x * f, y: -p.y * f }; }   // y invertida para pantalla
+```
+
+Gestos (Pointer Events, sirven para mouse, dedo y stylus):
+- 1 puntero arrastrando → `yaw += dx·0.01; pitch = clamp(pitch + dy·0.01, 0, 1.48)`
+- rueda → `escala *= (deltaY < 0 ? 1.1 : 0.9)`
+- 2 punteros → la razón entre distancias entre dedos ajusta `escala` (pellizco)
+- redibujo agrupado en `requestAnimationFrame`
+
+---
+
+## 9. Bloque ```ladder — escalera PLC / esquemas eléctricos
+
+Complementa el juego de plantillas de mantenimiento eléctrico industrial que la
+app ya trae (LOTO, termografía, causa raíz…): la escalera del PLC o el mando del
+motor viven en el mismo documento del permiso de trabajo.
+
+````
+```ladder
+| [PARO/] [ARRANQUE] ---------------- (M1)  | arranque-paro con sello
+| [M1] ----+                                |
+| [M1] ------------ [TON T1 5s] ----- (L1)  | piloto retardado
+```
+````
+
+Sintaxis por peldaño: `[X]` contacto NA, `[X/]` contacto NC, `(Y)` bobina,
+`[TON Tn t]` temporizador, `+` derivación (rama en paralelo con el peldaño
+anterior). Render: dos rieles verticales, peldaños horizontales, símbolos IEC
+dibujados en SVG, etiquetas encima. ~200 líneas.
+(Diagrama unifilar: pregunta abierta 14.4.)
+
+---
+
+## 10. Bloque ```chart — gráficas de datos
+
+Complementa la tarta y el Gantt que ya existen vía mermaid, con gráficas de
+**datos**:
+
+````
+```chart tipo=barras titulo=Producción
+Ene 120
+Feb 135
+Mar 128
+```
+````
+
+Tipos: `barras`, `lineas`, `dispersion` (esta última con pares `x y` por línea).
+Alternativa: `origen=tabla #id` lee una tabla Markdown del documento (que ya
+puede tener fórmulas de celda — las gráficas heredan los valores calculados).
+Ejes autoescalados, colores del tema. ~150–200 líneas.
+
+---
+
+## 11. Bloque ```qr
+
+Contenido: un texto o URL (uso estrella: el enlace `?p=<id>` de una plantilla
+publicada en Comunidad). Implementación propia de QR (modo byte, corrección M):
+es el bloque más caro en líneas (~300) por las tablas de Reed-Solomon — por eso
+va en la última fase. Cero dependencias, como todo.
+
+---
+
+## 12. Pizarra y anotación
+
+La semilla ya existe: el campo **firma** de los formularios captura trazos.
+Este trabajo lo generaliza.
+
+### 12.1 Bloque ```pizarra (permanente, dentro del documento)
+
+Formato de almacenamiento — los trazos son **texto** dentro del bloque, así que
+se versionan, se imprimen y viajan en el `.html` exportado:
+
+````
+```pizarra
+tamaño 800x500
+trazo #d33333 3 M12 40 Q18 35 24 38 Q31 42 40 39
+trazo #1a73e8 5 M100 80 Q110 70 122 78
+```
+````
+
+- Al tocar el dibujo aparece la barra: color, grosor, borrador, deshacer,
+  limpiar, **Listo**. "Listo" reescribe el bloque en el Markdown (patrón de los
+  formularios). Borrador = eliminar el trazo tocado; deshacer = quitar la última
+  línea `trazo`.
+- Captura con **Pointer Events** (`pointerdown/move/up` + `setPointerCapture`):
+  mouse, dedo y stylus con el mismo código; `touch-action: none` en el lienzo.
+- Suavizado con curvas cuadráticas por puntos medios:
+
+```javascript
+function trazoAPath(pts) {
+  if (pts.length < 3) return `M${pts[0].x} ${pts[0].y} L${pts.at(-1).x} ${pts.at(-1).y}`;
+  let d = `M${pts[0].x} ${pts[0].y}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i].x + pts[i + 1].x) / 2, my = (pts[i].y + pts[i + 1].y) / 2;
+    d += ` Q${pts[i].x} ${pts[i].y} ${mx} ${my}`;
+  }
+  return d;
+}
+```
+
+Presupuesto: ~250–300 líneas (incluida la barra).
+
+### 12.2 Modo Pizarrón global
+
+Botón `✎ Pizarrón` junto a `▶ Presentar`: lienzo en blanco a pantalla completa
+con la misma barra de dibujo. Al salir, tres opciones: **descartar**, **insertar**
+como bloque ` ```pizarra ` al final del documento, o **descargar PNG** (reutiliza
+el export PNG existente). El pizarrón *es* el documento visto de otra forma —
+misma filosofía que Presentar.
+
+### 12.3 Lápiz en modo Presentar
+
+- Dentro de la presentación: botón de lápiz (y teclas `L` lápiz, `B` borrador,
+  `C` limpiar) activa una capa transparente sobre la diapositiva actual. Trazos
+  por diapositiva, navegación intacta.
+- **Temporal por defecto:** al salir de Presentar se descartan.
+- **"Guardar anotaciones":** añade un bloque ` ```pizarra ` al final de la
+  sección de esa diapositiva en el Markdown. En vista documento se ve como
+  figura; al volver a Presentar se superpone de nuevo.
+
+---
+
+## 13. Presupuesto y orden de implementación
+
+| Fase | Qué entra | Líneas aprox. |
+|---|---|---|
+| 1 | Despacho de bloques + `gpx` parser, estadísticas (con cuestas) y vista 2D con zoom/paneo | ~350 |
+| 2 | `motor3d` + `gpx` vista 3D (cortina) + vista Perfil | ~350 |
+| 3 | Contexto Overpass incrustado + captura calibrada + POIs → `<wpt>` | ~300 |
+| 4 | ` ```pizarra ` + lápiz en Presentar + Pizarrón global | ~350 |
+| 5 | ` ```svg ` (saneado) + ` ```plano ` + ` ```iso ` + ` ```3d ` | ~450 |
+| 6 | ` ```ladder ` + ` ```chart ` | ~380 |
+| 7 | ` ```qr ` | ~300 |
+
+Total ~2 200 líneas sobre `index.html` (contexto: el motor actual ronda las 900).
+Sigue siendo **un solo archivo, cero dependencias, offline**. Cada fase se
+entrega funcional por sí sola; tras cada cambio, subir la versión del service
+worker con el empaquetador, como ya es costumbre.
+
+---
+
+## 14. Preguntas abiertas
+
+1. **Saneamiento de ` ```svg `:** ¿lista blanca de etiquetas/atributos exacta, o
+   basta la lista negra de la sección 4?
+2. **Límites de peso de imágenes incrustadas:** ¿aviso a 500 KB y tope duro a
+   2 MB, u otros valores?
+3. **Flags por documento en el front matter**, al estilo de `matematicas: no`:
+   p. ej. `gpx: no` para apagar renderers en un documento concreto.
+4. **Unifilar:** ¿segunda sintaxis dentro de ` ```ladder ` o bloque propio
+   ` ```unifilar `?
+5. **Color por defecto del GPX:** ¿`velocidad` siempre, o `pendiente` cuando el
+   track no trae timestamps?
+6. **Servidor Overpass:** `overpass-api.de` por defecto — ¿configurable en
+   ajustes para poder cambiarlo si se satura?
+7. **Anotaciones de Presentar:** ¿el bloque guardado lleva un parámetro
+   (`sobre=diapositiva`) para distinguirlo de una pizarra normal?
