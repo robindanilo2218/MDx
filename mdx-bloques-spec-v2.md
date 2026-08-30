@@ -795,6 +795,57 @@ de precisar antes de programar):
   múltiples `+` en una misma línea ni derivaciones anidadas. Cubre el patrón
   de la sección 9 y los casos reales típicos (sellos, enclavamientos
   simples); ampliar a ramas más complejas queda para si se necesita.
+  **Superada por la extensión de v2 más abajo, el mismo día.**
+
+**Extensión v2, pedida y hecha el mismo día (30-ago-2026): ramas reales y
+salidas múltiples.** La limitación de arriba resultó demasiado estrecha en
+la práctica: se probó `+---[M2]---+` (un puente en U) y `+---(M3) |` (una
+segunda bobina real en paralelo) y ninguno de los dos funcionaba — ambos
+daban error. Se generalizó el `+` de un solo extremo (siempre al final) a
+**dos extremos independientes por peldaño**, cada uno opcional:
+
+- `+` al **principio** del peldaño (campo `derivacionInicio`): este extremo
+  no arranca en el riel izquierdo, sino conectado arriba — mismo criterio de
+  ancla que ya existía (peldaño completo más cercano hacia arriba).
+- `+` al **final** (campo `derivacionFin`, antes llamado solo `derivacion`):
+  sin cambios de comportamiento, retrocompatible con todo v1.
+- Los dos a la vez, sin bobina propia: un **puente en U** — el peldaño entra
+  y sale del mismo peldaño ancla (o de dos anclas distintas, si cada extremo
+  cae en una columna que resuelve a un peldaño completo diferente) sin tocar
+  ningún riel.
+- Solo el inicial, con bobina propia: una **salida más en paralelo**, con su
+  propio conductor — a diferencia de escribir dos `(...)` sueltos en la
+  misma línea, que sigue dibujando las bobinas en serie sobre un único cable
+  (se deja tal cual, no rompe nada y a veces es lo que se quiere).
+- Reglas de validez añadidas: bobina propia + cualquier `+` sigue siendo
+  error; los dos extremos con `+` Y bobina propia es error nuevo (puentear
+  dos puntos del mismo riel con una bobina no representa nada eléctrico);
+  `+` inicial sin `+` final y sin bobina es error nuevo (cable colgando); más
+  de un `+` en el mismo extremo sigue siendo error. Un `+` que no está ni al
+  principio ni al final de la línea sigue siendo error, igual que antes.
+- **Sigue sin haber anidamiento real, pero de forma emergente más permisiva
+  de lo que sonaba en v1:** `buscarAncla()` siempre salta los peldaños que no
+  son completos y sigue subiendo — así que tres o más derivaciones seguidas
+  (`+---(M2)` y `+---(M3)` una tras otra) anclan igual, las tres, al mismo
+  peldaño completo de arriba, sin que las de en medio necesiten serlo. Esto
+  da salidas múltiples de verdad para N salidas, no solo dos, sin código
+  adicional — se descubrió al escribir la prueba, no se diseñó a propósito.
+- `ladderRenderSVG` quedó simétrico: `xIni`/`xFin` (antes el cable arrancaba
+  siempre en `railIzq`), con un conector vertical propio por cada extremo
+  que lleve `+`.
+- Documentado en `plantillas/logica-escalera-plc.md` (segundo ejemplo en
+  vivo con las tres variantes; tabla de sintaxis con dos filas de `+`; NOTA
+  y "Lo que no hace" reescritas).
+- Probado extendiendo `probar_ladder_v2.js` (Puppeteer, en el navegador real
+  vía `window.plantilla.convertir`): retrocompatibilidad del sello clásico,
+  salidas múltiples reales, puente en U con captura de pantalla verificada
+  visualmente (`ladder_v2_ramas.png`), los errores de v1 que debían seguir
+  siéndolo, los errores nuevos de la matriz de validez, el caso sin ancla, y
+  el caso de tres salidas saltando ramas intermedias (el hallazgo emergente
+  de arriba). `probar_ladder_unidad.js` actualizado a los nombres de campo
+  nuevos (`derivacionFin`/`anclaFin` en vez de `derivacion`/`ancla`) y sigue
+  en verde. Regresión general y el resto de pruebas de Fase 6 (categoría
+  lógica, Insertar → código) vueltas a correr, todo en verde. SW v49→v50.
 - **Formato de línea:** `| <contenido> | <comentario opcional>` — el primer
   `|` (tolerando espacios en blanco por delante, para permitir indentar todo
   el bloque parejo) abre el peldaño, el segundo `|` (si existe) separa el
@@ -843,7 +894,10 @@ de precisar antes de programar):
   `probar_ladder_dom.js` (render en el navegador con el ejemplo completo de
   3 peldaños, captura de pantalla verificada visualmente en ambas normas,
   ruta de error, y el menú Insertar → Lógica y electricidad → Escalera PLC
-  de punta a punta). Regresión general sigue en verde. SW v45→v46.
+  de punta a punta). Regresión general sigue en verde. SW v45→v46. Ver
+  extensión de v2 (ramas y salidas múltiples) más arriba — pruebas ampliadas
+  en `probar_ladder_v2.js`, `probar_ladder_unidad.js` actualizado a los
+  nombres de campo nuevos, SW v49→v50.
 
 ### 15.2 ` ```verdad ` — tabla de verdad con cálculo automático — hecho 30-ago-2026
 

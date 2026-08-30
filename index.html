@@ -6200,9 +6200,18 @@ function dibujarVerdad(codigo){
    en la seccion 9 del spec, parametro norma=iec/nema en la seccion 15.1).
    Cada linea de peldano es "| <contenido> | <comentario opcional>": [X]
    contacto NA, [X/] contacto NC, (Y) bobina, [TON Tn t] temporizador, y un
-   "+" al final (sin bobina) que marca una derivacion -- una rama en
-   paralelo que se conecta arriba, en la columna exacta donde cae el "+",
-   al peldano COMPLETO (con bobina) mas cercano hacia arriba.
+   "+" al PRINCIPIO y/o al FINAL (nunca en medio) que marca una derivacion:
+   en vez de arrancar en el riel izquierdo y/o terminar en el riel derecho,
+   ese extremo se conecta arriba, en la columna exacta donde cae el "+", al
+   peldano COMPLETO (con bobina, sin ningun "+") mas cercano hacia arriba.
+   Con solo "+" final: la rama clasica de contacto de sello (arranca en el
+   riel izquierdo, se une arriba). Con solo "+" inicial y bobina propia: una
+   salida mas en paralelo desde la misma condicion (varias bobinas reales,
+   no en serie). Con "+" en ambos extremos: un puente en U entre dos puntos
+   del mismo peldano ancla (sin bobina propia -- no representa nada
+   electricamente tener una bobina puenteando dos puntos del mismo riel
+   caliente). No hay derivaciones anidadas: solo un peldano SIN ningun "+"
+   puede ser ancla de otro.
    El parser es posicional: la columna de cada simbolo es el indice de
    caracter tal cual el usuario lo escribio, pasado a pixeles con un ancho
    de caracter fijo (LADDER_CHAR_W). Asi la alineacion que el usuario ve en
@@ -6227,7 +6236,7 @@ function ladderParsearPeldano(linea, numLinea){
     contenido = t.slice(1, fin);
     comentario = t.slice(fin + 1).replace(/^\s+/, "");
   }
-  var elementos = [], derivacion = null, j = 0;
+  var elementos = [], derivacionInicio = null, derivacionFin = null, j = 0;
   while(j < contenido.length){
     var c = contenido.charAt(j), m;
     if(c === " " || c === "\t" || c === "-"){ j++; continue; }
@@ -6253,33 +6262,55 @@ function ladderParsearPeldano(linea, numLinea){
       continue;
     }
     if(c === "+"){
-      if(contenido.slice(j + 1).replace(/[\s-]/g, "").length) error('la derivación "+" debe ir al final del peldaño');
-      derivacion = offset + 1 + j;
+      if(!elementos.length && derivacionInicio === null){
+        /* "+" antes de cualquier elemento: derivacion de entrada (esta rama
+           no arranca en el riel izquierdo, sino conectada arriba) */
+        derivacionInicio = offset + 1 + j;
+        j++;
+        continue;
+      }
+      if(contenido.slice(j + 1).replace(/[\s-]/g, "").length){
+        error('el "+" solo puede ir al principio o al final del peldaño');
+      }
+      if(derivacionFin !== null) error('un peldaño no puede tener más de un "+" de salida');
+      derivacionFin = offset + 1 + j;
       j++;
       continue;
     }
     error('carácter inesperado "' + c + '" en la columna ' + (offset + j + 2));
   }
   var tieneBobina = elementos.some(function(e){ return e.tipo === "bobina"; });
-  if(derivacion !== null && tieneBobina) error('un peldaño no puede tener bobina y "+" a la vez');
-  if(derivacion === null && !tieneBobina) error('falta la bobina "(...)"; si es una derivación en paralelo debe terminar en "+"');
-  if(!elementos.length && derivacion === null) error("el peldaño está vacío");
-  return { elementos: elementos, comentario: comentario, derivacion: derivacion, completo: tieneBobina, numLinea: numLinea };
+  if(derivacionFin !== null && tieneBobina) error('un peldaño no puede tener bobina y "+" de salida a la vez');
+  if(derivacionInicio !== null && derivacionFin !== null && tieneBobina){
+    error('un peldaño con "+" en ambos extremos no puede tener bobina propia (no representa nada eléctricamente)');
+  }
+  if(derivacionInicio !== null && derivacionFin === null && !tieneBobina){
+    error('una rama que empieza con "+" debe terminar en una bobina "(...)" o en otro "+"');
+  }
+  if(derivacionInicio === null && derivacionFin === null && !tieneBobina){
+    error('falta la bobina "(...)"; si es una derivación en paralelo debe terminar en "+"');
+  }
+  if(!elementos.length && derivacionInicio === null && derivacionFin === null) error("el peldaño está vacío");
+  var completo = tieneBobina && derivacionInicio === null && derivacionFin === null;
+  return { elementos: elementos, comentario: comentario, derivacionInicio: derivacionInicio,
+           derivacionFin: derivacionFin, completo: completo, numLinea: numLinea };
 }
 function ladderParsear(codigo){
   function error(msg){ throw new Error(msg); }
-  var lineas = String(codigo || "").split("\n"), peldanos = [], i, k;
+  var lineas = String(codigo || "").split("\n"), peldanos = [], i;
   for(i = 0; i < lineas.length; i++){
     if(!lineas[i].trim()) continue;
     peldanos.push(ladderParsearPeldano(lineas[i], i + 1));
   }
   if(!peldanos.length) error("no hay ningún peldaño");
+  function buscarAncla(i, cual){
+    var k;
+    for(k = i - 1; k >= 0; k--){ if(peldanos[k].completo) return k; }
+    error('la derivación "' + cual + '" de la línea ' + peldanos[i].numLinea + ' no tiene ningún peldaño completo arriba para conectarse');
+  }
   for(i = 0; i < peldanos.length; i++){
-    if(peldanos[i].derivacion === null) continue;
-    var ancla = -1;
-    for(k = i - 1; k >= 0; k--){ if(peldanos[k].completo){ ancla = k; break; } }
-    if(ancla < 0) error('la derivación "+" de la línea ' + peldanos[i].numLinea + ' no tiene ningún peldaño completo arriba para conectarse');
-    peldanos[i].ancla = ancla;
+    if(peldanos[i].derivacionInicio !== null) peldanos[i].anclaInicio = buscarAncla(i, "+ inicial");
+    if(peldanos[i].derivacionFin !== null) peldanos[i].anclaFin = buscarAncla(i, "+ final");
   }
   return peldanos;
 }
@@ -6309,7 +6340,8 @@ function ladderRenderSVG(peldanos, norma){
   for(i = 0; i < peldanos.length; i++){
     var p = peldanos[i];
     for(k = 0; k < p.elementos.length; k++) if(p.elementos[k].col > maxCol) maxCol = p.elementos[k].col;
-    if(p.derivacion !== null && p.derivacion > maxCol) maxCol = p.derivacion;
+    if(p.derivacionInicio !== null && p.derivacionInicio > maxCol) maxCol = p.derivacionInicio;
+    if(p.derivacionFin !== null && p.derivacionFin > maxCol) maxCol = p.derivacionFin;
     if(p.comentario.length > maxComentario) maxComentario = p.comentario.length;
   }
   var railIzq = LADDER_MARGEN, railDer = LADDER_MARGEN + (maxCol + 3) * LADDER_CHAR_W;
@@ -6323,8 +6355,9 @@ function ladderRenderSVG(peldanos, norma){
   partes.push('<line class="ladder-riel" x1="' + r2(railDer) + '" y1="' + r2(yTop - 24) + '" x2="' + r2(railDer) + '" y2="' + r2(yBot + 24) + '"></line>');
   for(i = 0; i < peldanos.length; i++){
     var pel = peldanos[i], y = yDe(i);
-    var xFin = pel.derivacion !== null ? xDe(pel.derivacion) : railDer;
-    var curX = railIzq, seg, e, ex, mitad;
+    var xIni = pel.derivacionInicio !== null ? xDe(pel.derivacionInicio) : railIzq;
+    var xFin = pel.derivacionFin !== null ? xDe(pel.derivacionFin) : railDer;
+    var curX = xIni, seg, e, ex, mitad;
     for(k = 0; k < pel.elementos.length; k++){
       e = pel.elementos[k];
       ex = xDe(e.col);
@@ -6344,9 +6377,13 @@ function ladderRenderSVG(peldanos, norma){
       }
     }
     partes.push('<line class="ladder-cable" x1="' + r2(curX) + '" y1="' + r2(y) + '" x2="' + r2(xFin) + '" y2="' + r2(y) + '"></line>');
-    if(pel.derivacion !== null){
-      var yAncla = yDe(pel.ancla);
-      partes.push('<line class="ladder-cable" x1="' + r2(xFin) + '" y1="' + r2(y) + '" x2="' + r2(xFin) + '" y2="' + r2(yAncla) + '"></line>');
+    if(pel.derivacionInicio !== null){
+      var yAnclaI = yDe(pel.anclaInicio);
+      partes.push('<line class="ladder-cable" x1="' + r2(xIni) + '" y1="' + r2(y) + '" x2="' + r2(xIni) + '" y2="' + r2(yAnclaI) + '"></line>');
+    }
+    if(pel.derivacionFin !== null){
+      var yAnclaF = yDe(pel.anclaFin);
+      partes.push('<line class="ladder-cable" x1="' + r2(xFin) + '" y1="' + r2(y) + '" x2="' + r2(xFin) + '" y2="' + r2(yAnclaF) + '"></line>');
     }
     if(pel.comentario){
       partes.push('<text class="ladder-comentario" x="' + r2(railDer + 10) + '" y="' + r2(y) + '" dominant-baseline="middle">' + X(pel.comentario) + "</text>");
@@ -9742,9 +9779,10 @@ function menuInsertar(){
     '<button type="button" data-ins="enlace"><b>Enlace</b><span>Texto y dirección</span></button>',
     '<button type="button" data-ins="imagen"><b>Imagen</b><span>Dirección y texto alternativo</span></button>',
     '<button type="button" data-ins="emoji"><b>Emoji</b><span>Cientos, buscables por nombre o por sinónimo</span></button>',
+    '<button type="button" data-ins="codigo"><b>Bloque de código</b><span>Con resaltado: JavaScript, Python, HTML, SQL y más</span></button>',
     '<button type="button" data-ins="diagrama"><b>Diagrama</b><span>Flujo, secuencia, estados, tarta, Gantt, clases, entidad-relación o mapa mental</span></button>',
     '<button type="button" data-ins="tecnico"><b>Mapas y dibujo técnico</b><span>Ruta GPX, plano, isométrico, alámbrico 3D o SVG crudo</span></button>',
-    '<button type="button" data-ins="logica"><b>Lógica y electricidad</b><span>Tabla de verdad</span></button>',
+    '<button type="button" data-ins="logica"><b>Lógica y electricidad</b><span>Tabla de verdad, escalera PLC</span></button>',
     '<button type="button" data-ins="aviso"><b>Aviso de color</b><span>Nota, consejo, importante, aviso o precaución</span></button>',
     '<button type="button" data-ins="estilo"><b>Estilo y color de texto</b><span>Negrita, tachado, resaltado, colores…</span></button>',
     '<button type="button" data-ins="formula"><b>Fórmula matemática</b><span>En línea o en su propio bloque</span></button>',
@@ -9997,6 +10035,46 @@ function formFormula(){
     '<div class="chico-menu">',
     '<button type="button" data-formula="linea"><b>En línea</b><span>Entre signos de dólar, dentro de una frase: $a^2+b^2=c^2$</span></button>',
     '<button type="button" data-formula="bloque"><b>En bloque</b><span>Centrada, en su propio párrafo</span></button>',
+    "</div>"
+  ].join(""));
+}
+
+/* mismos lenguajes que reconoce el resaltador (LENGUAJES/ALIAS, mas arriba
+   en el archivo) -- si se agrega un lenguaje nuevo alla, conviene agregarlo
+   aqui tambien para que se pueda insertar desde el menu. */
+var LENGUAJES_MENU = [
+  {id:"", nombre:"Sin resaltado"},
+  {id:"javascript", nombre:"JavaScript"},
+  {id:"typescript", nombre:"TypeScript"},
+  {id:"python", nombre:"Python"},
+  {id:"html", nombre:"HTML"},
+  {id:"css", nombre:"CSS"},
+  {id:"json", nombre:"JSON"},
+  {id:"bash", nombre:"Bash / shell"},
+  {id:"sql", nombre:"SQL"},
+  {id:"yaml", nombre:"YAML"},
+  {id:"java", nombre:"Java"},
+  {id:"c", nombre:"C"},
+  {id:"cpp", nombre:"C++"},
+  {id:"go", nombre:"Go"},
+  {id:"rust", nombre:"Rust"},
+  {id:"php", nombre:"PHP"},
+  {id:"ruby", nombre:"Ruby"},
+  {id:"lua", nombre:"Lua"},
+  {id:"markdown", nombre:"Markdown"},
+  {id:"diff", nombre:"Diff"},
+  {id:"ini", nombre:"INI / .env"}
+];
+function formCodigo(){
+  abrirChico("Bloque de código", [
+    '<div class="chico-form">',
+    '<div class="estilo-rejilla">',
+    LENGUAJES_MENU.map(function(l){
+      return '<button type="button" data-codigo="' + escUI(l.id) + '">' + escUI(l.nombre) + "</button>";
+    }).join(""),
+    "</div>",
+    '<p class="chico-nota">Si seleccionas texto antes de abrir este menú, se envuelve en el bloque; si no hay ' +
+    'selección, se inserta un texto de ejemplo para que lo reemplaces.</p>',
     "</div>"
   ].join(""));
 }
@@ -13019,6 +13097,7 @@ $("#cuerpoChico").addEventListener("click", function(e){
     else if(q === "enlace") formEnlace(false);
     else if(q === "imagen") formEnlace(true);
     else if(q === "emoji") formEmoji();
+    else if(q === "codigo") formCodigo();
     else if(q === "diagrama") formDiagrama();
     else if(q === "tecnico") formTecnico();
     else if(q === "logica") formLogica();
@@ -13088,6 +13167,12 @@ $("#cuerpoChico").addEventListener("click", function(e){
   if(form){
     if(form.getAttribute("data-formula") === "linea") envolverTexto("$", "$", "fórmula");
     else insertarBloque("$$\n", "\n$$", "E = mc^2");
+    cerrarChico();
+    return;
+  }
+  var cod = e.target.closest("[data-codigo]");
+  if(cod){
+    insertarBloque("```" + cod.getAttribute("data-codigo") + "\n", "\n```", "tu código aquí");
     cerrarChico();
     return;
   }
@@ -13247,8 +13332,23 @@ if(!MODO_ARCHIVO && "serviceWorker" in navigator &&
 /* ---------- arranque ---------- */
 if(!HAY_GALERIA) $("#btnPlantillas").hidden = true;
 if(!HAY_LOGIN_GOOGLE) $("#btnCuenta").hidden = true;
+
+/* escritorio (Electron): si esta ventana se abrió para un archivo local, el
+   preload ya lo trajo de forma SÍNCRONA (window.mdxArchivoInicial), antes de
+   que corra cualquier línea de este script. Se fija aquí, ANTES del espejo y
+   de la recuperación por almacén de más abajo, para que gane siempre esa
+   carrera en vez de depender de quién resuelva primero -- ver
+   window.plantilla.fijar más abajo para la contraparte de "instancia ya
+   abierta" (esa sí llega después de cargar, pero a una ventana que ya está en
+   régimen, sin restauración en curso). */
+var archivoInicialEscritorio = window.mdxArchivoInicial || null;
+if(archivoInicialEscritorio){
+  fijarTexto(archivoInicialEscritorio.texto, archivoInicialEscritorio.nombre, archivoInicialEscritorio.opciones || {});
+  if(archivoInicialEscritorio.opciones && archivoInicialEscritorio.opciones.aviso) aviso(archivoInicialEscritorio.opciones.aviso);
+}
+
 if(HAY_ALMACEN) leerPestanas();
-if(HAY_ALMACEN){
+if(HAY_ALMACEN && !archivoInicialEscritorio){
   var guardadoDoc = leer(CLAVE_DOC);
   if(guardadoDoc && guardadoDoc.trim()){
     fuenteActual = guardadoDoc;

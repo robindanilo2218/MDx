@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog } = require("electron");
+const { app, BrowserWindow, Menu, dialog, ipcMain } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
@@ -19,7 +19,11 @@ function archivoDesdeArgv(argv){
   return null;
 }
 
-let ventana = null;
+/* varias ventanas: cada una con su propio documento. Un mismo archivo no se
+   abre dos veces -- si ya está en alguna ventana, esa se enfoca en vez de
+   duplicarla. */
+let ventanas = []; // { win, ruta }
+let pendientes = new Map(); // webContents.id -> {texto,nombre,opciones} | null, para el preload
 
 /* ---------- registrar como app para .md ----------
  * Windows protege la asociacion "predeterminada" (UserChoice) con un hash
@@ -110,29 +114,34 @@ async function registrarLinux(){
   await execFileP("gtk-update-icon-cache", ["-f", path.join(home, ".local", "share", "icons", "hicolor")]).catch(function(){});
 }
 
+function ventanaActiva(){
+  return BrowserWindow.getFocusedWindow() || (ventanas[0] && ventanas[0].win) || null;
+}
+
 async function usarComoPredeterminado(){
+  var win = ventanaActiva();
   try{
     if(process.platform === "win32"){
       await registrarWindows();
-      await dialog.showMessageBox(ventana, {
+      await dialog.showMessageBox(win, {
         type: "info", title: NOMBRE_APP,
         message: "MDx ya quedó registrado con su nombre e icono correctos. Ahora se abre el cuadro «¿Cómo quieres abrir este archivo?» - elige MDx y marca «Usar siempre esta aplicación» para terminar."
       });
       abrirSelectorWindows();
     }else if(process.platform === "linux"){
       await registrarLinux();
-      dialog.showMessageBox(ventana, {
+      dialog.showMessageBox(win, {
         type: "info", title: NOMBRE_APP,
         message: "Listo: los archivos .md ya se abren con MDx. Si el icono en tu gestor de archivos no cambia enseguida, cierra sesión y vuelve a entrar (algunos escritorios refrescan el caché de iconos ahí)."
       });
     }else{
-      dialog.showMessageBox(ventana, {
+      dialog.showMessageBox(win, {
         type: "info", title: NOMBRE_APP,
         message: "En macOS: clic derecho en un .md → Obtener información → «Abrir con» → MDx → «Cambiar todos…»."
       });
     }
   }catch(err){
-    dialog.showMessageBox(ventana, {
+    dialog.showMessageBox(win, {
       type: "error", title: NOMBRE_APP,
       message: "No se pudo registrar automáticamente (" + (err && err.message ? err.message : err) +
         ").\n\nHazlo a mano: clic derecho en un .md → Abrir con → elige MDx → «Usar siempre esta aplicación»."
@@ -156,31 +165,68 @@ function construirMenu(){
   Menu.setApplicationMenu(Menu.buildFromTemplate(plantilla));
 }
 
-function abrirArchivoEnVentana(ruta){
-  if(!ventana || !ruta) return;
-  var texto = fs.readFileSync(ruta, "utf8");
-  var nombre = path.basename(ruta);
-  var opciones = { origen: "local", version: 1, descargado: Date.now(), aviso: "Abierto: " + nombre };
-  var js = "window.plantilla && window.plantilla.fijar(" +
-    JSON.stringify(texto) + "," + JSON.stringify(nombre) + "," + JSON.stringify(opciones) + ");";
-  ventana.webContents.executeJavaScript(js).catch(function(){});
+function ventanaPorRuta(ruta){
+  if(!ruta) return null;
+  for(var i = 0; i < ventanas.length; i++){
+    if(ventanas[i].ruta === ruta) return ventanas[i].win;
+  }
+  return null;
 }
 
+/* el archivo se manda a la ventana ANTES de cargar index.html (ver
+   preload.js: lo pide de forma síncrona vía ipcMain.on de más abajo), no
+   después con executeJavaScript -- así no compite con la restauración del
+   documento anterior que hace la propia página al arrancar. */
 function crearVentana(rutaInicial){
-  ventana = new BrowserWindow({
+  var win = new BrowserWindow({
     width: 1100,
     height: 800,
     autoHideMenuBar: false,
     backgroundColor: "#ffffff",
     icon: path.join(__dirname, "app", "iconos", "icono-512.png"),
-    webPreferences: { sandbox: true }
+    webPreferences: { sandbox: true, preload: path.join(__dirname, "preload.js") }
   });
-  ventana.loadFile(path.join(__dirname, "app", "index.html"));
+  var registro = { win: win, ruta: rutaInicial || null };
+  ventanas.push(registro);
+  win.on("closed", function(){
+    var i = ventanas.indexOf(registro);
+    if(i !== -1) ventanas.splice(i, 1);
+  });
   if(rutaInicial){
-    ventana.webContents.once("did-finish-load", function(){
-      abrirArchivoEnVentana(rutaInicial);
-    });
+    var nombre = path.basename(rutaInicial);
+    try{
+      pendientes.set(win.webContents.id, {
+        texto: fs.readFileSync(rutaInicial, "utf8"),
+        nombre: nombre,
+        opciones: { origen: "local", version: 1, descargado: Date.now(), aviso: "Abierto: " + nombre }
+      });
+    }catch(e){
+      pendientes.set(win.webContents.id, null);
+    }
   }
+  win.loadFile(path.join(__dirname, "app", "index.html"));
+  return win;
+}
+
+ipcMain.on("mdx-archivo-inicial", function(event){
+  var id = event.sender.id;
+  event.returnValue = pendientes.has(id) ? pendientes.get(id) : null;
+  pendientes.delete(id);
+});
+
+/* abrir un archivo desde el sistema (doble clic, "Abrir con", una segunda
+   instancia): si ya está abierto en alguna ventana, se enfoca esa en vez de
+   duplicarlo; si no, se abre una ventana nueva y la que ya estaba en pantalla
+   queda intacta -- antes se reusaba siempre la misma ventana y se pisaba lo
+   que hubiera. */
+function abrirArchivo(ruta){
+  var existente = ventanaPorRuta(ruta);
+  if(existente){
+    if(existente.isMinimized()) existente.restore();
+    existente.focus();
+    return;
+  }
+  crearVentana(ruta);
 }
 
 const bloqueoUnico = app.requestSingleInstanceLock();
@@ -189,10 +235,14 @@ if(!bloqueoUnico){
 }else{
   app.on("second-instance", function(_ev, argv){
     var ruta = archivoDesdeArgv(argv);
-    if(ventana){
-      if(ventana.isMinimized()) ventana.restore();
-      ventana.focus();
-      if(ruta) abrirArchivoEnVentana(ruta);
+    if(ruta){
+      abrirArchivo(ruta);
+    }else{
+      var win = ventanaActiva();
+      if(win){
+        if(win.isMinimized()) win.restore();
+        win.focus();
+      }
     }
   });
 
