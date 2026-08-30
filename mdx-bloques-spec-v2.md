@@ -722,7 +722,7 @@ Investigado el 29-ago-2026 a pedido explícito: sin código todavía, para que
 se revise el enfoque antes de tocar `index.html`. Cuatro piezas independientes
 entre sí — se pueden implementar en cualquier orden o por separado.
 
-### 15.1 ` ```ladder ` — completa lo ya definido en la sección 9, con norma IEC/NEMA
+### 15.1 ` ```ladder ` — completa lo ya definido en la sección 9, con norma IEC/NEMA — hecho 30-ago-2026
 
 **Corrección importante:** la sintaxis de ` ```ladder ` **ya estaba definida
 en la sección 9** de este mismo spec (ASCII-art posicional: `[X]` NA, `[X/]`
@@ -765,6 +765,85 @@ de bloque, mismo patrón que `​```gpx vista=2d/3d/perfil`:
   una familia de diagrama distinta — no contactos/bobinas sino flujo de
   energía — y se deja como bloque propio (` ```unifilar `) para una fase
   futura si se pide, en vez de forzarlo dentro de `​```ladder`.
+
+**Implementado tal cual el plan de arriba**, con el algoritmo de columnas
+detallado y verificado (era justo el punto que este plan dejaba pendiente
+de precisar antes de programar):
+
+- **El algoritmo de columnas, explicado:** cada símbolo (`[X]`, `[X/]`,
+  `[TON Tn t]`, `(Y)`) guarda su **columna** tal cual el índice de carácter
+  donde arranca en la línea original (contando desde el `|` de apertura). El
+  render pasa esa columna a píxeles con un ancho de carácter fijo
+  (`LADDER_CHAR_W = 11`) — **igual para todas las líneas del diagrama**. La
+  clave que evita tener que decidir "a qué contacto del peldaño de arriba se
+  pega el `+`": el cable de CADA peldaño se dibuja como una línea horizontal
+  **continua** de riel a riel (o de riel al propio `+`, si es una
+  derivación) — así que el conector vertical de una derivación, dibujado en
+  esa misma columna-x, siempre cae sobre cable real del peldaño ancla, sea
+  cual sea el contacto más cercano. No hace falta averiguar "el `+` está
+  pegado a tal símbolo" — basta con que la x coincida, y coincide porque el
+  usuario alineó el texto así.
+- **A qué peldaño ancla un `+`:** al peldaño **completo** (con bobina) más
+  cercano **hacia arriba** en el mismo bloque — un barrido simple hacia
+  atrás desde la línea de la derivación. No se contempló anclar hacia abajo
+  ni entre dos derivaciones consecutivas (fuera de alcance de v1; cubre el
+  caso de sello del ejemplo de la sección 9 y el patrón típico de contactos
+  auxiliares en paralelo).
+- **Limitación de v1, deliberada:** un peldaño es o bien "completo" (termina
+  en bobina) o bien "derivación" (termina en `+`, sin bobina) — el `+` debe
+  ser el último carácter no-espacio/no-guión de la línea. No se soportan
+  múltiples `+` en una misma línea ni derivaciones anidadas. Cubre el patrón
+  de la sección 9 y los casos reales típicos (sellos, enclavamientos
+  simples); ampliar a ramas más complejas queda para si se necesita.
+- **Formato de línea:** `| <contenido> | <comentario opcional>` — el primer
+  `|` (tolerando espacios en blanco por delante, para permitir indentar todo
+  el bloque parejo) abre el peldaño, el segundo `|` (si existe) separa el
+  contenido del comentario libre que se muestra a la derecha del riel
+  derecho. Símbolos reconocidos dentro del contenido: `[X]` NA, `[X/]` NC,
+  `[TON Tn t]` temporizador (acepta segundos con decimales, `s` opcional),
+  `(Y)` bobina, `+` derivación; `-` y espacios son relleno visual sin efecto
+  semántico. Cualquier otro carácter, o un `[...]`/`(...)` mal formado, o un
+  peldaño sin bobina y sin `+`, o con las dos cosas a la vez, es un error
+  con el número de línea y columna cuando aplica.
+- **Símbolos IEC vs. NEMA — fuentes verificadas antes de dibujar** (dado que
+  el destinatario real es un electricista de mantenimiento, no vale la pena
+  arriesgar un símbolo mal recordado): IEC 60617 dibuja el contacto NA como
+  dos barras verticales paralelas con hueco; NEMA lo dibuja con dos líneas
+  **diagonales**; el contacto NC agrega una diagonal/puente cruzando el
+  hueco en ambas normas. La diferencia más marcada entre normas es la
+  **bobina**: rectángulo en IEC, círculo en NEMA/IEEE. El temporizador
+  `TON` se dibuja igual en ambas normas (un rectángulo de bloque de función
+  con el nombre y el tiempo adentro) — es una instrucción de PLC, no un
+  símbolo de relé clásico, así que no tiene una variante NEMA distinta que
+  valga la pena dibujar aparte; se documenta como simplificación deliberada.
+  Fuente: búsqueda web verificada el 30-ago-2026 (Industrial Monitor Direct,
+  comparación IEC/NEMA; Eaton, comparación de esquemas NEMA e IEC) — no se
+  dibujó ningún símbolo de memoria sin contrastar.
+- `norma=iec`/`norma=nema` se lee con el mismo `gpxParametros()` genérico ya
+  usado por `​```gpx vista=` y `​```svg fondo` (pese al nombre, no es
+  específico de GPX); un valor inválido o ausente cae a `iec` sin error —
+  no vale la pena una validación estricta para un parámetro puramente
+  estético.
+- Igual que `​```verdad`, el bloque envuelve todo en try/catch y devuelve
+  `<div class="ladder-error">` en vez de reventar el resto del documento
+  (a diferencia de `plano`/`iso`/`3d`, que no atrapan sus propios errores —
+  la sintaxis de `ladder` tiene bastante más superficie para errores de
+  tipeo que esas tres, así que aquí sí vale la pena el blindaje).
+- Segunda entrada en el menú **`+ Insertar` → `Lógica y electricidad`**
+  (`LOGICA`/`formLogica()`, ver [[md-crgm-fase6-verdad-tabla-logica]]):
+  "Escalera PLC" inserta el ejemplo exacto de la sección 9.
+- Contador (`CTU`/`CTD`): **no implementado** — queda como extensión futura
+  si se pide, tal como decía el plan.
+- Probado con `probar_ladder_unidad.js` (unitario puro: elementos y columnas
+  de cada tipo de símbolo, TON con tiempo entero y decimal, ancla de la
+  derivación al peldaño completo correcto, **la columna exacta del `+`
+  verificada contra `indexOf` de la línea original** — el caso que más
+  importaba probar del algoritmo posicional —, 9 errores esperados, render
+  SVG de humo en iec y nema con diferencias reales entre ambos) y
+  `probar_ladder_dom.js` (render en el navegador con el ejemplo completo de
+  3 peldaños, captura de pantalla verificada visualmente en ambas normas,
+  ruta de error, y el menú Insertar → Lógica y electricidad → Escalera PLC
+  de punta a punta). Regresión general sigue en verde. SW v45→v46.
 
 ### 15.2 ` ```verdad ` — tabla de verdad con cálculo automático — hecho 30-ago-2026
 
