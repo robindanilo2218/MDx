@@ -501,6 +501,61 @@ anterior). Render: dos rieles verticales, peldaños horizontales, símbolos IEC
 dibujados en SVG, etiquetas encima. ~200 líneas.
 (Diagrama unifilar: pregunta abierta 14.4.)
 
+### 9.1 Combinar varias ramas en paralelo (aclaración, no es bug)
+
+Un `+` solo puede ir como el primer carácter de un peldaño (deriva de arriba)
+o como el último (deriva hacia abajo) — nunca los dos dentro de la misma fila
+con más elementos alrededor. Esto significa que **una sola fila no puede
+tener dos pares de "+" independientes** (por ejemplo, dos ramas que se unen
+antes de una bobina, todo en una línea). El parser lo rechaza con
+`el "+" solo puede ir al principio o al final del peldaño`.
+
+Para combinar dos o más ramas en paralelo (p. ej. un sellado con
+arranque+mantenimiento, o tres condiciones cualquiera que activan la misma
+salida) se escribe **una fila por rama**, todas con su propio `+...+`; el
+buscador de ancla (`buscarAncla`) ya salta las filas que no son peldaños
+"completos" (las que tienen su propio `+` pendiente) y sigue subiendo hasta
+encontrar el peldaño completo más cercano — así que dos, tres o más filas de
+rama seguidas anclan todas al mismo peldaño de arriba sin que haga falta
+anidar nada:
+
+```
+| [start] ---- (R1) |
+| +--[sensor1/]--+  |
+| +----[boton2]--+  |
+```
+
+Las tres condiciones (contacto directo, sensor1, boton2) quedan en paralelo
+alimentando la misma bobina R1.
+
+### 9.2 Errores parciales: se sigue dibujando y se marca en rojo — hecho 30-ago-2026
+
+Antes, una sola fila mal escrita (un símbolo mal formado, un "+" mal puesto,
+una derivación sin ancla arriba…) tiraba **todo** el diagrama: solo se veía
+el mensaje de error, sin nada dibujado. A pedido del usuario ("que se
+mantenga lo ya dibujado... o que marque en rojo lo que no va"), ahora:
+
+- `ladderParsear` ya no aborta en la primera fila mala: la guarda como una
+  fila con `{error: mensaje}` y sigue con las demás. Solo seguir sin dibujar
+  nada si literalmente no hay ningún peldaño (bloque vacío/en blanco) — ese
+  es el único caso que sigue mostrando el `.ladder-error` fatal de siempre.
+- Una fila con `error` se dibuja como una línea roja punteada en su lugar
+  (`.ladder-error-fila`) con "⚠ línea N" — el resto de filas buenas
+  mantienen su posición y sus conexiones intactas.
+- Una derivación `+` que no encuentra ningún peldaño completo arriba
+  (`errorAncla`) ya no aborta esa fila entera: sus propios elementos se
+  dibujan igual, y el cable que no pudo conectarse se marca como un cablecito
+  rojo suelto (`ladderRamaRota`, clase `.ladder-error-rama`) en vez de una
+  línea normal.
+- Todos los mensajes (los de siempre, con línea y a veces columna) se juntan
+  en un panel `.ladder-avisos` debajo del diagrama — mismo texto que antes,
+  ahora informativo en vez de bloqueante.
+
+Probado en `probar_ladder_error_parcial.js` (unitaria, 18 aserciones) y en
+`probar_ladder_v2.js`/`probar_ladder_dom.js` (extremo a extremo en el
+navegador, casos que antes eran "error fatal" ahora son "parcial": figura +
+avisos + marcas rojas). SW v52 → v54.
+
 ---
 
 ## 10. Bloque ```chart — gráficas de datos
@@ -673,6 +728,73 @@ descartados — corregidos el mismo día (SW v41→v42):
 Probado con `probar_dia_revision_fixes.js` (6 casos dirigidos, uno por
 escenario de arriba, incluida una segunda vuelta a Pizarrón para ejercitar
 `vueltaPizarron`). Regresión completa de 18 scripts en verde.
+
+### 12.6 Herramientas de dibujo: línea y sellos de figura — hecho 30-ago-2026
+
+Pedido explícito: además del trazo libre de siempre, poder trazar una línea
+recta y "estampar" figuras cerradas (círculo, cuadrado, triángulo, pentágono,
+rombo) en vez de tener que dibujarlas a mano libre. Cubre tanto el bloque
+` ```pizarra ` embebido (`pizarraActivarFigura`) como el Pizarrón global
+(`PIZARRON`) — ambos comparten el mismo motor de datos, así que el cambio se
+hizo una sola vez en las funciones compartidas y se conectó por separado en
+cada uno de los dos manejadores de puntero.
+
+- **Formato de dato sin cambios:** una figura o una línea recta es, igual que
+  un trazo de lápiz, un objeto `{color, grosor, d}` — no hizo falta tocar
+  `pizarraParsear`/`pizarraSerializar`. Alcanza con que el `d` resultante
+  cumpla `PIZARRA_RE_PATH` (ya permitía `Z` y las demás letras de comando
+  SVG, no solo `M`/`L`/`Q`) y quepa bajo `PIZARRA_D_MAX`.
+- **`pizarraFormaAPath(herramienta, x0, y0, x1, y1)`** (función nueva,
+  compartida): `(x0,y0)` es la esquina donde arrancó el arrastre, `(x1,y1)`
+  donde está el puntero ahora o donde soltó. Para `"linea"` devuelve
+  directo `"M x0 y0 L x1 y1"`. Para las figuras cerradas, arma la caja
+  delimitadora (`xMin/xMax/yMin/yMax`) de esas dos esquinas y devuelve un
+  polígono inscrito en ella: cuadrado y rombo con las 4 esquinas/vértices
+  obvios, triángulo isósceles con el ápice arriba centrado, y pentágono/
+  círculo vía `pizarraPoligonoRegular(cx, cy, rx, ry, lados)` — un polígono
+  regular de 5 y 32 lados respectivamente (un círculo real con `A` de arco
+  se descartó a propósito: dos arcos de 180° para cerrar una elipse tienen
+  casos de borde de `large-arc-flag`/`sweep-flag`; un 32-gono es
+  visualmente indistinguible de un círculo al grosor de trazo normal y
+  usa el mismo vocabulario `M`/`L`/`Z` que el resto).
+- **Un toque sin arrastrar también deja algo visible:** si la caja
+  delimitadora queda por debajo de `PIZARRA_FORMA_MIN` (24 unidades) de
+  ancho o alto, se expande al mínimo centrada en el punto del toque — mismo
+  espíritu que el punto redondo que deja un toque con el lápiz
+  (`pizarraTrazoAPath` con menos de 3 puntos).
+- **Selector de herramienta** (`<select>`, no botones sueltos — son 7
+  opciones): agregado junto al color y el grosor en las dos barras
+  (`pizarraHerramientasOpciones()` genera las `<option>` para la barra del
+  bloque embebido, regenerada en cada `entrarDibujo()` para reflejar el
+  `estado.herramienta` persistido; la barra del Pizarrón global usa las
+  mismas 7 opciones escritas directo en el HTML estático, ya que esa sesión
+  siempre arranca en `"lapiz"`).
+- **Enganche en pointerdown/pointermove, sin tocar pointerup:** en
+  `pointerdown`, si la herramienta no es `"lapiz"`, el `d` inicial sale de
+  `pizarraFormaAPath` (con `x0=x1,y0=y1`, ya cubierto por el mínimo de
+  arriba) en vez de `pizarraTrazoAPath([pt])`. En `pointermove`, si la
+  herramienta no es `"lapiz"`, se recalcula el `d` completo desde el punto
+  de arranque guardado (`enCurso.x0/y0`) hasta el punto actual — no hay
+  suavizado incremental que mantener, a diferencia del lápiz. `pointerup`
+  no cambió en ninguno de los dos lugares: ya leía el `d` vigente del
+  propio `<path>`, que para una figura ya es el final correcto.
+- **Sincronización entre pestañas y exportación PNG:** ninguna de las dos
+  necesitó cambios — `emitirPizarronTrazoVivo`/`Final` reenvían el `d` que
+  sea, y `pizarronDescargarPng`/`pizarraTrazosHTML` ya dibujan cualquier
+  `<path>` de `datos.trazos` sin distinguir su origen.
+- Documentado en `plantillas/guia-markdown.md` (sección 28) y en la
+  plantilla en vivo `logica-escalera-plc.md` no aplica aquí (es de
+  `​```ladder`, no de pizarra).
+- Probado con `probar_pizarra_formas_unidad.js` (unitario puro: geometría
+  exacta de cada figura vía caja delimitadora y conteo de vértices, la
+  expansión al mínimo en un toque sin arrastre, y que las 7 opciones del
+  selector se generan bien) y `probar_pizarra_formas_dom.js` (Puppeteer,
+  arrastre real con `page.mouse` sobre AMBOS editores — el bloque embebido
+  y el Pizarrón global —, retrocompatibilidad del lápiz de siempre, cierre
+  en `Z` para las figuras y no-cierre para la línea, round-trip completo
+  texto→trazos→texto en el bloque embebido, y que el borrador sigue
+  borrando una figura igual que un trazo de lápiz). Regresión general
+  (incluida la de `​```ladder` v2) sigue en verde. SW v50→v51.
 
 ---
 

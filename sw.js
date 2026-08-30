@@ -3,7 +3,7 @@
    Sube el numero de VERSION cada vez que cambies index.html o las plantillas:
    asi el navegador se entera de que hay algo nuevo.
    ========================================================================== */
-var VERSION = "v50";
+var VERSION = "v54";
 var CACHE = "mdcrgm-" + VERSION;
 
 var CONCHA = [
@@ -126,46 +126,46 @@ var CONCHA = [
   "plantillas/logica-escalera-plc.md",
 ];
 
-self.addEventListener("install", function(e){
+self.addEventListener("install", function (e) {
   e.waitUntil(
-    caches.open(CACHE).then(function(c){
+    caches.open(CACHE).then(function (c) {
       /* una a una: un solo archivo que falle no debe tumbar la instalacion */
-      return Promise.all(CONCHA.map(function(u){
-        return c.add(new Request(u, { cache: "reload" }))["catch"](function(){});
+      return Promise.all(CONCHA.map(function (u) {
+        return c.add(new Request(u, { cache: "reload" }))["catch"](function () { });
       }));
-    }).then(function(){ return self.skipWaiting(); })
+    }).then(function () { return self.skipWaiting(); })
   );
 });
 
-self.addEventListener("activate", function(e){
+self.addEventListener("activate", function (e) {
   e.waitUntil(
-    caches.keys().then(function(claves){
-      return Promise.all(claves.map(function(k){
-        if(k !== CACHE) return caches["delete"](k);
+    caches.keys().then(function (claves) {
+      return Promise.all(claves.map(function (k) {
+        if (k !== CACHE) return caches["delete"](k);
       }));
-    }).then(function(){ return self.clients.claim(); })
+    }).then(function () { return self.clients.claim(); })
   );
 });
 
-self.addEventListener("message", function(e){
-  if(e.data && e.data.tipo === "ACTUALIZAR") self.skipWaiting();
+self.addEventListener("message", function (e) {
+  if (e.data && e.data.tipo === "ACTUALIZAR") self.skipWaiting();
 });
 
-self.addEventListener("fetch", function(e){
+self.addEventListener("fetch", function (e) {
   var pet = e.request;
-  if(pet.method !== "GET") return;
+  if (pet.method !== "GET") return;
   var url = new URL(pet.url);
-  if(url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) return;
 
   /* navegacion: primero la red, para estrenar version en cuanto haya; si no, la copia */
-  if(pet.mode === "navigate"){
+  if (pet.mode === "navigate") {
     e.respondWith(
-      fetch(pet).then(function(r){
+      fetch(pet).then(function (r) {
         var copia = r.clone();
-        caches.open(CACHE).then(function(c){ c.put("index.html", copia); });
+        caches.open(CACHE).then(function (c) { c.put("index.html", copia); });
         return r;
-      })["catch"](function(){
-        return caches.match("index.html").then(function(r){
+      })["catch"](function () {
+        return caches.match("index.html").then(function (r) {
           return r || caches.match("./");
         });
       })
@@ -175,14 +175,14 @@ self.addEventListener("fetch", function(e){
 
   /* lo demas: primero la copia, y de fondo se refresca */
   e.respondWith(
-    caches.match(pet).then(function(guardado){
-      var red = fetch(pet).then(function(r){
-        if(r && r.status === 200 && r.type === "basic"){
+    caches.match(pet).then(function (guardado) {
+      var red = fetch(pet).then(function (r) {
+        if (r && r.status === 200 && r.type === "basic") {
           var copia = r.clone();
-          caches.open(CACHE).then(function(c){ c.put(pet, copia); });
+          caches.open(CACHE).then(function (c) { c.put(pet, copia); });
         }
         return r;
-      })["catch"](function(){ return guardado; });
+      })["catch"](function () { return guardado; });
       return guardado || red;
     })
   );

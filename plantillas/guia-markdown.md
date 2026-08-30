@@ -19,6 +19,7 @@ Un catálogo de **toda la sintaxis** de Markdown, cada cosa con su resultado al 
 1. Pulsa **✎ Editar**: a la izquierda escribes, a la derecha ves el resultado.
 2. Lo que escribas se guarda solo en este navegador; al volver, sigue donde lo dejaste.
 3. Con **⤓ .md** te llevas el texto; con **⤓ .html**, una copia completa de esta página, con tu documento dentro, que se abre sin internet.
+4. En la barra del editor hay botones **↺ Deshacer** / **↻ Rehacer** y **⇥ Tab**: hacen lo mismo que <kbd>Ctrl</kbd>+<kbd>Z</kbd>/<kbd>Ctrl</kbd>+<kbd>Y</kbd> y la tecla Tab, para cuando el teclado no las tiene (por ejemplo, en el móvil).
 
 ### Imprimir o guardar en PDF
 
@@ -1486,6 +1487,8 @@ trazo #1a73e8 4 M120,80 L340,210
 ```
 
 Cada línea `trazo COLOR GROSOR ...` es un trazo; borrar la línea borra el trazo, igual que borrar cualquier otro texto.
+
+En ambos lugares (el bloque dentro del documento y el Pizarrón global de abajo) hay, junto al color y el grosor, un selector de **herramienta**: además del lápiz de trazo libre de siempre, una **línea** recta (clic, arrastra y suelta: une el punto donde empezaste con el punto donde soltaste, sin curvarse) y cinco sellos de figura cerrada — **círculo, cuadrado, triángulo, pentágono y rombo** — que se dibujan arrastrando en diagonal, igual que en cualquier editor de dibujo: el rectángulo que arrastres es la caja donde queda inscrita la figura. Un simple toque sin arrastrar deja una figura de tamaño mínimo centrada en ese punto, en vez de nada. El borrador funciona igual sobre cualquier figura, no solo sobre trazos de lápiz.
 
 ### El Pizarrón global
 
