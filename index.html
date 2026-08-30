@@ -7052,15 +7052,52 @@ function vigilarCanalPestanas(){
       canalPestanas.postMessage({ tipo: "texto", texto: fuenteActual, modificado: docActual.modificado });
       return;
     }
-    if(m.tipo !== "texto" || typeof m.texto !== "string" || m.texto === fuenteActual) return;
-    fuenteActual = m.texto;
-    textoBase = fuenteActual;
-    docActual.texto = fuenteActual;
-    docActual.bytes = fuenteActual.length;
-    docActual.modificado = m.modificado || Date.now();
-    if(elEd && !aislado) elEd.value = fuenteActual;
-    pintar(fuenteActual);
-    pintarEstado();
+    if(m.tipo === "texto"){
+      if(typeof m.texto !== "string" || m.texto === fuenteActual) return;
+      fuenteActual = m.texto;
+      textoBase = fuenteActual;
+      docActual.texto = fuenteActual;
+      docActual.bytes = fuenteActual.length;
+      docActual.modificado = m.modificado || Date.now();
+      if(elEd && !aislado) elEd.value = fuenteActual;
+      pintar(fuenteActual);
+      pintarEstado();
+      return;
+    }
+    /* de aquí en más, mensajes de una sesión de Presentar en vivo (índice de
+       diapositiva y lápiz de anotación): si esta pestaña no está presentando
+       ahora mismo, no hay nada que aplicar. */
+    if(!DIA) return;
+    if(m.tipo === "diapositiva"){
+      var idx = Math.max(0, Math.min(m.i | 0, DIA.grupos.length - 1));
+      if(idx !== DIA.i){ DIA.i = idx; pintarDiapositiva(); }
+      return;
+    }
+    if(m.tipo === "trazo-vivo"){ diaLapizVivoRemotoPintar(m); return; }
+    if(m.tipo === "trazo-vivo-fin"){ if(m.i === DIA.i) diaLapizVivoRemotoQuitar(); return; }
+    if(m.tipo === "trazo-fin"){
+      diaLapizVivoRemotoQuitar();
+      var capaF = diaCapaRemota(m.i, m.ancho, m.alto);
+      if(m.trazo && capaF.datos.trazos.length < PIZARRA_TRAZOS_MAX) capaF.datos.trazos.push(m.trazo);
+      if(m.i === DIA.i){ diaLapizRedibujar(); diaActualizarBarra(); }
+      return;
+    }
+    if(m.tipo === "trazo-borrar"){
+      var capaB = DIA.capas[m.i];
+      if(capaB && capaB.datos.trazos[m.idx]){
+        capaB.datos.trazos.splice(m.idx, 1);
+        if(m.i === DIA.i){ diaLapizRedibujar(); diaActualizarBarra(); }
+      }
+      return;
+    }
+    if(m.tipo === "trazo-limpiar"){
+      var capaL = DIA.capas[m.i];
+      if(capaL && capaL.datos.trazos.length){
+        capaL.datos.trazos = [];
+        if(m.i === DIA.i){ diaLapizRedibujar(); diaActualizarBarra(); }
+      }
+      return;
+    }
   };
   /* al entrar (recien abierta, o recien cambiada a este id) pide el texto mas
      fresco a quien ya lo tenga en memoria -- cubre el caso de unirse a un
@@ -10162,12 +10199,24 @@ function pintarDiapositiva(){
   diaLapizRedibujar();
   diaActualizarBarra();
 }
+/* único punto que cambia DIA.i por una acción local (flechas, miniatura,
+   índice): además de pintar, avisa a otras pestañas en Presentar sobre el
+   mismo documento. Aplicar un índice que llega DE OTRA pestaña (ver
+   vigilarCanalPestanas) pasa por fuera de esta función a propósito, para no
+   reemitir en eco lo que se acaba de recibir. */
+function irADiapositiva(i){
+  DIA.i = i;
+  pintarDiapositiva();
+  emitirDiapositiva();
+}
+function emitirDiapositiva(){
+  if(canalPestanas && DIA) canalPestanas.postMessage({ tipo: "diapositiva", i: DIA.i });
+}
 function moverDia(paso){
   if(!DIA) return;
   var n = DIA.i + paso;
   if(n < 0 || n >= DIA.grupos.length) return;
-  DIA.i = n;
-  pintarDiapositiva();
+  irADiapositiva(n);
 }
 function cerrarPresentacion(){
   if(!DIA) return;
@@ -10258,6 +10307,58 @@ function diaCapa(i){
   }
   return c;
 }
+/* variante de diaCapa() para trazos que llegan de OTRA pestaña: si esta capa
+   todavia esta vacia, adopta el ancho/alto de quien dibujo (asi las
+   coordenadas del trazo -- pensadas para ESE lienzo -- caen en el mismo
+   sitio aqui, sin importar el tamaño real de esta ventana); si ya tiene
+   trazos propios no se le toca la escala, misma razon que diaRemedirCapasVacias(). */
+function diaCapaRemota(i, ancho, alto){
+  if(!ancho || !alto) return diaCapa(i);
+  var c = DIA.capas[i];
+  if(!c || !c.datos.trazos.length) c = DIA.capas[i] = { datos: { ancho: ancho, alto: alto, trazos: [] } };
+  return c;
+}
+/* pinta/actualiza el trazo en curso de OTRA pestaña como una capa aparte,
+   sin tocar diaLapizRedibujar() -- esa reconstruye #diaLapizSvg entero desde
+   DIA.capas[i].datos, y este trazo todavia no esta ahi (llega punto a punto
+   mientras el otro lado sigue dibujando, se agrega recien en "trazo-fin"). */
+function diaLapizVivoRemotoPintar(m){
+  if(!DIA || m.i !== DIA.i) return;
+  var svg = $("#diaLapizSvg");
+  if(!svg) return;
+  if(m.ancho && m.alto) diaCapaRemota(DIA.i, m.ancho, m.alto);
+  var capa = diaCapa(DIA.i);
+  svg.setAttribute("viewBox", "0 0 " + capa.datos.ancho + " " + capa.datos.alto);
+  var el = document.getElementById("diaTrazoVivoRemoto");
+  if(!el){
+    svg.insertAdjacentHTML("beforeend", '<path id="diaTrazoVivoRemoto" class="pizarra-trazo-actual"></path>');
+    el = document.getElementById("diaTrazoVivoRemoto");
+  }
+  el.setAttribute("d", m.d || "");
+  el.setAttribute("stroke", m.color || DIA_LAPIZ_COLOR);
+  el.setAttribute("stroke-width", m.grosor || DIA_LAPIZ_GROSOR);
+}
+function diaLapizVivoRemotoQuitar(){
+  var el = document.getElementById("diaTrazoVivoRemoto");
+  if(el && el.parentNode) el.parentNode.removeChild(el);
+}
+function emitirTrazoVivo(en){
+  if(canalPestanas && DIA) canalPestanas.postMessage({ tipo: "trazo-vivo", i: DIA.i, d: en.d,
+    color: DIA_LAPIZ_COLOR, grosor: DIA_LAPIZ_GROSOR, ancho: en.capa.datos.ancho, alto: en.capa.datos.alto });
+}
+function emitirTrazoVivoFin(){
+  if(canalPestanas && DIA) canalPestanas.postMessage({ tipo: "trazo-vivo-fin", i: DIA.i });
+}
+function emitirTrazoFinal(en, trazo){
+  if(canalPestanas && DIA) canalPestanas.postMessage({ tipo: "trazo-fin", i: DIA.i, trazo: trazo,
+    ancho: en.capa.datos.ancho, alto: en.capa.datos.alto });
+}
+function emitirTrazoBorrar(idx){
+  if(canalPestanas && DIA) canalPestanas.postMessage({ tipo: "trazo-borrar", i: DIA.i, idx: idx });
+}
+function emitirTrazoLimpiar(i){
+  if(canalPestanas && DIA) canalPestanas.postMessage({ tipo: "trazo-limpiar", i: i });
+}
 /* diaCapa() puede medir .dia-marco ANTES de que requestFullscreen() resuelva
    (abrirPresentacion llama a pintarDiapositiva antes de pedir pantalla
    completa) -- en movil, ocultar la barra del navegador cambia el alto
@@ -10337,6 +10438,7 @@ function diaLapizLimpiar(){
     capa.datos.trazos = [];
     diaLapizRedibujar();
     diaActualizarBarra();
+    emitirTrazoLimpiar(DIA.i);
   });
 }
 function diaLapizPunteroAbajo(e){
@@ -10351,6 +10453,7 @@ function diaLapizPunteroAbajo(e){
         capa.datos.trazos.splice(idx, 1);
         diaLapizRedibujar();
         diaActualizarBarra();
+        emitirTrazoBorrar(idx);
       }
     }
     return;
@@ -10375,6 +10478,7 @@ function diaLapizPunteroMueve(e){
   if(d.length > PIZARRA_D_MAX){ en.puntos.pop(); en.tope = true; return; }
   en.d = d;
   en.path.setAttribute("d", d);
+  emitirTrazoVivo(en);
 }
 function diaLapizSoltarPuntero(e){
   var en = DIA && DIA.enCurso;
@@ -10383,14 +10487,18 @@ function diaLapizSoltarPuntero(e){
     if(en.path && en.path.parentNode) en.path.parentNode.removeChild(en.path);
     DIA.enCurso = null;
     aviso("Esta diapositiva ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos.");
+    emitirTrazoVivoFin();
     return;
   }
   var i = en.capa.datos.trazos.length;
-  en.capa.datos.trazos.push({ color: DIA_LAPIZ_COLOR, grosor: DIA_LAPIZ_GROSOR, d: en.path.getAttribute("d") });
+  var trazo = { color: DIA_LAPIZ_COLOR, grosor: DIA_LAPIZ_GROSOR, d: en.path.getAttribute("d") };
+  en.capa.datos.trazos.push(trazo);
   en.path.setAttribute("class", "pizarra-trazo");
   en.path.setAttribute("data-i", String(i));
   DIA.enCurso = null;
   diaActualizarBarra();
+  emitirTrazoVivoFin();
+  emitirTrazoFinal(en, trazo);
 }
 
 /* ---------- indice y miniaturas dentro de Presentar ----------
@@ -10593,12 +10701,11 @@ function prepararPresentacion(){
   $("#diaLapizSvg").addEventListener("pointercancel", diaLapizSoltarPuntero);
   $("#diaCuerpo").addEventListener("click", function(e){
     var mini = e.target.closest ? e.target.closest(".dia-mini") : null;
-    if(mini){ DIA.i = parseInt(mini.getAttribute("data-i"), 10) || 0; pintarDiapositiva(); return; }
+    if(mini){ irADiapositiva(parseInt(mini.getAttribute("data-i"), 10) || 0); return; }
     var fila = e.target.closest ? e.target.closest("[data-dia-esq]") : null;
     if(fila){
       var hs = titulosDoc(), i = parseInt(fila.getAttribute("data-dia-esq"), 10) || 0, s = hs[i] ? diaSlideDeTitulo(hs[i]) : -1;
-      if(s >= 0) DIA.i = s;
-      pintarDiapositiva();
+      if(s >= 0) irADiapositiva(s); else pintarDiapositiva();
       return;
     }
     if(e.target.closest && e.target.closest("a, button, input, select, label")) return;
