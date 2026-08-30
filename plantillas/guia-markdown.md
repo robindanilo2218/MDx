@@ -1461,6 +1461,8 @@ El contenido pasa directo al documento, sin ninguna sintaxis intermedia: si sabe
 
 Pega dentro el archivo `.gpx` que exporta cualquier reloj, app de rutas o GPS — el mismo que ya tengas guardado, sin tocarlo. Debajo del mapa aparecen la distancia, la velocidad media, el desnivel y, si el archivo trae hora en cada punto, la pendiente media y máxima y cómo cambia la velocidad en las cuestas.
 
+La forma más fácil de traerlo es **`+ Insertar` → `Mapas y dibujo técnico` → `Importar archivo .gpx…`**: elegís el archivo de vuestro equipo o teléfono y el bloque `​```gpx` se arma solo, en el cursor. No hace falta copiar y pegar el XML a mano — y de paso, se queda solo con lo que el mapa realmente necesita (puntos, elevación, hora, notas), sin la metadata ni las extensiones propias del fabricante del reloj o la app (nombres de sesión, enlaces, campos internos) que un archivo real siempre trae y que solo ocupan espacio en el documento.
+
 | Parámetro (después de ` ```gpx `) | Valores | Qué hace |
 | --- | --- | --- |
 | `vista=` | `2d`, `3d`, `perfil` | qué vista se ve al abrir el documento — el lector puede cambiarla igual con los botones |

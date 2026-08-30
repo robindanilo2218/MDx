@@ -192,9 +192,10 @@ poligonos.push({
 Además: rectángulo de suelo tenue, la sombra de la ruta proyectada en z=0, y los
 waypoints como agujas verticales con su etiqueta.
 
-**Interacción:** arrastrar rota (`yaw += dx·0.01`, `pitch += dy·0.01`, pitch
-acotado 0–85°); rueda/pellizco escala; botones 2D / 3D / Perfil alternan vista.
-Redibujo dentro de `requestAnimationFrame`.
+**Interacción:** arrastrar rota (`yaw += dx·0.01`, `pitch += dy·0.01`, yaw
+acotado ±50° y pitch acotado 20°–65° — ver 3.10, casi isométrico); rueda/pellizco
+escala; botones 2D / 3D / Perfil alternan vista. Redibujo dentro de
+`requestAnimationFrame`.
 
 **Rendimiento:** para la vista 3D interactiva, simplificar el track a ≤ 400 puntos
 con Douglas-Peucker (la 2D y las estadísticas usan todos los puntos):
@@ -291,6 +292,79 @@ function geoAPixel(g, c) {
    con captura de fondo, mostrar aviso: capturas de mapas propietarios (Google,
    etc.) no deben republicarse; capturas basadas en OSM requieren la atribución
    `© OpenStreetMap contributors`. Para uso personal no se molesta al usuario.
+
+### 3.9 Importar un archivo `.gpx` real (adelgazado) — hecho 29-ago-2026
+
+Un `.gpx` exportado por un reloj/teléfono/app trae metadatos, un `<wpt>` con
+`<desc>` largo y extensiones propias del fabricante en su propio namespace
+(p. ej. `geotracker:*` de la app Geo Tracker) que `parseGPX()` **ya ignora**
+al dibujar — busca `trkpt`/`rtept`/`wpt` por nombre de etiqueta sin namespace,
+así que cualquier prefijo desconocido simplemente no lo encuentra. Pero pegar
+el archivo entero tal cual infla el `.md` sin necesidad.
+
+**`+ Insertar` → `Mapas y dibujo técnico` → `Importar archivo .gpx…`** abre
+un selector de archivo, lee el `.gpx` y `gpxAdelgazar(xmlTexto)`
+(`index.html`) reconstruye un GPX mínimo con solo `trkpt`/`rtept` (lat, lon,
+ele, time) y `wpt` (lat, lon, ele, name, desc) — mismo `DOMParser` que
+`parseGPX`, así que namespaces y tags desconocidos se descartan solos. El
+resultado se inserta como `​```gpx vista=2d` en el cursor, vía `meterTexto`.
+
+Probado con el archivo real de un usuario (Geo Tracker, 415 KB, 3084 trkpt,
+1 wpt): 27 % menos de bytes tras adelgazar — la mayoría del peso original ya
+eran puntos de ruta genuinos, no metadata; la reducción real está en
+descartar `<metadata>`, `<extensions>` y la indentación. Mapa 2D renderiza
+igual que con el archivo pegado a mano.
+
+**Nota honesta:** la sección 3.2 de arriba dice que las `<extensions>` de un
+`<wpt>` "se conservan tal cual" (p. ej. Garmin guarda ahí dirección y
+teléfono) — pero el código actual de `parseGPX()` **no lee `<extensions>`
+en ningún lado** (confirmado por grep: cero ocurrencias en `index.html`).
+Esa parte de 3.2 describe una ambición no implementada, no el comportamiento
+real. `gpxAdelgazar()` descarta `<extensions>` de forma consistente con lo
+que el motor realmente usa hoy — si algún día se implementa el "negocio
+completo cabe en un waypoint" de 3.2, `gpxAdelgazar()` necesitaría
+preservarlas también.
+
+### 3.10 Giro acotado + botón Norte en la vista 3D — hecho 30-ago-2026
+
+Feedback de usuario: con `yaw` totalmente libre (360°) y `pitch` acotado solo
+0°–85° (nunca invertía la base, pero sí llegaba casi vertical), giraba tanto
+que perdía de vista cuál lado era el piso. Pedido explícito: que se vea
+"2.5D o isométrico", girando poco para que la base quede siempre abajo, más
+un botón que reoriente.
+
+**`motor3dActivar(el, estado, redibujar, limites)`** (`index.html`) ahora
+acepta un cuarto parámetro opcional `{yawMin, yawMax, pitchMin, pitchMax}`.
+Sin él, se comporta exactamente igual que antes (yaw libre, pitch 0°–85°) —
+así el bloque `​```3d` alámbrico genérico, que sí necesita poder ver un objeto
+desde cualquier lado, no cambia. Solo la vista 3D del `​```gpx` pasa límites
+angostos:
+
+```javascript
+var GPX3D_LIMITES = {
+  yawMin: -Math.PI * 50 / 180, yawMax: Math.PI * 50 / 180,
+  pitchMin: Math.PI * 20 / 180, pitchMax: Math.PI * 65 / 180
+};
+```
+
+El ángulo inicial ya elegido (`yaw:-0.6 pitch:0.55` rad, ~-34°/32°) cae cómodo
+dentro de ese rango, así que la primera vista no cambió — solo se acotó cuánto
+se puede girar desde ahí.
+
+**Botón "▲ N"** (`.gpx-boton-norte3d`, esquina superior derecha del SVG 3D,
+mismo estilo que la insignia `.gpx-norte` de la vista 2D): al pulsarlo,
+`yaw` vuelve a `0` y `pitch` a `GPX3D_PITCH_DEF` (0.55) — en `yaw:0` los ejes
+este/norte no están rotados entre sí, la orientación más cercana a "igual que
+el mapa 2D" que permite esta cámara (ver el comentario de `GPX3D_LIMITES` en
+`index.html` sobre por qué el eje de giro no es una brújula real: `yaw` gira
+el par este/altura y deja el norte fijo, herencia de que la vista es una
+"cortina de elevación" y no una cámara orbital clásica). El botón no toca el
+zoom (`escala`), solo reorienta. No aparece en la vista 2D ni en impresión/PDF.
+
+Verificado con Puppeteer: un arrastre extremo (900px en diagonal) no logra
+sacar la base de la vista ni invertirla; repetir el mismo arrastre extremo no
+sigue moviendo la escena (el clamp realmente tope); el botón Norte produce
+siempre el mismo resultado sin importar desde qué ángulo se pulse.
 
 ---
 
@@ -611,7 +685,7 @@ escenario de arriba, incluida una segunda vuelta a Pizarrón para ejercitar
 | 3 | Contexto Overpass incrustado + captura calibrada + POIs → `<wpt>` | ~300 |
 | 4 | ` ```pizarra ` + lápiz en Presentar + Pizarrón global | ~350 |
 | 5 | ` ```svg ` (saneado) + ` ```plano ` + ` ```iso ` + ` ```3d ` | ~450 |
-| 6 | ` ```ladder ` + ` ```chart ` | ~380 |
+| 6 | ` ```ladder ` + ` ```verdad ` + fondos de diapositiva + subcategorías | ~520 (detalle en sección 15) |
 | 7 | ` ```qr ` | ~300 |
 
 Total ~2 200 líneas sobre `index.html` (contexto: el motor actual ronda las 900).
@@ -629,11 +703,149 @@ worker con el empaquetador, como ya es costumbre.
    2 MB, u otros valores?
 3. **Flags por documento en el front matter**, al estilo de `matematicas: no`:
    p. ej. `gpx: no` para apagar renderers en un documento concreto.
-4. **Unifilar:** ¿segunda sintaxis dentro de ` ```ladder ` o bloque propio
-   ` ```unifilar `?
+4. **Unifilar:** decidido por ahora — **bloque propio, no dentro de ` ```ladder `**
+   (ver sección 15.1: son familias de diagrama distintas — contactos/lógica de
+   mando contra líneas de potencia/distribución — y mezclarlas complicaría el
+   parser de las dos sin necesidad). Sin fecha; se retoma si se pide.
 5. **Color por defecto del GPX:** ¿`velocidad` siempre, o `pendiente` cuando el
    track no trae timestamps?
 6. **Servidor Overpass:** `overpass-api.de` por defecto — ¿configurable en
    ajustes para poder cambiarlo si se satura?
 7. **Anotaciones de Presentar:** ¿el bloque guardado lleva un parámetro
    (`sobre=diapositiva`) para distinguirlo de una pizarra normal?
+
+---
+
+## 15. Fase 6 — lógica, electricidad, categorías y fondos (PLAN, sin implementar)
+
+Investigado el 29-ago-2026 a pedido explícito: sin código todavía, para que
+se revise el enfoque antes de tocar `index.html`. Cuatro piezas independientes
+entre sí — se pueden implementar en cualquier orden o por separado.
+
+### 15.1 ` ```ladder ` — completa lo ya definido en la sección 9, con norma IEC/NEMA
+
+**Corrección importante:** la sintaxis de ` ```ladder ` **ya estaba definida
+en la sección 9** de este mismo spec (ASCII-art posicional: `[X]` NA, `[X/]`
+NC, `(Y)` bobina, `[TON Tn t]` temporizador, `+` para la derivación que arma
+una rama en paralelo, alineando columnas como en el ejemplo de esa sección).
+Esta subsección no reemplaza esa sintaxis — la completa con lo que se
+investigó ahora a pedido explícito: la diferencia entre "europeo" y
+"americano".
+
+**Qué es esa diferencia, y qué no:** IEC 60617 (Europa) y NEMA-NFPA
+(Norteamérica) difieren solo en el **dibujo del símbolo**, no en la lógica:
+un contacto NA es `─┤ ├─` en IEC y `─] [─` en NEMA; uno NC añade una diagonal
+en ambos (`─┤/├─` / `─]/[─`). La sintaxis de entrada `[X]`/`[X/]`/`(Y)` de la
+sección 9 ya coincide con el ASCII-art estándar de facto del propio
+IEC 61131-3 (el estándar de programación de PLC) — sirve igual para dibujar
+cualquiera de las dos normas. Así que el único cambio real es un parámetro
+de bloque, mismo patrón que `​```gpx vista=2d/3d/perfil`:
+
+```
+​```ladder norma=nema
+| [PARO/] [ARRANQUE] ---------------- (M1)  | arranque-paro con sello
+| [M1] ----+                                |
+| [M1] ------------ [TON T1 5s] ----- (L1)  | piloto retardado
+​```
+```
+
+- `norma=iec` (por defecto) o `norma=nema` — solo cambia qué símbolo SVG se
+  dibuja para contacto/bobina/temporizador, nunca el texto de entrada.
+  Cambiar de norma después de escrito el diagrama no rompe nada; son dos
+  hojas de símbolos para el mismo `ladderRenderSVG`.
+- El parser de la sección 9 es posicional (columna de cada `[...]`/`(...)`
+  importa, para saber dónde conecta cada `+` de derivación) — no es un
+  parser línea-por-línea de comandos como `plano`/`iso`. Vale la pena
+  detallar ese algoritmo exacto (cómo se detecta a qué peldaño anterior
+  conecta un `+`) antes de escribir código, para no dejarlo ambiguo.
+- Extensión natural, no decidida aún: contador (`[CTU Cn n]` / `[CTD Cn n]`)
+  al lado de `[TON Tn t]`, mismo criterio de norma.
+- **Fuera de esta fase (ver pregunta abierta #4):** el diagrama **unifilar**
+  (líneas de potencia trifásica, transformadores, disyuntores, motores) es
+  una familia de diagrama distinta — no contactos/bobinas sino flujo de
+  energía — y se deja como bloque propio (` ```unifilar `) para una fase
+  futura si se pide, en vez de forzarlo dentro de `​```ladder`.
+
+### 15.2 ` ```verdad ` — tabla de verdad con cálculo automático
+
+El motor de fórmulas ya existente (`evaluarFormula`, sección "CALCULOS" de
+`index.html`) es aritmético (`+ - * /`, `SUMA`, `PROMEDIO`...) y **no** tiene
+operadores lógicos — no es reutilizable tal cual, pero sí su forma: un parser
+recursivo descendente propio, sin `eval`, que ya es el patrón establecido del
+proyecto para "calcular algo escrito como texto". La propuesta es un
+evaluador booleano hermano, `evaluarLogica`, con las mismas garantías.
+
+```
+​```verdad
+entradas: A, B, C
+salida S = (A Y B) O (NO C)
+salida T = A O-EXCLUSIVA B
+​```
+```
+
+- Palabras clave en español, a tono con `SUMA`/`PROMEDIO`/`REDONDEAR` ya
+  existentes: `Y` (AND), `O` (OR), `NO` (NOT), `O-EXCLUSIVA` (XOR); `NI`
+  (NOR) y `NO-Y` (NAND) como azúcar si hace falta.
+  Precedencia `NO` > `Y` > `O`, paréntesis para forzar orden — igual que
+  `evaluarFormula` ya hace con `* /` antes de `+ -`.
+- El bloque declara las variables de entrada una vez (`entradas:`) y una o
+  más filas de `salida NOMBRE = expresión`; el motor genera solo las
+  **2ⁿ combinaciones** (n = número de entradas) y calcula cada columna de
+  salida para cada fila — no hace falta escribir la tabla a mano.
+  Render: una `<table>` normal (mismo CSS de tabla que ya existe), no SVG.
+- **No** se integra en `evaluarFormula` ni en celdas de tabla Markdown
+  sueltas: mezclar aritmética y booleanos en el mismo evaluador (¿qué es
+  `A + 1`, número o booleano?) complica sin necesidad un motor que hoy es
+  simple. Un evaluador aparte, un bloque aparte.
+
+### 15.3 Categorías y subcategorías del catálogo
+
+Confirmado en el código: `plantillas/indice.json` tiene hoy **12 categorías
+planas**, sin ningún campo de subcategoría — `pintarGaleria()`
+(`index.html`) pinta una sola fila de botones de categoría y filtra con
+`p.cat === catActual`, nada más. La categoría `electrico` que ya existe es
+sobre **mantenimiento** eléctrico industrial (LOTO, termografía, plan
+maestro...), no sobre diagramas o lógica — así que las plantillas de
+`​```ladder`/`​```verdad` necesitan hogar propio, no encajan ahí sin confundir.
+
+Propuesta mínima, retrocompatible:
+
+- Nuevo campo opcional `"sub"` en cada entrada de `indice.json` (una
+  plantilla sin ese campo se sigue viendo siempre dentro de su categoría,
+  sin filtrar por subcategoría — cero migración necesaria).
+- Cada categoría del bloque `categorias` puede declarar opcionalmente
+  `"subcategorias":[{"id":"...", "nombre":"..."}]`.
+- En `pintarGaleria()`: si `catActual` tiene `subcategorias`, pintar una
+  segunda fila de chips bajo la de categorías (mismo patrón visual, un botón
+  "Todas" primero) y añadir `&& (!subActual || p.sub === subActual)` al
+  filtro existente. Sin subcategorías declaradas, la categoría se ve exacto
+  igual que hoy.
+- Categoría nueva candidata para alojar lo de esta fase: **"Matemáticas y
+  lógica"** (`math`), con subcategorías `logica` (tablas de verdad, álgebra
+  booleana) y `electricidad` (ladder, y unifilar el día que exista) — a
+  confirmar el nombre/reparto exacto contigo antes de tocar `indice.json`.
+
+### 15.4 Fondos y estilos de diapositiva
+
+La más chica de las cuatro. Dos mecanismos, complementarios:
+
+- **Color/degradado por diapositiva:** una directiva de línea al principio
+  de la diapositiva, `!fondo: #1a2b3c` o `!fondo: degradado(#1a2b3c, #2ecc71)`,
+  leída por `pintarDiapositiva()` igual que ya lee la línea `---` como
+  separador — se aplica como `background` inline solo a esa diapositiva, no
+  al documento.
+- **SVG como fondo:** un bloque `​```svg fondo` (parámetro nuevo, mismo
+  saneamiento de `dibujarSvgCrudo`) posicionado en una capa detrás del texto
+  de la diapositiva (`position:absolute`, `z-index` bajo el contenido) en vez
+  de en el flujo normal — para dibujos de fondo hechos a mano en vez de un
+  color plano.
+- Ninguno de los dos toca el documento fuera de Presentar: en la vista normal
+  del documento, `!fondo:` se ignora y `​```svg fondo` se ve como un SVG
+  cualquiera en el flujo (igual que hoy).
+
+### Orden sugerido
+
+Por costo/aislamiento, no por lo pedido primero: **15.4 (fondos) → 15.2
+(tablas de verdad) → 15.1 (ladder) → 15.3 (categorías)** — cada una se
+prueba y se cierra sola, igual que las fases anteriores de este spec. Queda
+a decidir contigo si prefieres otro orden, o ir directo a una sola pieza.
