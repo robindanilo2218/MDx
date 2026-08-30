@@ -766,7 +766,7 @@ de bloque, mismo patrón que `​```gpx vista=2d/3d/perfil`:
   energía — y se deja como bloque propio (` ```unifilar `) para una fase
   futura si se pide, en vez de forzarlo dentro de `​```ladder`.
 
-### 15.2 ` ```verdad ` — tabla de verdad con cálculo automático
+### 15.2 ` ```verdad ` — tabla de verdad con cálculo automático — hecho 30-ago-2026
 
 El motor de fórmulas ya existente (`evaluarFormula`, sección "CALCULOS" de
 `index.html`) es aritmético (`+ - * /`, `SUMA`, `PROMEDIO`...) y **no** tiene
@@ -797,6 +797,44 @@ salida T = A O-EXCLUSIVA B
   sueltas: mezclar aritmética y booleanos en el mismo evaluador (¿qué es
   `A + 1`, número o booleano?) complica sin necesidad un motor que hoy es
   simple. Un evaluador aparte, un bloque aparte.
+
+**Implementado tal cual el plan de arriba**, con estos detalles concretos:
+
+- `evaluarLogica(expr, valores)` (`index.html`, junto a `verdadParsear`/
+  `verdadFilas`/`dibujarVerdad`): parser recursivo descendente de dos niveles
+  de precedencia binaria (`expresionO` con `O`/`O-EXCLUSIVA`/`NI`, `expresionY`
+  con `Y`/`NO-Y`) más `NO` unario en `primario()` — mismo estilo de cursor
+  `i`/`espacios()`/`error()` que `evaluarFormula`. `NI` y `NO-Y` sí se
+  implementaron (no quedaron como "azúcar pendiente").
+  **Detalle importante de corrección:** cada operador binario evalúa
+  **siempre** el operando derecho llamando a `primario()`/`expresionY()` antes
+  de combinar valores — nunca con `&&`/`||` de JS directamente sobre la
+  llamada, porque el cortocircuito de JS saltearía el avance del cursor sobre
+  el operando derecho y desincronizaría el resto del parseo silenciosamente.
+- Palabras clave reconocidas sin distinguir mayúsculas/minúsculas, y sin ser
+  prefijo de un identificador más largo (`palabra("NI")` no le come la letra
+  a una futura variable `NIVEL`); `O-EXCLUSIVA` y `NO-Y` se prueban antes que
+  `O`/`Y` en cada nivel por compartir la letra inicial.
+- Límite de `VERDAD_ENTRADAS_MAX = 8` (256 filas) con mensaje de error claro
+  al pasarse — evita un documento enorme por accidente.
+- Render: `<figure class="verdad-viewer">` con `<table class="verdad-tabla">`
+  (columnas de entrada normales, columnas de salida con borde izquierdo de
+  acento y negrita) y un `<figcaption>` que repite cada `salida NOMBRE =
+  expresión` como leyenda, para no perder de vista qué significa cada columna
+  corta. Valores mostrados como `V`/`F` (Verdadero/Falso), no `1`/`0`.
+- Error de sintaxis → `<div class="verdad-error">` amigable (mismo patrón que
+  `.gpx-error`), no una excepción sin capturar que rompa el resto del render.
+- Nuevo menú **`+ Insertar` → `Lógica y electricidad` → `Tabla de verdad`**
+  (`LOGICA`/`formLogica()`, mismo patrón que `TECNICOS`/`formTecnico()` pero
+  aparte — el título "Mapas y dibujo técnico" no encaja para esto). Deja
+  espacio para que ` ```ladder ` se agregue ahí mismo como segunda entrada
+  cuando se implemente la sección 15.1.
+- Probado con `probar_verdad_unidad.js` (unitario puro: Y/O/NO/XOR/NI/NAND,
+  precedencia, paréntesis, mayúsculas/minúsculas, variable multi-letra que no
+  choca con una palabra clave de un solo carácter, límite de 8 entradas,
+  errores esperados) y `probar_verdad_dom.js` (render en el navegador, tabla
+  de 3 entradas verificada fila por fila, ruta de error, y el menú Insertar
+  completo). SW v44→v45.
 
 ### 15.3 Categorías y subcategorías del catálogo
 

@@ -1239,6 +1239,15 @@ table.plano-stats td:last-child{text-align:right; font-variant-numeric:tabular-n
 .tresd-arista{stroke:var(--acento); stroke-width:1.5}
 .tresd-vertice{fill:var(--papel); stroke:var(--acento); stroke-width:1.5}
 
+/* tabla de verdad (```verdad) */
+.verdad-viewer{margin:1.5rem 0; padding:1rem; border:1px solid var(--borde); border-radius:.6rem; background:var(--papel)}
+.verdad-tabla{margin:0 auto; border-collapse:collapse}
+.verdad-tabla th, .verdad-tabla td{padding:.35rem .9rem; text-align:center; border:1px solid var(--borde)}
+.verdad-tabla th{background:var(--codigo-fondo)}
+.verdad-tabla td.verdad-col-salida, .verdad-tabla th.verdad-col-salida{border-left-width:2px; border-left-color:var(--acento); font-weight:600}
+.verdad-leyenda{margin-top:.6rem; font-size:.85em; color:var(--tenue); text-align:center}
+.verdad-error{padding:.9rem 1rem; border-radius:.5rem; background:var(--p-f); color:var(--p); border:1px solid var(--p)}
+
 /* formulas */
 .formula{font-size:1.03em}
 .formula-caja{margin:1.3rem 0; overflow-x:auto; text-align:center}
@@ -1290,7 +1299,7 @@ math mo{font-family:inherit}
   .gpx-captura-controles, .gpx-boton-calibrar, .gpx-boton-cancelar-calibracion{display:none}
   .pizarra-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
   .pizarra-boton-editar, .pizarra-barra{display:none}
-  figure.svg-viewer, .plano-viewer, .iso-viewer, .tresd-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
+  figure.svg-viewer, .plano-viewer, .iso-viewer, .tresd-viewer, .verdad-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
   .tresd-svg{height:320px}
   .formula-caja{break-inside:avoid; page-break-inside:avoid}
   .campo{
@@ -6026,6 +6035,154 @@ function prepararTresD(){
   });
 }
 
+/* ==========================================================================
+   BLOQUE ```verdad
+   Tabla de verdad con calculo automatico (spec seccion 15.2): se declaran las
+   entradas una vez y una o mas salidas como expresion booleana, y el motor
+   genera solas las 2^n combinaciones. evaluarLogica es un evaluador booleano
+   hermano de evaluarFormula (misma idea -- parser recursivo descendente
+   propio, sin eval) pero aparte: mezclar aritmetica y booleanos en el mismo
+   evaluador complicaria sin necesidad un motor que hoy es simple. Bloque
+   totalmente estatico -- sin motor3d, sin hidratacion, se calcula una vez al
+   convertir el markdown.
+   ========================================================================== */
+var VERDAD_ENTRADAS_MAX = 8;   /* 2^8 = 256 filas, ya bastante para un documento */
+
+/* intenta consumir la palabra clave p (en mayusculas) en la posicion actual,
+   sin distinguir mayus/minusculas y sin que sea el prefijo de un identificador
+   mas largo (asi "NI" no le come la palabra a una futura variable "NIVEL",
+   y "O" no le come la palabra a "O-EXCLUSIVA": esta ultima se prueba primero
+   en expresionO porque comparte la "O" inicial). */
+function evaluarLogica(expr, valores){
+  var s = String(expr || ""), i = 0;
+  function error(msg){ throw new Error(msg); }
+  function espacios(){ while(s.charAt(i) === " " || s.charAt(i) === "\t") i++; }
+  function palabra(p){
+    espacios();
+    if(s.slice(i, i + p.length).toUpperCase() !== p) return false;
+    if(/[A-Za-z0-9_]/.test(s.charAt(i + p.length))) return false;
+    i += p.length;
+    return true;
+  }
+  function primario(){
+    espacios();
+    if(s.charAt(i) === "("){
+      i++;
+      var v = expresionO();
+      espacios();
+      if(s.charAt(i) !== ")") error("falta un paréntesis de cierre");
+      i++;
+      return v;
+    }
+    if(palabra("NO")) return primario() ? 0 : 1;
+    var m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(s.slice(i));
+    if(!m) error('se esperaba una variable, "NO" o un paréntesis');
+    i += m[0].length;
+    if(!Object.prototype.hasOwnProperty.call(valores, m[0])) error('la variable "' + m[0] + '" no está declarada en "entradas:"');
+    return valores[m[0]] ? 1 : 0;
+  }
+  /* Y / NO-Y: misma jerarquia (mas fuerte que O); ambos lados SIEMPRE se
+     evaluan (nunca con && / || de JS, que corta la evaluacion) para que el
+     cursor "i" avance igual sin importar el valor de la izquierda -- si no,
+     una expresion como "F Y (texto raro)" nunca detectaria el error. */
+  function expresionY(){
+    var v = primario(), d;
+    while(true){
+      if(palabra("NO-Y")){ d = primario(); v = (v && d) ? 0 : 1; continue; }
+      if(palabra("Y")){ d = primario(); v = (v && d) ? 1 : 0; continue; }
+      break;
+    }
+    return v;
+  }
+  function expresionO(){
+    var v = expresionY(), d;
+    while(true){
+      if(palabra("O-EXCLUSIVA")){ d = expresionY(); v = (!!v !== !!d) ? 1 : 0; continue; }
+      if(palabra("NI")){ d = expresionY(); v = (v || d) ? 0 : 1; continue; }
+      if(palabra("O")){ d = expresionY(); v = (v || d) ? 1 : 0; continue; }
+      break;
+    }
+    return v;
+  }
+  espacios();
+  if(!s) error("expresión vacía");
+  var r = expresionO();
+  espacios();
+  if(i < s.length) error('sobra texto: "' + s.slice(i) + '"');
+  return r ? 1 : 0;
+}
+
+function verdadParsear(codigo){
+  var lineas = String(codigo || "").replace(/\r\n?/g, "\n").split("\n");
+  var entradas = null, salidas = [], vistos = {}, i, L, m;
+  for(i = 0; i < lineas.length; i++){
+    L = lineas[i].trim();
+    if(!L) continue;
+    m = /^entradas\s*:\s*(.+)$/i.exec(L);
+    if(m){
+      if(entradas) throw new Error('solo puede haber una línea "entradas:"');
+      entradas = m[1].split(",").map(function(t){ return t.trim(); }).filter(Boolean);
+      continue;
+    }
+    m = /^salida\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/i.exec(L);
+    if(m){ salidas.push({ nombre: m[1], expr: m[2] }); continue; }
+    throw new Error('no entiendo esta línea: "' + L + '" (se esperaba "entradas:" o "salida NOMBRE = expresión")');
+  }
+  if(!entradas || !entradas.length) throw new Error('falta la línea "entradas: A, B, C..."');
+  if(!salidas.length) throw new Error('falta al menos una línea "salida NOMBRE = expresión"');
+  if(entradas.length > VERDAD_ENTRADAS_MAX){
+    throw new Error("demasiadas entradas (" + entradas.length + "): el máximo son " + VERDAD_ENTRADAS_MAX + " (" + Math.pow(2, VERDAD_ENTRADAS_MAX) + " filas)");
+  }
+  entradas.forEach(function(n){
+    if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(n)) throw new Error('nombre de entrada inválido: "' + n + '"');
+    if(vistos[n]) throw new Error('"' + n + '" está repetido');
+    vistos[n] = true;
+  });
+  salidas.forEach(function(s){
+    if(vistos[s.nombre]) throw new Error('"' + s.nombre + '" ya es el nombre de una entrada u otra salida');
+    vistos[s.nombre] = true;
+  });
+  return { entradas: entradas, salidas: salidas };
+}
+
+/* orden de filas: la primera entrada cambia mas lento (bit mas significativo),
+   igual que una tabla de verdad de libro de texto */
+function verdadFilas(datos){
+  var n = datos.entradas.length, total = Math.pow(2, n), filas = [], f, j, valores, fila;
+  for(f = 0; f < total; f++){
+    valores = {};
+    for(j = 0; j < n; j++) valores[datos.entradas[j]] = (f >> (n - 1 - j)) & 1;
+    fila = { valores: valores, resultados: {} };
+    datos.salidas.forEach(function(s){ fila.resultados[s.nombre] = evaluarLogica(s.expr, valores); });
+    filas.push(fila);
+  }
+  return filas;
+}
+
+function dibujarVerdad(codigo){
+  try{
+    var datos = verdadParsear(codigo);
+    var filas = verdadFilas(datos);
+    var partes = ['<figure class="verdad-viewer no-romper" translate="no"><table class="verdad-tabla"><thead><tr>'];
+    datos.entradas.forEach(function(n){ partes.push("<th>" + X(n) + "</th>"); });
+    datos.salidas.forEach(function(s){ partes.push('<th class="verdad-col-salida">' + X(s.nombre) + "</th>"); });
+    partes.push("</tr></thead><tbody>");
+    filas.forEach(function(fila){
+      partes.push("<tr>");
+      datos.entradas.forEach(function(n){ partes.push("<td>" + (fila.valores[n] ? "V" : "F") + "</td>"); });
+      datos.salidas.forEach(function(s){ partes.push('<td class="verdad-col-salida">' + (fila.resultados[s.nombre] ? "V" : "F") + "</td>"); });
+      partes.push("</tr>");
+    });
+    partes.push("</tbody></table>");
+    partes.push('<figcaption class="verdad-leyenda">');
+    datos.salidas.forEach(function(s){ partes.push("<div>" + X(s.nombre) + " = " + X(s.expr) + "</div>"); });
+    partes.push("</figcaption></figure>");
+    return partes.join("");
+  }catch(e){
+    return '<div class="verdad-error"><strong>No se pudo calcular la tabla de verdad.</strong><p>' + X(e.message) + "</p></div>";
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 function mdAHtml(fuente){
   var Z = String.fromCharCode(0);        // marca interna, invisible
@@ -6438,6 +6595,10 @@ function mdAHtml(fuente){
         }
         if(etiqueta === "3d"){
           apunta(dibujar3D(codigo));
+          continue;
+        }
+        if(etiqueta === "verdad"){
+          apunta(dibujarVerdad(codigo));
           continue;
         }
         if(etiqueta === "mermaid" || etiqueta === "diagrama" || etiqueta === "grafico" || etiqueta === "gr\u00e1fico"){
@@ -9398,6 +9559,7 @@ function menuInsertar(){
     '<button type="button" data-ins="emoji"><b>Emoji</b><span>Cientos, buscables por nombre o por sinónimo</span></button>',
     '<button type="button" data-ins="diagrama"><b>Diagrama</b><span>Flujo, secuencia, estados, tarta, Gantt, clases, entidad-relación o mapa mental</span></button>',
     '<button type="button" data-ins="tecnico"><b>Mapas y dibujo técnico</b><span>Ruta GPX, plano, isométrico, alámbrico 3D o SVG crudo</span></button>',
+    '<button type="button" data-ins="logica"><b>Lógica y electricidad</b><span>Tabla de verdad</span></button>',
     '<button type="button" data-ins="aviso"><b>Aviso de color</b><span>Nota, consejo, importante, aviso o precaución</span></button>',
     '<button type="button" data-ins="estilo"><b>Estilo y color de texto</b><span>Negrita, tachado, resaltado, colores…</span></button>',
     '<button type="button" data-ins="formula"><b>Fórmula matemática</b><span>En línea o en su propio bloque</span></button>',
@@ -9561,6 +9723,23 @@ function formTecnico(){
   ].join(""));
 }
 function gpxImportarDisparar(){ $("#gpxImportar").click(); }
+
+/* misma idea que TECNICOS/formTecnico, panel aparte: cuando exista ```ladder
+   (spec seccion 15.1, siguiente en la fila) se agrega ahi mismo, un objeto
+   mas en el array. */
+var LOGICA = [
+  {id:"verdad", nombre:"Tabla de verdad", desc:"Entradas y una o más salidas como expresión booleana; el resto se calcula solo",
+    txt:"```verdad\nentradas: A, B\nsalida S = A Y B\nsalida T = A O-EXCLUSIVA B\n```"}
+];
+function formLogica(){
+  abrirChico("Lógica y electricidad", [
+    '<div class="chico-menu">',
+    LOGICA.map(function(l){
+      return '<button type="button" data-logica="' + l.id + '"><b>' + escUI(l.nombre) + '</b><span>' + escUI(l.desc) + "</span></button>";
+    }).join(""),
+    "</div>"
+  ].join(""));
+}
 
 var AVISOS = [
   {tipo:"NOTA", nombre:"Nota", desc:"Información útil que conviene tener presente"},
@@ -12655,6 +12834,7 @@ $("#cuerpoChico").addEventListener("click", function(e){
     else if(q === "emoji") formEmoji();
     else if(q === "diagrama") formDiagrama();
     else if(q === "tecnico") formTecnico();
+    else if(q === "logica") formLogica();
     else if(q === "aviso") formAviso();
     else if(q === "estilo") formEstilo();
     else if(q === "formula") formFormula();
@@ -12687,6 +12867,15 @@ $("#cuerpoChico").addEventListener("click", function(e){
     var idt = tec.getAttribute("data-tecnico"), jt;
     for(jt = 0; jt < TECNICOS.length; jt++){
       if(TECNICOS[jt].id === idt){ meterTexto(TECNICOS[jt].txt, true); break; }
+    }
+    cerrarChico();
+    return;
+  }
+  var log = e.target.closest("[data-logica]");
+  if(log){
+    var idl = log.getAttribute("data-logica"), jl;
+    for(jl = 0; jl < LOGICA.length; jl++){
+      if(LOGICA[jl].id === idl){ meterTexto(LOGICA[jl].txt, true); break; }
     }
     cerrarChico();
     return;
