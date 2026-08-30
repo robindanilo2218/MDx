@@ -915,7 +915,7 @@ salida T = A O-EXCLUSIVA B
   de 3 entradas verificada fila por fila, ruta de error, y el menú Insertar
   completo). SW v44→v45.
 
-### 15.3 Categorías y subcategorías del catálogo
+### 15.3 Categorías y subcategorías del catálogo — hecho 30-ago-2026
 
 Confirmado en el código: `plantillas/indice.json` tiene hoy **12 categorías
 planas**, sin ningún campo de subcategoría — `pintarGaleria()`
@@ -941,6 +941,45 @@ Propuesta mínima, retrocompatible:
   lógica"** (`math`), con subcategorías `logica` (tablas de verdad, álgebra
   booleana) y `electricidad` (ladder, y unifilar el día que exista) — a
   confirmar el nombre/reparto exacto contigo antes de tocar `indice.json`.
+
+**Decisión tomada, distinta de la propuesta original (documentada por si se
+cuestiona):** categoría nueva `logica`, nombre **"Lógica y electricidad"**
+— el mismo nombre que ya tenía el menú `+ Insertar` de la sección 15.2/15.1
+(`LOGICA`/`formLogica()`), en vez del "Matemáticas y lógica" que proponía
+este plan. Motivo: para cuando llegó el momento de tocar `indice.json` el
+menú Insertar ya existía con ese nombre y ya agrupaba ambas plantillas sin
+problema — usar un nombre distinto en la galería de plantillas que en el
+menú de inserción, para la misma pareja de bloques, confundiría más de lo
+que aclararía. **Sin subcategorías**: con solo 2 plantillas por ahora
+(`logica-tabla-verdad`, `logica-escalera-plc`), separar `logica` de
+`electricidad` como subcategorías de un padre común habría sido la
+abstracción de dos niveles que este plan proponía, sin nada real que
+justifique el segundo nivel todavía — la categoría única y plana ya
+resuelve el problema original (que `​```ladder`/`​```verdad` no encajan en
+`electrico`, que es de mantenimiento). El campo `"sub"` que este plan
+proponía sigue disponible sin usar, para el día que la categoría crezca lo
+suficiente como para partirla.
+
+- Icono `⊕` (o-exclusiva/XOR, ligado a la función que motivó la categoría),
+  para no repetir ninguno de los 12 iconos ya usados.
+- Dos plantillas nuevas creadas desde cero (no existían plantillas previas
+  para `ladder`/`verdad`): `plantillas/logica-tabla-verdad.md` y
+  `plantillas/logica-escalera-plc.md`, con el mismo formato de referencia
+  que ya usaba `calc-como-se-hace.md` (ejemplo en vivo primero, tabla de
+  sintaxis, aviso `[!NOTA]`, sección "Lo que no hace", "Esqueleto para
+  empezar" al final) — son las primeras plantillas de referencia de este
+  estilo fuera de cálculos.
+- **Cero cambios de código en `pintarGaleria()`**: al no usar subcategorías,
+  la categoría nueva es puramente datos — el mismo `p.cat === catActual` que
+  ya filtraba las otras 12 categorías la filtra a esta también.
+- Solo se tocó `plantillas/indice.json` (la fuente canónica que empaqueta
+  `herramientas/empaquetar.py`); las copias de `escritorio/app/`,
+  `movil/app/` y `movil/android/.../assets/public/` son artefactos de
+  build gitignorados, no fuentes — se regeneran al empaquetar cada
+  plataforma, no se editan a mano.
+- Probado con `probar_categoria_logica.js` (navegador: la categoría aparece
+  en la galería con sus 2 plantillas, cada una carga su bloque y lo
+  renderiza sin error). Regresión general sigue en verde. SW v46→v47.
 
 ### 15.4 Fondos y estilos de diapositiva
 

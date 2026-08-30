@@ -72,6 +72,12 @@
       "nombre": "Hojas de cálculo",
       "icono": "∑",
       "descripcion": "Tablas con celdas que se calculan solas, como en una hoja de cálculo: SUMA, PROMEDIO y operaciones entre celdas con direcciones tipo A1."
+    },
+    {
+      "id": "logica",
+      "nombre": "Lógica y electricidad",
+      "icono": "⊕",
+      "descripcion": "Tablas de verdad con cálculo automático y diagramas de escalera PLC, en símbolo IEC o NEMA."
     }
   ],
   "plantillas": [
@@ -1001,6 +1007,24 @@
       "titulo": "Control de horas de un proyecto",
       "destino": "—",
       "desc": "Tareas con horas por tarifa, y el total de horas y de costo del proyecto calculados solos."
+    },
+    {
+      "id": "logica-tabla-verdad",
+      "cat": "logica",
+      "archivo": "logica-tabla-verdad.md",
+      "nombre": "tabla-verdad.md",
+      "titulo": "Tabla de verdad automática",
+      "destino": "—",
+      "desc": "Declara las entradas y una o más salidas como expresión booleana; el motor calcula solas las combinaciones."
+    },
+    {
+      "id": "logica-escalera-plc",
+      "cat": "logica",
+      "archivo": "logica-escalera-plc.md",
+      "nombre": "escalera-plc.md",
+      "titulo": "Escalera PLC (IEC/NEMA)",
+      "destino": "—",
+      "desc": "Contactos, bobina, temporizador y derivación en paralelo; norma=iec o norma=nema."
     }
   ]
 }
