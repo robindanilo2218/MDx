@@ -253,6 +253,11 @@ out geom;
   `© OpenStreetMap contributors` (los datos son ODbL; la atribución no es opcional).
 - **Botón "añadir a la ruta":** cualquier POI del contexto se convierte en `<wpt>`
   del GPX con `<type>` y `<sym>` — "qué hay alrededor" pasa a ser parte del archivo.
+- La consulta real (`gpxConsultaOverpass`, `index.html`) ya creció más allá del
+  ejemplo de arriba: también trae `waterway=canal`, `natural=water` (lagos) y
+  `tourism=viewpoint|camp_site`, y desde 3.14 también lee la etiqueta `bridge`
+  de las vías que ya trae. El ejemplo de esta sección quedó como ilustración
+  simplificada de la idea, no como el texto literal de la consulta.
 
 ### 3.8 Fondo por captura del usuario (calibración de 2 puntos)
 
@@ -365,6 +370,266 @@ Verificado con Puppeteer: un arrastre extremo (900px en diagonal) no logra
 sacar la base de la vista ni invertirla; repetir el mismo arrastre extremo no
 sigue moviendo la escena (el clamp realmente tope); el botón Norte produce
 siempre el mismo resultado sin importar desde qué ángulo se pulse.
+
+---
+
+### 3.11 Cámaras fijas + "Libre" y calzada ancha — hecho 30-ago-2026
+
+Pedido del usuario tras ver un visualizador 3D ajeno (Plotly/WebGL, descartado
+por romper la regla "sin CDN" de la sección 1): quería esa sensación de vista
+libre + botones de cámara fija, y que la vista 2D "diera la impresión de ir
+en la ruta" con una calzada más ancha en vez de una línea fina.
+
+**Cámaras.** `GPX3D_CAMARAS` (`index.html`) da `yaw`/`pitch` de arranque para
+`frontal` (casi de perfil, mirando la altura), `superior` (casi cenital, para
+ver el orden del recorrido) y `lateral` (90°, para ver el desnivel de lado);
+las tres además activan `libre:true`. Un cuarto botón, "Libre", alterna un
+segundo juego de límites angostos (`GPX3D_LIMITES_LIBRE`: yaw ±180°, pitch
+3°–89°) copiado POR VALOR (`gpxCopiarLimites`) encima de `limites3d` de la
+figura — nunca se muta `GPX3D_LIMITES` en sí, así que abrir/cerrar Libre no
+afecta a otras figuras `​```gpx` de la misma página. El botón "▲ N" (3.10)
+sigue existiendo y vuelve a copiar el rango angosto original, desactivando
+Libre.
+
+**Calzada ancha (solo vista 2D).** Antes de los tramos coloreados por
+velocidad (3.4) se dibuja el mismo trazado completo dos veces más, debajo:
+una franja gruesa (`.gpx-ruta-asfalto`, `stroke-width:9`, color del borde del
+tema) como "pavimento", y encima una línea central punteada blanca
+(`.gpx-ruta-linea-central`) — igual que una carretera dibujada, sin agregar
+ninguna dependencia. La vista 3D no tiene una "calzada" equivalente: el
+terreno ya es la cortina de elevación (cortes verticales), no una superficie
+sobre la que trazar un camino ancho.
+
+### 3.12 Carrito animado y "Simular ruta" — hecho 30-ago-2026
+
+`gpxPosEnProgreso(puntos, t)` interpola linealmente sobre `distAcumM` (la
+distancia acumulada ya calculada en `gpxEstadisticas`, no el tiempo real del
+GPX, que puede faltar o venir incompleto) para dar lat/lon/altura/rumbo en
+cualquier fracción `t` de la ruta. Un control nuevo bajo la figura
+(`.gpx-sim`, botón ▶/❚❚ + barra + texto "x / y km") maneja un estado por
+figura `{activo, jugando, progreso, ultimoTs, ultimoRedibujo}`:
+
+- **▶ Simular ruta** dispara un bucle de `requestAnimationFrame` que avanza
+  `progreso` a ritmo constante (`GPX_SIM_DURACION_S = 18` segundos para toda
+  la ruta, sin importar su distancia real) pero solo pide un redibujo completo
+  (`mostrarVista`) cada ~80ms — redibujar el SVG entero en cada frame de 60fps
+  sería carísimo, sobre todo en 2D, donde a diferencia de la vista 3D
+  (`gpxSimplificarA(...,400)`, ver 3.5) el trazado no tiene tope de puntos.
+- Arrastrar la **barra** mueve `progreso` a mano (pausa la reproducción) para
+  "sentir" un punto exacto de la ruta sin esperar la animación.
+- El carrito se dibuja como un triángulo (`.gpx-carrito-cuerpo` en 2D,
+  `.gpx-carrito3d-cuerpo` + asta en 3D) rotado según el `rumbo` calculado,
+  reconstruido en cada redibujo junto con el resto de la figura — no es una
+  capa aparte que haya que sincronizar por separado.
+
+Verificado con Puppeteer (ver `probar_gpx_ruta_viva_rapido.js`): las cuatro
+cámaras y Libre existen y cambian el dibujo; Libre se activa solo al elegir
+una cámara fija y se desactiva al volver a "▲ N"; Simular avanza la barra y
+hace aparecer el carrito, Pausar detiene el avance, arrastrar la barra a mano
+mueve el carrito sin reproducir sola.
+
+### 3.13 Puntos de tamaño fijo, zoom persistente y velMax fiable — hecho 30-ago-2026
+
+Tres arreglos pedidos por el usuario tras usar la ruta viva de 3.11/3.12:
+
+- **Puntos de tamaño fijo en 2D**: los círculos de inicio/fin/waypoints
+  (`circulo()` y el bucle de waypoints en `gpxSvg2D`) llevan ahora también
+  la clase `gpx-punto-fijo`. Como el zoom 2D se hace mutando el `viewBox`
+  del SVG (no con `transform:scale`), un `<circle r="...">` escala su
+  tamaño visual con el zoom igual que cualquier otra geometría —
+  `vector-effect="non-scaling-stroke"` solo protege el grosor del trazo,
+  nunca `r`. `gpxActivarInteraccion` ahora captura el radio base de cada
+  `.gpx-punto-fijo` y una escala de referencia (metros por píxel) al
+  activarse, y en cada `aplicar()` (zoom/pan) recalcula `r` para que el
+  tamaño en pantalla se mantenga constante.
+- **Zoom/pan 2D persistente durante Simular ruta**: `mostrarVista` hace un
+  reemplazo destructivo completo del SVG (`innerHTML = gpxRenderizarVista(...)`)
+  en cada redibujo — algo que "Simular ruta" dispara unas 12 veces por
+  segundo (ver 3.12). Antes, `gpxActivarInteraccion(fig)` recalculaba el
+  `viewBox` inicial desde cero en cada llamada, así que cualquier zoom/pan
+  que el usuario hubiera hecho a mano se perdía apenas arrancaba la
+  simulación (un bug propio, no reportado por el usuario, encontrado al
+  implementar el punto anterior). Arreglo: un estado `estado2d = {caja:null}`
+  creado una sola vez en `gpxActivarFigura` (igual que ya existía `estado3d`
+  para la vista 3D) que se pasa a `gpxActivarInteraccion(fig, estado2d)` y
+  se lee/escribe en cada `aplicar()`.
+- **"Vel. máxima" dejaba de ser fiable con un solo salto de GPS**: la
+  velocidad instantánea punto-a-punto (`gpxEstadisticas`) es sensible a un
+  único salto de posición GPS entre dos puntos consecutivos — una sola
+  muestra así puede duplicar o triplicar la velocidad real y quedar de por
+  vida como "velocidad máxima". La distinción clave no es estadística sino
+  posicional: un cambio de velocidad real (una bajada, un sprint) se
+  sostiene en varios segmentos seguidos; un salto de GPS es un pico
+  aislado. Por eso el filtro no usa un percentil fijo (que en tracks
+  cortos puede coincidir con el propio pico, ver más abajo) sino
+  corroboración por vecindad: un segmento por encima del umbral
+  (mediana + 6×MAD efectivo, con piso para que MAD=0 no rompa el filtro)
+  solo cuenta para `velMax` si al menos un segmento inmediato vecino
+  también está elevado (por encima de mediana + 3×MAD). Un primer intento
+  con percentil 95 se descartó tras comprobar con una prueba unitaria que,
+  en un track de ~20 puntos con un solo pico, el percentil 95 cae
+  exactamente sobre el pico mismo (n pequeño), dejándolo sin filtrar.
+
+Verificado: prueba unitaria de `gpxEstadisticas` aislada (ruido GPS aislado
+→ vuelve a la velocidad real; sprint sostenido de varios segmentos → NO se
+filtra; track corto n=8 con un salto → también se filtra) + verificación en
+el DOM real de la app (`probar_gpx_velmax_dom.js`) + regresión completa
+(`probar_regresion_general.js`, `probar_gpx_3d_limites.js`,
+`probar_gpx_ruta_viva_rapido.js`, `probar_gpx_puntos_fijos_zoom.js`) en
+verde. SW v55→v56.
+
+### 3.14 Puentes, puntos seleccionables/descartables y "Dividir ruta en tramos" — hecho 30-ago-2026
+
+Tres pedidos del usuario sobre 3.7, investigados primero con dos lecturas de
+código en paralelo (workflow) antes de tocar nada: ríos y lagos YA estaban en
+la consulta Overpass (`waterway`, `natural=water`) y ya se dibujaban con un
+color distinto (`gpx-contexto-rio` vs. `gpx-contexto-via`) — lo que de verdad
+faltaba era puentes, y que CUALQUIER elemento del contexto fuera clickeable
+(antes solo existía la lista de botones "Agregar a la ruta" debajo del mapa,
+nada en el propio dibujo).
+
+- **Puentes**: no hacía falta una cláusula nueva en Overpass — `bridge` viaja
+  como etiqueta de una vía que YA se estaba pidiendo (`highway`/`waterway`).
+  `gpxSimplificarContexto`/`gpxValidarContexto` ahora leen `tags.bridge` y
+  guardan `puente:true` + un `nombre`/`ref` en el objeto de la vía; el SVG
+  (`gpxContextoSvgPartes`) agrega la clase `gpx-contexto-puente` (línea
+  discontinua) ENCIMA de `-via`/`-rio`, no en reemplazo — un puente sobre un
+  río sigue siendo azul, sobre una calle sigue gris, pero discontinuo.
+- **Puntos seleccionables**: los círculos grises de POIs (`.gpx-contexto-poi`,
+  ya existían, ya se dibujaban) ahora llevan `data-ctx-poi` + la clase
+  `gpx-punto-fijo` (mismo mecanismo de 3.13, tamaño constante en pantalla) y
+  un click los resalta contra su fila en la lista de abajo — mismo patrón
+  exacto que ya usaba `.gpx-wpt` con `.gpx-nota` (buscar por índice
+  compartido, sacar `.resaltada` de las demás, `scrollIntoView`). Las vías
+  (calles/ríos) NO se hicieron clickeables — solo tooltip por `<title>` — el
+  pedido del usuario decía "puntos", no líneas.
+- **Descartar un punto sugerido**: nuevo botón "Descartar" junto a "Agregar a
+  la ruta" (`gpxDescartarPoi`), saca el POI de `contexto.pois` y lo persiste
+  en el `​```gpx-datos` compañero (si no, reaparecería al recargar). De paso
+  se corrigió que "Agregar a la ruta" (`gpxAgregarPoi`) tampoco persistía el
+  encogimiento de `contexto.pois` — un punto ya agregado como waypoint podía
+  reaparecer como "sugerido" tras recargar; ahora ambos flujos persisten.
+- **"Dividir ruta en tramos"** (`gpxDividirRuta`): usa los waypoints YA
+  puestos por el usuario como cortes (sin UI nueva de "tocar el mapa para
+  marcar un punto") — cada waypoint se ubica sobre el track con
+  `gpxPuntoCercano` (ya existía, se usaba para Perfil/3D) y su `distAcumM` es
+  el punto de corte. Se descartan cortes pegados al inicio/fin o muy juntos
+  entre sí (menos del 3 % de la distancia total o 30 m, lo que sea mayor) —
+  si no queda ninguno, avisa en vez de dividir en tramos degenerados. Cada
+  tramo se inserta como un bloque ```gpx nuevo justo después del original
+  (que nunca se toca) con encabezado `## Tramo N: A → B`, mismo patrón que
+  `## Pizarrón hoja N` (12.7) que el usuario ya había pedido — entra solo al
+  Índice/Esquema. Los puntos frontera quedan incluidos en AMBOS tramos
+  vecinos (empalman en el punto de corte, no hay salto).
+
+Verificado con Puppeteer: contexto simulado (Overpass mockeado vía
+interceptación CDP con cabecera CORS) con un puente, un río y un POI —
+clases y `<title>` correctos, clic en el círculo resalta su fila, Descartar
+lo borra del DOM y del documento persistido; división en tramos con un
+waypoint interior — dos bloques nuevos con el título correcto, el original
+intacto, el texto que ya seguía en el documento se conserva después de los
+tramos nuevos, las 3 figuras (original + 2 tramos) renderizan bien; y el
+guardarraíl de "sin cortes válidos" (waypoint pegado al inicio) no modifica
+el documento y avisa. Regresión completa en verde. SW v56→v57.
+
+### 3.15 "Descargar como imagen" no funcionaba en iPhone/iPad — hecho 30-ago-2026
+
+Reporte del usuario de que "descargar como imagen no funciona", investigado
+sin poder reproducirlo en Chrome de escritorio (donde sí funciona). La causa
+más probable, dado que el propio usuario reportó por separado varios bugs de
+Pizarrón "en mobiles" el mismo día, es una limitación conocida de
+iOS/WebKit: Safari (incluso instalado como PWA) no respeta el atributo
+`download` de un `<a>` que apunta a una URL `blob:` — no hay forma de
+detectar esto por feature-detection (la propiedad `download` existe, solo
+que WebKit la ignora), así que hace falta distinguir la plataforma.
+
+`descargarBlob` (el helper compartido por los tres botones de descarga:
+texto .md/.html, "documento como imagen" y PNG del Pizarrón) ahora prueba
+primero, solo en iOS, la Web Share API:
+
+- `esIOS()`: `/iP(hone|ad|od)/` contra `navigator.userAgent`, más
+  `navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1` para
+  iPadOS, que desde iOS 13 se identifica como "MacIntel" en el UA.
+- Si `esIOS()` y el navegador soporta `navigator.canShare` con archivos, se
+  arma un `File` a partir del blob y se llama a `navigator.share({files:[...]})`
+  — esto abre la hoja nativa de compartir/guardar, que es donde en iOS
+  termina un archivo generado por la propia página (no hay un "Descargas"
+  accesible desde Safari para un blob).
+- Fuera de iOS (o si `share`/`canShare` fallan o el usuario no los tiene) se
+  sigue con el `<a download>` + `URL.createObjectURL` de siempre, sin ningún
+  cambio de comportamiento.
+
+Verificado con Puppeteer en dos corridas — Chrome normal y Chrome con
+`navigator.userAgent` suplantado a iPhone (con `navigator.share`/`canShare`
+reemplazados por versiones que registran la llamada, ya que Chrome de
+escritorio no tiene Web Share API para archivos): en la corrida "desktop" se
+descarga un `.png` real y `share` nunca se llama; en la corrida "iOS" se
+llama a `share` con el archivo correcto y NO se descarga nada por la vía
+`<a download>`. Regresión general también en verde. SW v57→v58.
+
+**Límite honesto**: Puppeteer/Chrome headless no puede emular el
+comportamiento real de Safari en un iPhone de verdad — esto confirma que la
+rama de código nueva se activa y le pasa el archivo correcto a
+`navigator.share`, pero no puede confirmar al 100% que eso resuelve el
+síntoma exacto que vio el usuario sin que lo pruebe en su propio dispositivo.
+
+### 3.16 Guía de ```plano más clara y ```verdad/```ladder en la guía general — hecho 30-ago-2026
+
+Dos huecos de documentación pendientes de antes en esta sesión ([[md-crgm-plano-guia-pendiente]],
+hallazgo relacionado en [[md-crgm-insertar-bloque-codigo]]):
+
+- **`​```plano`**: la sección "Plano 2D" de `plantillas/guia-markdown.md` (26)
+  ya tenía la sintaxis básica, pero no explicaba lo que de verdad confundía
+  al usuario al escribirlo — releída la implementación
+  (`planoParsear`/`planoSegmentoMasCercano`/`planoCortes`) para documentar el
+  comportamiento real en vez de solo repetir la tabla de instrucciones. Se
+  agregó un aviso `[!NOTE]` aclarando: (a) las coordenadas están en metros,
+  `escala` solo cambia el tamaño en pantalla; (b) `puerta`/`ventana` se
+  **enganchan solas** al tramo de muro recto más cercano al punto dado (se
+  proyectan y el hueco se centra ahí, recortado si no cabe) — no son una
+  posición libre como `texto`/`cota`, y con muros próximos pueden engancharse
+  al que no se esperaba; (c) un `muro` con varios `→` son tramos rectos
+  independientes entre sí, una puerta cerca de una esquina se pega al tramo
+  más cercano, no "a la esquina"; (d) `cota` con más de dos puntos solo usa
+  el primero y el último. No se tocó el DSL en sí — la otra mitad del pedido
+  original ("evaluar si el formato podría ser más intuitivo de escribir") se
+  dejó para si el usuario lo pide después de ver si la documentación ya
+  alcanza.
+- **`​```verdad`/`​```ladder` en la guía general**: `guia-markdown.md` no los
+  mencionaba en ningún lado (viven solo en sus plantillas de referencia
+  dedicadas, `logica-tabla-verdad.md`/`logica-escalera-plc.md`, y en el menú
+  `+ Insertar`). Nueva sección **29. Lógica y electricidad**, mismo formato
+  que el resto de la guía (bloque de código + `<div class="demo">` con el
+  resultado calculado/dibujado de verdad al lado), resumiendo la sintaxis de
+  ambos bloques y señalando la categoría del catálogo para el detalle
+  completo. `plantillas/indice.json` (`desc` de `guia-markdown`) actualizado
+  de "25 apartados" a "29 apartados".
+
+Ambos archivos son plantillas empaquetadas dentro de `index.html`
+(`herramientas/empaquetar.py` lee `plantillas/*.md` + `indice.json` y las
+incrusta en `<script id="catalogo">`) — hubo que re-empaquetar para que el
+cambio se viera en la app, no alcanza con editar los `.md` sueltos.
+
+Verificado con Puppeteer abriendo la plantilla "Guía completa de Markdown"
+por el flujo real (➕ Plantillas → buscar → clic en la tarjeta, no accediendo
+a `fuenteActual`/`pintar` directo, que están fuera del alcance de
+`page.evaluate` por vivir dentro del cierre de la IIFE principal): la nueva
+sección 29 aparece en el índice de encabezados, y dentro de ella el bloque
+`​```verdad` renderiza una tabla `<table>` con celdas calculadas de verdad y
+el `​```ladder` un `<svg>` real — no solo el texto crudo. Regresión general
+en verde. SW v58→v59.
+
+**Corrección sobre el inventario de pendientes reportado antes en esta
+sesión**: la tercera pieza que se había listado como "pendiente" (categorías
+y subcategorías del catálogo, plan original de
+[[md-crgm-fase6-plan-ladder-verdad-categorias]]) en realidad **ya estaba
+hecha**, con un diseño distinto y deliberado al del plan — ver
+[[md-crgm-fase6-categoria-logica-electricidad]] (SW v47, "Fase 6 completa"):
+se decidió una categoría plana `logica` ("Lógica y electricidad", sin
+subcategorías) en vez de "Matemáticas y lógica" con subcategorías
+`logica`/`electricidad`. El resumen de pendientes de esa conversación se
+basó en una lectura desactualizada de la memoria — no hay nada que
+implementar aquí.
 
 ---
 
@@ -795,6 +1060,41 @@ cada uno de los dos manejadores de puntero.
   texto→trazos→texto en el bloque embebido, y que el borrador sigue
   borrando una figura igual que un trazo de lápiz). Regresión general
   (incluida la de `​```ladder` v2) sigue en verde. SW v50→v51.
+
+### 12.7 Dos bugs reales encontrados a partir de reportes de usuario — 30-ago-2026
+
+**El lápiz de Presentar (12.3) no dibujaba.** El overlay `#diaLapizSvg` tenía
+`pointer-events:auto` correctamente al activar el lápiz (`.dia-lapiz-activo`),
+pero `document.elementFromPoint` sobre el propio SVG devolvía el `<div>` de
+contenido de la diapositiva, no el SVG: `pintarDiapositiva()` (sección 15.4,
+fondos) le pone `z-index:1` a ESE div, siempre, tenga o no fondo la
+diapositiva, para que no quede tapado por `.dia-fondo-capa` (`z-index:0`).
+Como `.dia-lapiz-svg` no tenía z-index explícito (`auto`), ese div —
+más nuevo en la cascada de fases pero sin relación con el lápiz — terminó
+tapando el lienzo del lápiz y comiéndose sus clics. El lápiz quedaba
+"activado" (el botón, el cursor, el aria-pressed, todo bien) pero nunca
+recibía el trazo. Arreglo de una línea: `.dia-lapiz-svg{ z-index:2 }`.
+Confirmado con Puppeteer comparando `elementFromPoint` antes/después y
+verificando que un arrastre real deja un `<path class="pizarra-trazo">`.
+
+**"Insertar en el documento" desde el Pizarrón global (12.2) no perdía nada,
+pero no daba ninguna señal.** El bloque SÍ llegaba a `fuenteActual`, se
+renderizaba y se persistía bien (confirmado recargando la página) — el
+único problema real es que `sincronizarEditor()` no toca `#ed` si el editor
+no está abierto (`if(!abierto) return`, ver la sección "pegamento"), así que
+si el usuario dibujó desde Presentar o desde la vista de solo lectura, el
+textarea no se veía cambiar; y, más importante, no había ningún `aviso()` de
+confirmación (a diferencia de `diaGuardarAnotaciones`, 12.3), y el bloque
+caía sin título al final de un documento que puede ser largo. Sumado, esto
+se sentía como "no hizo nada" o "se quedó pegado". Arreglado agregando, por
+pedido del usuario, un título `## Pizarrón hoja N` antes de cada hoja no
+vacía que se inserta (con su número real de hoja, saltando las vacías) —
+así el Índice/Esquema de siempre alcanza para encontrarlo sin desplazarse a
+mano — y un `aviso("Pizarrón agregado al documento...")` al terminar.
+Verificado con Puppeteer: aparece en el documento renderizado, en el Índice
+(`<h2>`), en el editor al abrirlo, y sobrevive a recargar la página.
+
+SW v54→v55.
 
 ---
 

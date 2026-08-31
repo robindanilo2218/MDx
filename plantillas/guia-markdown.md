@@ -1359,6 +1359,9 @@ cota 0,0 → 10,0
 
 Debajo del dibujo aparece una tabla con los metros lineales de muro, el área de cada recinto cerrado y el conteo de puertas y ventanas — una base para calcular materiales. El área solo se calcula sobre un `muro` cuyo último punto vuelve al primero: varias líneas de `muro` no se combinan entre sí para formar un recinto.
 
+> [!NOTE]
+> Todas las coordenadas están en **metros** — `escala 1m = 40px` solo controla cuántos píxeles ocupa un metro al dibujar, nunca cambia los números que escribes debajo. `texto` y `cota` se ubican exactamente donde dices; `puerta` y `ventana`, en cambio, se **enganchan solas** al tramo recto de muro más cercano a ese punto (se proyectan sobre él y el hueco queda centrado ahí, recortado si no cabe entero) — si hay dos muros próximos, una puerta puede engancharse al que no esperabas, y moverla un poco no cambia nada mientras siga más cerca del mismo tramo. Un `muro x,y → x,y → x,y` es una cadena de tramos rectos independientes entre sí: una puerta cerca de una esquina se pega al tramo que quede más cerca, no «a la esquina» como conjunto. Si `cota` recibe más de dos puntos, solo cuentan el primero y el último — los del medio se ignoran.
+
 ### Vista isométrica
 
 ````md
@@ -1517,6 +1520,54 @@ Tres botones más, todos sin salir de la presentación:
 - **✎ Pizarrón:** abre el Pizarrón global sin cerrar la presentación — al salir de él (descartar, insertar o descargar) vuelves exactamente a la misma diapositiva, con el mismo dibujo.
 
 ---
+
+## 29. Lógica y electricidad
+
+Dos bloques que se calculan o se dibujan solos a partir de texto plano. El botón **➕ Insertar → Lógica y electricidad** trae un ejemplo listo de cada uno; la categoría **Lógica y electricidad** del catálogo de plantillas (➕ Plantillas) trae la referencia completa, con más ejemplos y el detalle de «lo que no hace».
+
+### Tabla de verdad
+
+````md
+```verdad
+entradas: A, B
+salida S = A Y B
+salida T = A O-EXCLUSIVA B
+```
+````
+
+<div class="demo">
+
+```verdad
+entradas: A, B
+salida S = A Y B
+salida T = A O-EXCLUSIVA B
+```
+
+</div>
+
+`entradas:` se declara una sola vez, con los nombres separados por comas; cada `salida NOMBRE = expresión` agrega una columna calculada, y el bloque genera solo las 2ⁿ combinaciones posibles (no más de 8 entradas — 256 filas). Los operadores se escriben en español y no distinguen mayúsculas: `Y` (AND), `O` (OR), `NO` (NOT), `O-EXCLUSIVA` (XOR), `NI` (NOR), `NO-Y` (NAND). La precedencia es `NO` > `Y` > `O`, igual que `* /` antes de `+ -` en las fórmulas de una hoja de cálculo — usa paréntesis para forzar otro orden, como en `(A O B) Y NO C`.
+
+### Escalera PLC
+
+````md
+```ladder norma=iec
+| [PARO/] [ARRANQUE] ---------------- (M1)  | arranque-paro con sello
+| [M1] ----+                                |
+| [M1] ------------ [TON T1 5s] ----- (L1)  | piloto retardado
+```
+````
+
+<div class="demo">
+
+```ladder norma=iec
+| [PARO/] [ARRANQUE] ---------------- (M1)  | arranque-paro con sello
+| [M1] ----+                                |
+| [M1] ------------ [TON T1 5s] ----- (L1)  | piloto retardado
+```
+
+</div>
+
+Cada línea es un peldaño: `| contenido | comentario opcional`. `[X]` es un contacto normalmente abierto, `[X/]` normalmente cerrado, `(Y)` una bobina, `[TON Tn t]` un temporizador a la conexión (`t` en segundos). Un `+` al final del peldaño lo conecta hacia arriba en vez de al riel derecho (rama de sello, sin bobina propia); un `+` al principio lo conecta hacia arriba en vez de al riel izquierdo (otra salida en paralelo, con su propia bobina) — **la columna importa**: un `+` se ancla al peldaño completo más cercano arriba, justo en la posición donde queda escrito. El parámetro `norma=iec` (por defecto) o `norma=nema`, en la primera línea del bloque, solo cambia el símbolo dibujado — nunca el texto de entrada.
 
 ## Empieza aquí
 
