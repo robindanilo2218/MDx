@@ -718,7 +718,12 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
    ========================================================================== */
 @page{ margin:2cm 1.9cm; }
 @media print{
-  :root{
+  /* la lista de selectores es a proposito: el tema oscuro define sus variables
+     con :root:not([data-tema="claro"]) y :root[data-tema="oscuro"] (0-2-0),
+     y un :root suelto (0-1-0) PIERDE contra ambos -- imprimiendo en oscuro
+     salia texto casi blanco sobre papel blanco. Con los mismos selectores
+     aqui (y este bloque despues en el codigo) el papel siempre gana. */
+  :root, :root[data-tema="oscuro"], :root:not([data-tema="claro"]){
     --fondo:#fff; --papel:#fff; --texto:#000; --tenue:#444; --borde:#bbb; --borde-fuerte:#888;
     --acento:#000; --acento-suave:#fff; --codigo-fondo:#f4f4f4; --codigo-texto:#000;
     --marca:#ffef9f; --sombra:none;
@@ -1139,7 +1144,11 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .gpx-leyenda{display:flex; flex-wrap:wrap; gap:.8rem; font-size:.85em; color:var(--tenue)}
 .gpx-leyenda i{display:inline-block; width:.8em; height:.8em; border-radius:50%; vertical-align:-.1em; margin-right:.35em}
 .gpx-error{padding:.9rem 1rem; border-radius:.5rem; background:var(--p-f); color:var(--p); border:1px solid var(--p)}
-.gpx-vistas{display:flex; gap:.4rem; margin-bottom:.8rem}
+.gpx-vistas{display:flex; gap:.4rem; margin-bottom:.8rem; flex-wrap:wrap}
+.gpx-boton-color{padding:.35rem .9rem; border:1px solid var(--borde); border-radius:999px; background:var(--papel); color:var(--tenue); font-size:.85em; cursor:pointer}
+.gpx-marca-sonda{fill:var(--acento); stroke:#fff; stroke-width:2; pointer-events:none; display:none}
+.gpx-mapa + .gpx-mapa-perfil{margin-top:.6rem}
+.gpx-boton-color:hover{border-color:var(--acento)}
 .gpx-boton-vista{padding:.35rem .9rem; border:1px solid var(--borde); border-radius:999px; background:var(--papel); color:var(--texto); font-size:.85em; cursor:pointer}
 .gpx-boton-vista.activo{background:var(--acento); color:#fff; border-color:var(--acento)}
 .gpx-mapa3d{position:relative; margin-bottom:1rem}
@@ -1169,6 +1178,16 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .gpx-ruta-asfalto{stroke:var(--borde); stroke-opacity:.85; stroke-width:9; stroke-linecap:round; stroke-linejoin:round}
 .gpx-ruta-linea-central{stroke:#fff; stroke-opacity:.5; stroke-width:1; stroke-dasharray:5 6; stroke-linecap:round}
 .gpx-carrito-cuerpo{fill:#ff6a00; stroke:#fff; stroke-width:1.4}
+.gpx-carrito-perfil{fill:#ff6a00; stroke:#fff; stroke-width:2}
+.gpx-vista-actual{position:relative}
+.gpx-velocimetro{position:absolute; right:.55rem; bottom:.55rem; width:96px; pointer-events:none; z-index:6}
+.gpx-velo-fondo{fill:var(--papel); stroke:var(--borde); opacity:.88}
+.gpx-velo-arco{fill:none; stroke:var(--borde); stroke-width:6; opacity:.55}
+.gpx-velo-aguja{stroke:#e5484d; stroke-width:3; stroke-linecap:round}
+.gpx-velo-eje{fill:var(--texto)}
+.gpx-velo-txt{font-size:26px; font-weight:700; fill:var(--texto)}
+.gpx-velo-unidad{font-size:9px; fill:var(--texto); opacity:.7}
+.gpx-boton-velsim{padding:.35rem .7rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); cursor:pointer; font-size:.85em; min-width:3.2em}
 .gpx-carrito3d-asta{stroke:#ff6a00; stroke-width:2}
 .gpx-carrito3d-cuerpo{fill:#ff6a00; stroke:#fff; stroke-width:1.5}
 .gpx-sim{display:flex; align-items:center; gap:.6rem; margin:0 0 .8rem; flex-wrap:wrap}
@@ -1180,7 +1199,10 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .gpx-svg-perfil{width:100%; height:min(46vh, 380px); display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:pan-y; cursor:crosshair}
 .gpx-perfil-relleno{fill:var(--acento); opacity:.12}
 .gpx-perfil-marca{stroke:var(--tenue); stroke-width:1; stroke-dasharray:3 3; opacity:.6}
-.gpx-perfil-punto{fill:var(--texto); stroke:var(--papel); stroke-width:1.5}
+/* ocultos por CSS y no por style en linea: el sanitizador del documento solo
+   deja pasar declaraciones de color en style="" y quitaba el display:none,
+   dejando el circulo visible en (0,0). JS los muestra con el DOM. */
+.gpx-perfil-punto{fill:var(--texto); stroke:var(--papel); stroke-width:1.5; display:none}
 .gpx-perfil-eje{position:absolute; left:.5rem; font-size:11px; color:var(--tenue); pointer-events:none}
 .gpx-perfil-eje-max{top:.4rem}
 .gpx-perfil-eje-min{bottom:.4rem}
@@ -1268,6 +1290,7 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .pizarra-dibujando.pizarra-borrador .pizarra-trazo{cursor:pointer}
 .pizarra-seleccion-caja{fill:transparent; stroke:var(--acento); stroke-width:1.5; stroke-dasharray:6 4; cursor:move}
 .pizarra-asa{fill:var(--papel); stroke:var(--acento); stroke-width:1.5; cursor:nwse-resize}
+.pizarra-asa[data-asa="ne"], .pizarra-asa[data-asa="sw"]{cursor:nesw-resize}
 .pizarra-boton-editar{margin-top:.6rem; padding:.45rem 1rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.88em; cursor:pointer}
 .pizarra-barra{margin-top:.6rem; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap}
 .pizarra-barra input[type="color"]{width:2.2rem; height:2.2rem; padding:0; border:1px solid var(--borde); border-radius:.4rem; background:none; cursor:pointer}
@@ -1369,7 +1392,10 @@ math mo{font-family:inherit}
 .barra:hover, .barra:focus-within{opacity:1 !important; transform:none !important}
 
 @media print{
-  :root{
+  /* misma lista de selectores que el bloque de impresion de arriba: sin ella
+     el tema oscuro (0-2-0) le gana a un :root suelto y estos colores no
+     aplican al imprimir en oscuro */
+  :root, :root[data-tema="oscuro"], :root:not([data-tema="claro"]){
     --t-com:#5c6370; --t-cad:#0a6b36; --t-num:#0b4a9b; --t-pal:#a4121f; --t-fun:#5b2ea6;
     --t-tip:#7a2e00; --t-var:#9c3d00; --t-eti:#0d5226; --t-atr:#5b2ea6; --t-ope:#8a2c17;
     --t-cla:#0b4a9b; --t-lit:#0b4a9b; --t-dec:#63239c; --t-reg:#0a6b36; --t-ent:#0b4a9b;
@@ -4652,6 +4678,10 @@ function motor3dRotarX(p, a){
   var c = Math.cos(a), s = Math.sin(a);
   return { x: p.x, y: p.y * c - p.z * s, z: p.y * s + p.z * c };
 }
+function motor3dRotarZ(p, a){
+  var c = Math.cos(a), s = Math.sin(a);
+  return { x: p.x * c - p.y * s, y: p.x * s + p.y * c, z: p.z };
+}
 function motor3dProyectar(p, d){
   var f = (d || 800) / ((d || 800) + p.z);
   return { x: p.x * f, y: -p.y * f };
@@ -4755,6 +4785,13 @@ function gpxCopiarLimites(destino, origen){
 /* cuanto tarda en "manejarse" la ruta entera con el boton Simular, sin
    importar cuanto haya durado el recorrido real (spec 3.12). */
 var GPX_SIM_DURACION_S = 18;
+/* con datos reales de tiempo/velocidad, el recorrido entero dura ~3 min a
+   x1 (pedido 30-ago) y reproduce aceleradas, frenadas y paradas */
+var GPX_SIM_DURACION_REAL_S = 180;
+var GPX_SIM_VELOCIDADES = [1, 2, 4, 8, 0.5];
+/* camara persecucion: inclinacion fija mirando la ruta y radio visible en
+   metros (el pellizco/rueda multiplica encima via estado.escala) */
+var GPX_CHASE_PITCH = 1.05, GPX_CHASE_ZOOM_M = 300;
 var GPX_COLOR_TIPO = { combustible:"#e3b341", incidente:"#e5484d", cliente:"#2fae4e", parada:"#f5a623" };
 var GPX_COLOR_PALABRA = [
   ["Accidente","#e5484d"], ["Parada","#f5a623"], ["Entrega","#2fae4e"],
@@ -4813,7 +4850,35 @@ function parseGPX(xmlTexto){
     return out;
   }
 
-  var puntos = leerPuntos("trkpt");
+  /* cada <trk> es una ruta APARTE (investigacion de mercado 4.3): los puntos
+     siguen todos en `puntos` (estadisticas, perfil y simulador ya saben
+     recorrerlos), pero p.track marca a que ruta pertenece cada uno y
+     `tracks` guarda nombre y rango [desde, hasta) de cada una. Los dibujos
+     cortan el trazo donde cambia p.track: sin eso apareceria un conector
+     recto e inventado entre el fin de una ruta y el inicio de la otra. */
+  var puntos = [], tracks = [], trks = doc.getElementsByTagName("trk"), t, pts, punto;
+  for(t = 0; t < trks.length; t++){
+    pts = trks[t].getElementsByTagName("trkpt");
+    if(!pts.length) continue;
+    var desde = puntos.length;
+    for(i = 0; i < pts.length; i++){
+      punto = pts[i];
+      puntos.push({
+        lat: parseFloat(punto.getAttribute("lat")),
+        lon: parseFloat(punto.getAttribute("lon")),
+        ele: parseFloat(gpxTexto(punto, "ele") || "0"),
+        tiempo: gpxTexto(punto, "time") || null,
+        track: tracks.length
+      });
+    }
+    tracks.push({ nombre: gpxTexto(trks[t], "name") || "Ruta " + (tracks.length + 1), desde: desde, hasta: puntos.length });
+  }
+  if(!puntos.length){
+    /* trkpt sueltos sin <trk> (tolerados desde siempre): una sola ruta */
+    puntos = leerPuntos("trkpt");
+    for(i = 0; i < puntos.length; i++) puntos[i].track = 0;
+    if(puntos.length) tracks = [{ nombre: "Ruta 1", desde: 0, hasta: puntos.length }];
+  }
   if(!puntos.length) throw new Error("el GPX no trae puntos de ruta (trkpt)");
   var planificada = leerPuntos("rtept", "rte");
 
@@ -4833,7 +4898,7 @@ function parseGPX(xmlTexto){
       enlace: enlaceEl ? (enlaceEl.getAttribute("href") || "") : ""
     });
   }
-  return { puntos: puntos, planificada: planificada, waypoints: waypoints };
+  return { puntos: puntos, planificada: planificada, waypoints: waypoints, tracks: tracks };
 }
 
 /* archivo .gpx real (reloj, telefono, app de rutas) trae metadatos, extensiones
@@ -4847,8 +4912,8 @@ function gpxAdelgazar(xmlTexto){
   if(doc.getElementsByTagName("parsererror").length) throw new Error("ese archivo no es un GPX/XML válido");
   function ex(s){ return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function texto(nodo, tag){ var el = nodo.getElementsByTagName(tag)[0]; return el && el.textContent ? el.textContent.trim() : ""; }
-  function puntosDe(tag){
-    var pts = doc.getElementsByTagName(tag), out = [], i, p, lat, lon;
+  function puntosDe(tag, raiz){
+    var pts = (raiz || doc).getElementsByTagName(tag), out = [], i, p, lat, lon;
     for(i = 0; i < pts.length; i++){
       p = pts[i]; lat = p.getAttribute("lat"); lon = p.getAttribute("lon");
       if(lat == null || lon == null) continue;
@@ -4859,8 +4924,22 @@ function gpxAdelgazar(xmlTexto){
     }
     return out;
   }
-  var trkpts = puntosDe("trkpt");
-  if(!trkpts.length) throw new Error("ese GPX no trae puntos de ruta (trkpt)");
+  /* un <trk> de salida por cada <trk> de entrada, con su <name>: fundirlos
+     en uno solo destruiria las rutas multiples (parseGPX las separa por trk) */
+  var trks = doc.getElementsByTagName("trk"), trkXml = [], nTrkpts = 0, t, ptsT, nombreT;
+  for(t = 0; t < trks.length; t++){
+    ptsT = puntosDe("trkpt", trks[t]);
+    if(!ptsT.length) continue;
+    nTrkpts += ptsT.length;
+    nombreT = texto(trks[t], "name");
+    trkXml.push("<trk>" + (nombreT ? "<name>" + ex(nombreT) + "</name>" : "") +
+      "<trkseg>" + ptsT.join("") + "</trkseg></trk>");
+  }
+  if(!trkXml.length){
+    var sueltos = puntosDe("trkpt");
+    if(sueltos.length){ trkXml.push("<trk><trkseg>" + sueltos.join("") + "</trkseg></trk>"); nTrkpts = sueltos.length; }
+  }
+  if(!nTrkpts) throw new Error("ese GPX no trae puntos de ruta (trkpt)");
   var rtepts = puntosDe("rtept");
   var wpts = doc.getElementsByTagName("wpt"), wptXml = [], i, w, nombre, desc;
   for(i = 0; i < wpts.length; i++){
@@ -4873,8 +4952,8 @@ function gpxAdelgazar(xmlTexto){
   }
   var partes = ['<?xml version="1.0"?>', '<gpx version="1.1">'].concat(wptXml);
   if(rtepts.length) partes.push("<rte>" + rtepts.join("") + "</rte>");
-  partes.push("<trk><trkseg>" + trkpts.join("") + "</trkseg></trk>", "</gpx>");
-  return { xml: partes.join("\n"), nPuntos: trkpts.length, nWpts: wptXml.length, nRte: rtepts.length };
+  partes.push(trkXml.join("\n"), "</gpx>");
+  return { xml: partes.join("\n"), nPuntos: nTrkpts, nWpts: wptXml.length, nRte: rtepts.length };
 }
 
 function gpxDistanciaM(a, b){
@@ -4893,6 +4972,14 @@ function gpxEstadisticas(puntos){
   puntos[0].distAcumM = 0;
   for(i = 1; i < puntos.length; i++){
     a = puntos[i - 1]; b = puntos[i];
+    if(a.track !== b.track){
+      /* salto entre rutas: no es un tramo recorrido -- ni distancia, ni
+         velocidad, ni pendiente (el "segmento" fin-de-una/inicio-de-otra
+         inflaria todo con un desplazamiento que nadie hizo) */
+      b.distAcumM = distanciaM;
+      b.vel = 0; b.tieneVel = false; b.pendiente = 0;
+      continue;
+    }
     segM = gpxDistanciaM(a, b);
     distanciaM += segM;
     b.distAcumM = distanciaM;
@@ -4928,6 +5015,17 @@ function gpxEstadisticas(puntos){
     }
   }
   if(velMin === Infinity) velMin = 0;
+
+  /* rango de altitud del track entero (modo de color "altitud"): un track
+     sin <ele> queda todo en 0 -> rango < 1 m -> el modo no se ofrece */
+  var eleMin = Infinity, eleMax = -Infinity, e0;
+  for(i = 0; i < puntos.length; i++){
+    e0 = puntos[i].ele;
+    if(typeof e0 === "number" && isFinite(e0)){
+      if(e0 < eleMin) eleMin = e0;
+      if(e0 > eleMax) eleMax = e0;
+    }
+  }
 
   var ordenadas = velocidades.slice().sort(function(x, y){ return x - y; });
   function cuartil(p){
@@ -4970,6 +5068,9 @@ function gpxEstadisticas(puntos){
     desnivel: desnivel,
     tiempoMs: tiempoTotalMs,
     sinVelocidadAlguna: velocidades.length === 0,
+    eleMin: isFinite(eleMin) ? eleMin : 0,
+    eleMax: isFinite(eleMax) ? eleMax : 0,
+    sinElevacion: !(eleMax - eleMin >= 1),
     parcial: huboSinTiempo && velocidades.length > 0,
     cuartiles: { q1: cuartil(0.25), q2: cuartil(0.5), q3: cuartil(0.75) },
     pendienteMedia: nPendientes ? sumaPendienteAbs / nPendientes : 0,
@@ -4996,10 +5097,32 @@ function gpxColorPorPendiente(p){
   if(p <= 8) return "#f5a623";
   return "#e5484d";
 }
+/* rampa hipsometrica clasica: verde abajo, marron arriba, en 5 bandas iguales
+   entre la altitud minima y maxima del propio track */
+var GPX_COLORES_ALTITUD = ["#2fae4e", "#9fc93c", "#f7d038", "#f5a623", "#b5592e"];
+function gpxColorPorAltitud(ele, s){
+  if(typeof ele !== "number" || !isFinite(ele) || s.sinElevacion) return "#9aa7b4";
+  var f = (ele - s.eleMin) / (s.eleMax - s.eleMin);
+  return GPX_COLORES_ALTITUD[Math.max(0, Math.min(GPX_COLORES_ALTITUD.length - 1, Math.floor(f * GPX_COLORES_ALTITUD.length)))];
+}
+var GPX_COLORES_TRACK = ["#1f6feb", "#e5484d", "#2fae4e", "#9c36b5", "#f5a623", "#0a5a66", "#8f1350"];
+/* un solo despacho de color para las TRES vistas (2D, 3D y Perfil): si cada
+   una repitiera el ternario, agregar un modo nuevo seria olvidarse de alguna */
+function gpxColorDePunto(p, modoColor, stats){
+  if(modoColor === "ruta") return GPX_COLORES_TRACK[(p.track || 0) % GPX_COLORES_TRACK.length];
+  if(modoColor === "altitud") return gpxColorPorAltitud(p.ele, stats);
+  if(modoColor === "pendiente") return gpxColorPorPendiente(p.pendiente);
+  return gpxColorPorVelocidad(p.vel, p.tieneVel, stats.cuartiles);
+}
 function gpxTrazoColoreado(puntos, proy, colorFn){
   var partes = [], colorActual = null, d = "", i, a, b, pa, pb, color;
   for(i = 1; i < puntos.length; i++){
     a = puntos[i - 1]; b = puntos[i];
+    if(a.track !== b.track){
+      if(d) partes.push({ d: d, color: colorActual });
+      d = ""; colorActual = null;
+      continue;
+    }
     color = colorFn(b);
     if(color !== colorActual){
       if(d) partes.push({ d: d, color: colorActual });
@@ -5076,10 +5199,11 @@ function gpxSvg2D(datos, stats, modoColor, estadoSim){
 
   var dTotal = "";
   if(puntos.length > 1){
-    var kk, pk;
+    var kk, pk, salto2d;
     for(kk = 0; kk < puntos.length; kk++){
       pk = proy(puntos[kk]);
-      dTotal += (kk ? " L" : "M") + gpxN(pk.x) + " " + gpxN(pk.y);
+      salto2d = kk === 0 || puntos[kk].track !== puntos[kk - 1].track;
+      dTotal += (salto2d ? (kk ? " M" : "M") : " L") + gpxN(pk.x) + " " + gpxN(pk.y);
     }
     /* "carretera" (spec 3.11): una calzada ancha detras del trazo coloreado
        da la sensacion de circular por una ruta, no de seguir una linea fina. */
@@ -5087,7 +5211,7 @@ function gpxSvg2D(datos, stats, modoColor, estadoSim){
   }
 
   var tramos = gpxTrazoColoreado(puntos, proy, function(p){
-    return modoColor === "pendiente" ? gpxColorPorPendiente(p.pendiente) : gpxColorPorVelocidad(p.vel, p.tieneVel, stats.cuartiles);
+    return gpxColorDePunto(p, modoColor, stats);
   });
   tramos.forEach(function(t){
     partes.push('<path d="' + t.d + '" stroke="' + t.color + '" fill="none" stroke-width="4" ' +
@@ -5125,6 +5249,8 @@ function gpxSvg2D(datos, stats, modoColor, estadoSim){
       '<polygon class="gpx-carrito-cuerpo" points="0,' + gpxN(-rCarro2D) + " " + gpxN(-rCarro2D * 0.62) + "," + gpxN(rCarro2D * 0.75) +
       " 0," + gpxN(rCarro2D * 0.32) + " " + gpxN(rCarro2D * 0.62) + "," + gpxN(rCarro2D * 0.75) + '"/></g>');
   }
+
+  partes.push('<circle class="gpx-marca-sonda gpx-punto-fijo" cx="0" cy="0" r="' + gpxN(radioMarcador * 1.1) + '"/>');
 
   var svg = '<svg class="gpx-svg" viewBox="' + vb.join(" ") + '" preserveAspectRatio="xMidYMid meet" ' +
     'role="img" aria-label="Mapa de la ruta">' + partes.join("") + "</svg>";
@@ -5183,7 +5309,23 @@ function gpxWaypointsHTML(datos){
   return '<ul class="gpx-notas">' + items + "</ul>";
 }
 
-function gpxLeyendaHTML(stats, modoColor){
+function gpxLeyendaHTML(stats, modoColor, datos){
+  if(modoColor === "ruta" && datos && datos.tracks && datos.tracks.length > 1){
+    return '<div class="gpx-leyenda">' + datos.tracks.map(function(tk, i){
+      var pIni = datos.puntos[tk.desde], pFin = datos.puntos[tk.hasta - 1];
+      var km = ((pFin.distAcumM || 0) - (pIni.distAcumM || 0)) / 1000;
+      return '<span><i style="background:' + GPX_COLORES_TRACK[i % GPX_COLORES_TRACK.length] + '"></i>' +
+        X(tk.nombre) + " — " + km.toFixed(1) + " km</span>";
+    }).join("") + "</div>";
+  }
+  if(modoColor === "altitud"){
+    if(stats.sinElevacion) return "";
+    var nB = GPX_COLORES_ALTITUD.length, paso = (stats.eleMax - stats.eleMin) / nB;
+    return '<div class="gpx-leyenda">' + GPX_COLORES_ALTITUD.map(function(c, i){
+      return '<span><i style="background:' + c + '"></i>' +
+        Math.round(stats.eleMin + paso * i) + "\u2013" + Math.round(stats.eleMin + paso * (i + 1)) + " m</span>";
+    }).join("") + "</div>";
+  }
   if(modoColor === "pendiente"){
     return '<div class="gpx-leyenda">' +
       '<span><i style="background:#1f6feb"></i>bajada &lt; -2%</span>' +
@@ -5261,6 +5403,105 @@ function gpxPosEnProgreso(puntos, t){
   };
 }
 
+
+/* que vistas admiten el carrito/la barra de simulacion */
+function gpxVistaSimulable(v){
+  return v === "2d" || v === "3d" || v === "2d+perfil" || v === "perfil";
+}
+/* linea de tiempo real de la ruta, para que la simulacion respete el ritmo
+   del recorrido (acelerar, frenar, detenerse) en vez de avanzar pareja.
+   ts[i] = segundos acumulados hasta el punto i; ds[i] = metros acumulados.
+   null si el GPX no trae ni <time> ni velocidad: ahi se sigue con el avance
+   uniforme de siempre (GPX_SIM_DURACION_S). */
+function gpxPlanSim(puntos){
+  if(puntos.length < 2) return null;
+  var ds = [0], ts = [0], dts = [], conDato = 0, i, a, b, segM, dt, ms;
+  for(i = 1; i < puntos.length; i++){
+    a = puntos[i - 1]; b = puntos[i];
+    segM = (b.distAcumM || 0) - (a.distAcumM || 0);
+    dt = NaN;
+    if(a.track !== b.track) dt = 0;      /* salto entre rutas: teletransporte */
+    else if(a.tiempo && b.tiempo){
+      ms = new Date(b.tiempo).getTime() - new Date(a.tiempo).getTime();
+      /* pausas reales si, pero acotadas: una parada de almuerzo no debe
+         congelar la reproduccion durante minutos */
+      if(isFinite(ms) && ms >= 0) dt = Math.min(ms / 1000, 600);
+    }
+    if(isNaN(dt) && b.tieneVel && b.vel > 0.3) dt = segM / (b.vel / 3.6);
+    if(!isNaN(dt) && dt > 0) conDato++;
+    dts.push(dt);
+    ds.push(b.distAcumM || 0);
+  }
+  if(!conDato) return null;
+  var total = 0, metros = 0;
+  for(i = 0; i < dts.length; i++){
+    if(!isNaN(dts[i])){ total += dts[i]; metros += ds[i + 1] - ds[i]; }
+  }
+  var ritmo = metros > 0 ? total / metros : 1;   /* s por metro promedio */
+  for(i = 0; i < dts.length; i++){
+    if(isNaN(dts[i])) dts[i] = (ds[i + 1] - ds[i]) * ritmo;
+    ts.push(ts[i] + dts[i]);
+  }
+  if(!(ts[ts.length - 1] > 0)) return null;
+  return { ts: ts, ds: ds, total: ts[ts.length - 1], distTotalM: Math.max(ds[ds.length - 1], 1) };
+}
+function gpxProgresoEnTiempo(plan, t){
+  if(t <= 0) return 0;
+  if(t >= plan.total) return 1;
+  var ts = plan.ts, ds = plan.ds, lo = 0, hi = ts.length - 1, m;
+  while(hi - lo > 1){
+    m = (lo + hi) >> 1;
+    if(ts[m] <= t) lo = m; else hi = m;
+  }
+  var dt = ts[hi] - ts[lo], f = dt > 0 ? (t - ts[lo]) / dt : 1;
+  return (ds[lo] + (ds[hi] - ds[lo]) * f) / plan.distTotalM;
+}
+function gpxTiempoEnProgreso(plan, progreso){
+  var objetivo = Math.max(0, Math.min(1, progreso)) * plan.distTotalM;
+  var ds = plan.ds, ts = plan.ts, lo = 0, hi = ds.length - 1, m;
+  while(hi - lo > 1){
+    m = (lo + hi) >> 1;
+    if(ds[m] <= objetivo) lo = m; else hi = m;
+  }
+  var dd = ds[hi] - ds[lo], f = dd > 0 ? (objetivo - ds[lo]) / dd : 1;
+  return ts[lo] + (ts[hi] - ts[lo]) * f;
+}
+/* velocidad instantanea (km/h) a una fraccion del recorrido; null si el
+   tramo no trae velocidad (y el velocimetro no se muestra) */
+function gpxVelEnProgreso(puntos, t){
+  if(puntos.length < 2) return null;
+  var distTotalM = Math.max(puntos[puntos.length - 1].distAcumM || 0, 1);
+  var objetivo = Math.max(0, Math.min(1, t || 0)) * distTotalM;
+  var i = 1;
+  while(i < puntos.length - 1 && (puntos[i].distAcumM || 0) < objetivo) i++;
+  var b = puntos[i], a = puntos[i - 1];
+  if(!b.tieneVel) return null;
+  var segM = (b.distAcumM || 0) - (a.distAcumM || 0);
+  if(!a.tieneVel || !(segM > 0)) return b.vel;
+  var f = Math.max(0, Math.min(1, (objetivo - (a.distAcumM || 0)) / segM));
+  return a.vel + (b.vel - a.vel) * f;
+}
+/* velocimetro circular chiquito (pedido 30-ago): aguja de -120 a +120 grados
+   sobre un tope redondeado a la decena de la velocidad maxima confiable */
+function gpxVelocimetroHTML(stats, velKmH){
+  if(velKmH == null) return "";
+  var tope = Math.max(10, Math.ceil((stats.velMax || 0) / 10) * 10);
+  var frac = Math.max(0, Math.min(1, velKmH / tope));
+  var ang = -120 + 240 * frac;
+  function punta(a, r){
+    var rad = (a - 90) * Math.PI / 180;
+    return gpxN(50 + r * Math.cos(rad)) + " " + gpxN(50 + r * Math.sin(rad));
+  }
+  return '<div class="gpx-velocimetro" aria-hidden="true"><svg viewBox="0 0 100 100">' +
+    '<circle cx="50" cy="50" r="47" class="gpx-velo-fondo"/>' +
+    '<path d="M' + punta(-120, 40) + " A40 40 0 1 1 " + punta(120, 40) + '" class="gpx-velo-arco"/>' +
+    '<line x1="50" y1="50" x2="50" y2="16" class="gpx-velo-aguja" transform="rotate(' + gpxN(ang) + ' 50 50)"/>' +
+    '<circle cx="50" cy="50" r="4" class="gpx-velo-eje"/>' +
+    '<text x="50" y="80" text-anchor="middle" class="gpx-velo-txt">' + Math.round(velKmH) + "</text>" +
+    '<text x="50" y="91" text-anchor="middle" class="gpx-velo-unidad">km/h · tope ' + tope + "</text>" +
+    "</svg></div>";
+}
+
 /* conversion a coordenadas locales en metros (x=este, y=norte, z=altura
    exagerada) para la vista 3D. Ver mdx-bloques-spec-v2.md seccion 3.5. */
 function gpxAMundo(datos, exageracion){
@@ -5276,7 +5517,7 @@ function gpxAMundo(datos, exageracion){
   }
   var puntosMundo = puntos.map(function(p){
     var m = conv(p.lat, p.lon, p.ele);
-    m.vel = p.vel; m.tieneVel = p.tieneVel; m.pendiente = p.pendiente;
+    m.vel = p.vel; m.tieneVel = p.tieneVel; m.pendiente = p.pendiente; m.ele = p.ele; m.track = p.track;
     return m;
   });
   var waypointsMundo = waypoints.map(function(w){
@@ -5347,13 +5588,47 @@ function gpxPrimitivas3D(datos, stats, modoColor, exageracion, estado, estadoSim
   var LADO = 640, D = 800;
   var escalaFinal = ((LADO * 0.4) / radioMundo) * (estado.escala || 1);
 
-  function rotar(p){
-    var rel = { x: p.x - centro.x, y: p.y - centro.y, z: p.z - centro.z };
-    return motor3dRotarX(motor3dRotarY(rel, estado.yaw), estado.pitch);
-  }
-  function pantalla(r){
-    var q = motor3dProyectar(r, D);
-    return { x: gpxN(q.x * escalaFinal + LADO / 2), y: gpxN(q.y * escalaFinal + LADO / 2) };
+  var rotar, pantalla;
+  var chase = !!(estado.chase && datos.puntos.length > 1);
+  if(chase){
+    /* camara persecucion "flecha fija" (pedido 30-ago): el origen es el
+       carrito y el mundo entero se gira para que el rumbo apunte hacia
+       arriba en pantalla -- el mapa se mueve y se inclina, la flecha no */
+    var posCh = gpxPosEnProgreso(datos.puntos, (estadoSim && estadoSim.progreso) || 0);
+    var wmCh = mundo.conv(posCh.lat, posCh.lon, posCh.ele);
+    var rumboCh = posCh.rumbo, giroCh = 0;
+    if(estadoSim){
+      /* rumbo suavizado + peralte: el cambio de rumbo entre redibujos da la
+         inclinacion en curvas, acotada para que no maree */
+      if(estadoSim.rumboSuave == null) estadoSim.rumboSuave = rumboCh;
+      var deltaCh = rumboCh - estadoSim.rumboSuave;
+      while(deltaCh > 180) deltaCh -= 360;
+      while(deltaCh < -180) deltaCh += 360;
+      estadoSim.rumboSuave += deltaCh * 0.25;
+      giroCh = Math.max(-18, Math.min(18, deltaCh * 0.6));
+      rumboCh = estadoSim.rumboSuave;
+    }
+    var rumboRadCh = rumboCh * Math.PI / 180, rollCh = giroCh * Math.PI / 180;
+    var escCh = ((LADO * 0.4) / GPX_CHASE_ZOOM_M) * (estado.escala || 1);
+    rotar = function(p){
+      var rel = { x: p.x - wmCh.x, y: p.y - wmCh.y, z: p.z - wmCh.z };
+      return motor3dRotarX(motor3dRotarY(motor3dRotarZ(rel, rumboRadCh), rollCh), GPX_CHASE_PITCH);
+    };
+    pantalla = function(r){
+      /* lo que queda detras de la camara puede cruzar el plano de proyeccion:
+         se acota el divisor para no disparar el punto al infinito */
+      var f = D / Math.max(D + r.z, 60);
+      return { x: gpxN(r.x * f * escCh + LADO / 2), y: gpxN(-r.y * f * escCh + LADO * 0.72) };
+    };
+  }else{
+    rotar = function(p){
+      var rel = { x: p.x - centro.x, y: p.y - centro.y, z: p.z - centro.z };
+      return motor3dRotarX(motor3dRotarY(rel, estado.yaw), estado.pitch);
+    };
+    pantalla = function(r){
+      var q = motor3dProyectar(r, D);
+      return { x: gpxN(q.x * escalaFinal + LADO / 2), y: gpxN(q.y * escalaFinal + LADO / 2) };
+    };
   }
 
   var primitivas = [], agujaAltura = radioMundo * 0.18;
@@ -5371,10 +5646,11 @@ function gpxPrimitivas3D(datos, stats, modoColor, exageracion, estado, estadoSim
   var i, a, b, ra, rb, ra0, rb0, pa, pb, pa0, pb0, color;
   for(i = 1; i < simplificados.length; i++){
     a = simplificados[i - 1]; b = simplificados[i];
+    if(a.track !== b.track) continue;   // sin cortina entre una ruta y otra
     ra = rotar(a); rb = rotar(b);
     ra0 = rotar({ x: a.x, y: a.y, z: 0 }); rb0 = rotar({ x: b.x, y: b.y, z: 0 });
     pa = pantalla(ra); pb = pantalla(rb); pa0 = pantalla(ra0); pb0 = pantalla(rb0);
-    color = modoColor === "pendiente" ? gpxColorPorPendiente(b.pendiente) : gpxColorPorVelocidad(b.vel, b.tieneVel, stats.cuartiles);
+    color = gpxColorDePunto(b, modoColor, stats);
     primitivas.push({
       z: (ra.z + rb.z + ra0.z + rb0.z) / 4,
       html: '<polygon points="' + pa0.x + "," + pa0.y + " " + pa.x + "," + pa.y + " " + pb.x + "," + pb.y + " " + pb0.x + "," + pb0.y +
@@ -5398,7 +5674,11 @@ function gpxPrimitivas3D(datos, stats, modoColor, exageracion, estado, estadoSim
   }).join("");
 
   var carrito3d = "";
-  if(estadoSim && estadoSim.activo && datos.puntos.length > 1){
+  if(chase){
+    /* la flecha queda clavada al centro-abajo; el mapa es el que corre */
+    carrito3d = '<g transform="translate(' + (LADO / 2) + ' ' + gpxN(LADO * 0.72) + ')">' +
+      '<polygon class="gpx-carrito-cuerpo" points="0,-16 -10,12 0,5 10,12"/></g>';
+  }else if(estadoSim && estadoSim.activo && datos.puntos.length > 1){
     var posSim3D = gpxPosEnProgreso(datos.puntos, estadoSim.progreso);
     var wm3D = mundo.conv(posSim3D.lat, posSim3D.lon, posSim3D.ele);
     var pBaseC = pantalla(rotar({ x: wm3D.x, y: wm3D.y, z: wm3D.z }));
@@ -5421,11 +5701,13 @@ function gpxRenderizar3D(datos, stats, modoColor, exageracion, estado, estadoSim
     '<button type="button" class="gpx-boton-norte3d' + (estado.libre ? "" : " activo") +
     '" data-camara="norte" title="Vista guiada: reinicia y acota el giro">&#9650; N</button>' + fijas +
     '<button type="button" class="gpx-boton-camara' + (estado.libre ? " activo" : "") + '" data-camara="libre" aria-pressed="' +
-    !!estado.libre + '" title="Girar libremente, sin límite">Libre</button></div>';
+    !!estado.libre + '" title="Girar libremente, sin límite">Libre</button>' +
+    '<button type="button" class="gpx-boton-camara' + (estado.chase ? " activo" : "") + '" data-camara="persecucion" aria-pressed="' +
+    !!estado.chase + '" title="La flecha queda fija y el mapa corre debajo, siguiendo el rumbo">Persecución</button></div>';
   return '<div class="gpx-mapa3d"><svg class="gpx-svg3d" viewBox="0 0 640 640" role="img" aria-label="Vista 3D de la ruta">' +
     gpxPrimitivas3D(datos, stats, modoColor, exageracion, estado, estadoSim) + "</svg>" +
     camara3dHTML +
-    '<p class="gpx-ayuda3d">Arrastra para girar · rueda o pellizco para acercar · Frontal/Superior/Lateral son vistas fijas · Libre quita el tope de giro</p></div>';
+    '<p class="gpx-ayuda3d">Arrastra para girar · rueda o pellizco para acercar · Frontal/Superior/Lateral son vistas fijas · Libre quita el tope de giro · Persecución sigue al carrito al simular</p></div>';
 }
 
 /* datos en pantalla de la vista Perfil, compartidos entre el dibujo inicial
@@ -5441,11 +5723,11 @@ function gpxPerfilDatos(datos){
   function xDe(distM){ return (distM / distTotalM) * ANCHO; }
   function yDe(ele){ return ALTO - ((ele - mmEle.min + margenEle) / altoTotal) * ALTO; }
   var serie = puntos.map(function(p){
-    return { x: gpxN(xDe(p.distAcumM || 0)), y: gpxN(yDe(p.ele)), d: p.distAcumM || 0, ele: p.ele, vel: p.vel, tieneVel: p.tieneVel, pendiente: p.pendiente };
+    return { x: gpxN(xDe(p.distAcumM || 0)), y: gpxN(yDe(p.ele)), d: p.distAcumM || 0, ele: p.ele, vel: p.vel, tieneVel: p.tieneVel, pendiente: p.pendiente, track: p.track, lat: p.lat, lon: p.lon };
   });
-  return { serie: serie, ancho: ANCHO, alto: ALTO, distTotalM: distTotalM, mmEle: mmEle };
+  return { serie: serie, ancho: ANCHO, alto: ALTO, distTotalM: distTotalM, mmEle: mmEle, xDe: xDe, yDe: yDe };
 }
-function gpxSvgPerfil(datos, stats, modoColor){
+function gpxSvgPerfil(datos, stats, modoColor, estadoSim){
   var pd = gpxPerfilDatos(datos), serie = pd.serie, i;
   var relleno = "M" + serie[0].x + " " + pd.alto + " ";
   for(i = 0; i < serie.length; i++) relleno += "L" + serie[i].x + " " + serie[i].y + " ";
@@ -5453,7 +5735,7 @@ function gpxSvgPerfil(datos, stats, modoColor){
 
   var partes = ['<path d="' + relleno + '" class="gpx-perfil-relleno" stroke="none"/>'];
   var tramos = gpxTrazoColoreado(serie, function(p){ return p; }, function(p){
-    return modoColor === "pendiente" ? gpxColorPorPendiente(p.pendiente) : gpxColorPorVelocidad(p.vel, p.tieneVel, stats.cuartiles);
+    return gpxColorDePunto(p, modoColor, stats);
   });
   tramos.forEach(function(t){
     partes.push('<path d="' + t.d + '" stroke="' + t.color + '" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>');
@@ -5467,7 +5749,12 @@ function gpxSvgPerfil(datos, stats, modoColor){
     partes.push('<circle class="gpx-wpt" data-widx="' + idx + '" cx="' + x + '" cy="' + pd.alto + '" r="5" fill="' + gpxColorWaypoint(w) + '" stroke="#fff" stroke-width="1.5"><title>' + X(w.nombre) + "</title></circle>");
     partes.push('<text class="gpx-wpt-letra" x="' + x + '" y="' + (pd.alto - 10) + '" font-size="13" text-anchor="middle" fill="' + gpxColorWaypoint(w) + '">' + X(letrasPerfil[idx]) + "</text>");
   });
-  partes.push('<circle class="gpx-perfil-punto" cx="0" cy="0" r="5" style="display:none"/>');
+  if(estadoSim && estadoSim.activo && datos.puntos.length > 1){
+    var posSimP = gpxPosEnProgreso(datos.puntos, estadoSim.progreso);
+    partes.push('<circle class="gpx-carrito-perfil" cx="' + gpxN(pd.xDe(Math.max(0, Math.min(1, estadoSim.progreso)) * pd.distTotalM)) +
+      '" cy="' + gpxN(pd.yDe(posSimP.ele)) + '" r="6"/>');
+  }
+  partes.push('<circle class="gpx-perfil-punto" cx="0" cy="0" r="5"/>');
 
   var svg = '<svg class="gpx-svg-perfil" viewBox="0 0 ' + pd.ancho + " " + pd.alto + '" preserveAspectRatio="none" role="img" aria-label="Perfil de elevación">' + partes.join("") + "</svg>";
   return '<div class="gpx-mapa-perfil">' + svg +
@@ -5477,17 +5764,36 @@ function gpxSvgPerfil(datos, stats, modoColor){
 }
 
 function gpxRenderizarVista(vista, payload, estado3d, calibEstado, estadoSim){
-  if(vista === "3d") return gpxRenderizar3D(payload.datos, payload.stats, payload.modoColor, payload.exageracion, estado3d, estadoSim);
-  if(vista === "perfil") return gpxSvgPerfil(payload.datos, payload.stats, payload.modoColor);
+  var velo = "";
+  if(estadoSim && estadoSim.activo && gpxVistaSimulable(vista)){
+    velo = gpxVelocimetroHTML(payload.stats, gpxVelEnProgreso(payload.datos.puntos, estadoSim.progreso));
+  }
+  if(vista === "3d") return gpxRenderizar3D(payload.datos, payload.stats, payload.modoColor, payload.exageracion, estado3d, estadoSim) + velo;
+  if(vista === "perfil") return gpxSvgPerfil(payload.datos, payload.stats, payload.modoColor, estadoSim) + velo;
+  if(vista === "2d+perfil") return gpxSvg2D(payload.datos, payload.stats, payload.modoColor, estadoSim) +
+    gpxSvgPerfil(payload.datos, payload.stats, payload.modoColor, estadoSim) + velo;
   if(vista === "captura") return gpxRenderizarCaptura(payload.datos, calibEstado);
-  return gpxSvg2D(payload.datos, payload.stats, payload.modoColor, estadoSim);
+  return gpxSvg2D(payload.datos, payload.stats, payload.modoColor, estadoSim) + velo;
 }
-function gpxBotonesVistaHTML(vistaActual, datos){
-  var opciones = [["2d", "2D"], ["3d", "3D"], ["perfil", "Perfil"]];
+/* que modos de color tienen sentido para ESTE track: velocidad solo con
+   <time>, altitud solo con <ele> de verdad; pendiente vale siempre */
+function gpxModosColor(stats, datos){
+  var modos = [];
+  if(datos && datos.tracks && datos.tracks.length > 1) modos.push("ruta");
+  if(stats && !stats.sinVelocidadAlguna) modos.push("velocidad");
+  modos.push("pendiente");
+  if(stats && !stats.sinElevacion) modos.push("altitud");
+  return modos;
+}
+function gpxBotonesVistaHTML(vistaActual, datos, modoColor, stats){
+  var opciones = [["2d", "2D"], ["3d", "3D"], ["perfil", "Perfil"], ["2d+perfil", "2D+Perfil"]];
   if(datos && datos.imagen) opciones.push(["captura", "Captura"]);
   return '<div class="gpx-vistas" role="group" aria-label="Vista del mapa">' + opciones.map(function(o){
     return '<button type="button" class="gpx-boton-vista' + (o[0] === vistaActual ? " activo" : "") + '" data-vista="' + o[0] + '" aria-pressed="' + (o[0] === vistaActual) + '">' + o[1] + "</button>";
   }).join("") +
+    (gpxModosColor(stats, datos).length > 1
+      ? '<button type="button" class="gpx-boton-color" title="Cambiar de qué depende el color del trazo (por ruta, velocidad, pendiente o altitud)">Color: ' + (modoColor || "velocidad") + "</button>"
+      : "") +
     '<button type="button" class="gpx-boton-resetvista" title="Restablecer la vista original">&#8634;</button>' +
     '<button type="button" class="gpx-boton-pantalla" title="Pantalla completa">&#9974;</button>' +
     "</div>";
@@ -5747,14 +6053,16 @@ function gpxSimControlesHTML(estadoSim, stats){
   return '<div class="gpx-sim" role="group" aria-label="Simular la ruta">' +
     '<button type="button" class="gpx-boton-play" aria-pressed="' + jugando + '">' +
     (jugando ? "&#10074;&#10074; Pausar" : "&#9654; Simular ruta") + "</button>" +
+    '<button type="button" class="gpx-boton-velsim" title="Velocidad de reproducción">×' +
+    ((estadoSim && estadoSim.velocidad) || 1) + "</button>" +
     '<input type="range" class="gpx-sim-barra" min="0" max="1000" step="1" value="' + Math.round(prog * 1000) +
     '" aria-label="Progreso de la simulación">' +
     '<span class="gpx-sim-txt">' + progKm + " / " + distKm + " km</span></div>";
 }
 function gpxContenidoFigura(payload, vista, estado3d, calibEstado, estadoSim){
   var datos = payload.datos, stats = payload.stats;
-  var puedeSimular = (vista === "2d" || vista === "3d") && datos.puntos.length > 1;
-  return gpxBotonesVistaHTML(vista, datos) +
+  var puedeSimular = gpxVistaSimulable(vista) && datos.puntos.length > 1;
+  return gpxBotonesVistaHTML(vista, datos, payload.modoColor, stats) +
     '<div class="gpx-vista-actual">' + gpxRenderizarVista(vista, payload, estado3d, calibEstado, estadoSim) + "</div>" +
     '<img class="gpx-previa-img" alt="" hidden>' +
     (puedeSimular ? gpxSimControlesHTML(estadoSim, stats) : "") +
@@ -5762,7 +6070,7 @@ function gpxContenidoFigura(payload, vista, estado3d, calibEstado, estadoSim){
     (datos.waypoints.length ? gpxWaypointsHTML(datos) : "") +
     gpxAgregarPuntosHTML(datos) +
     gpxDividirHTML(datos) +
-    gpxLeyendaHTML(stats, payload.modoColor) +
+    gpxLeyendaHTML(stats, payload.modoColor, datos) +
     gpxCapturaControlesHTML(datos) +
     gpxContextoHTML(datos.contexto);
 }
@@ -5825,6 +6133,124 @@ function gpxHojaDeRuta(fig, payload, indice){
   pintarCuenta();
   aviso("Hoja de ruta insertada debajo del mapa, con " + ws.length + " puntos en orden de ruta.");
 }
+/* --- foto -> waypoint (spec 4.2): lector EXIF a mano, sin dependencias ---
+   Solo interesan tres cosas: la fecha original, el GPS y su altitud. Se lee
+   unicamente el frente del archivo (el EXIF va en el APP1, antes de los
+   datos de imagen), asi la foto en si jamas entra al documento. */
+function gpxLeerTiffExif(v, base){
+  var poco = v.getUint16(base) === 0x4949; /* "II" = little endian */
+  if(v.getUint16(base + 2, poco) !== 42) return null;
+  var TAM = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 10: 8 };
+  function datosDe(e){
+    var tipo = v.getUint16(e + 2, poco), n = v.getUint32(e + 4, poco);
+    var largo = (TAM[tipo] || 1) * n;
+    /* si el valor cabe en 4 bytes va en linea; si no, es un puntero */
+    var d = largo <= 4 ? e + 8 : base + v.getUint32(e + 8, poco);
+    return { n: n, d: d, fin: d + largo };
+  }
+  function ascii(e){
+    var i = datosDe(e), s = "", k, c;
+    if(i.fin > v.byteLength) return "";
+    for(k = 0; k < i.n; k++){
+      c = v.getUint8(i.d + k);
+      if(!c) break;
+      s += String.fromCharCode(c);
+    }
+    return s;
+  }
+  function racional(e, idx){
+    var i = datosDe(e), p = i.d + idx * 8, den;
+    if(p + 8 > v.byteLength) return NaN;
+    den = v.getUint32(p + 4, poco);
+    return den ? v.getUint32(p, poco) / den : NaN;
+  }
+  function recorrer(ifd, cb){
+    if(ifd <= base || ifd + 2 > v.byteLength) return;
+    var n = v.getUint16(ifd, poco), k, e;
+    for(k = 0; k < n; k++){
+      e = ifd + 2 + k * 12;
+      if(e + 12 > v.byteLength) return;
+      cb(v.getUint16(e, poco), e);
+    }
+  }
+  var exifOff = 0, gpsOff = 0, fecha = "", fechaIfd0 = "";
+  recorrer(base + v.getUint32(base + 4, poco), function(tag, e){
+    if(tag === 0x8769) exifOff = base + v.getUint32(e + 8, poco);
+    else if(tag === 0x8825) gpsOff = base + v.getUint32(e + 8, poco);
+    else if(tag === 0x0132) fechaIfd0 = ascii(e);
+  });
+  if(exifOff) recorrer(exifOff, function(tag, e){
+    if(tag === 0x9003) fecha = ascii(e);            /* DateTimeOriginal */
+    else if(tag === 0x9004 && !fecha) fecha = ascii(e);
+  });
+  var latRef = "", lonRef = "", lat = NaN, lon = NaN, ele = NaN, eleRef = 0;
+  if(gpsOff) recorrer(gpsOff, function(tag, e){
+    if(tag === 0x0001) latRef = ascii(e);
+    else if(tag === 0x0002) lat = racional(e, 0) + racional(e, 1) / 60 + racional(e, 2) / 3600;
+    else if(tag === 0x0003) lonRef = ascii(e);
+    else if(tag === 0x0004) lon = racional(e, 0) + racional(e, 1) / 60 + racional(e, 2) / 3600;
+    else if(tag === 0x0005) eleRef = v.getUint8(datosDe(e).d);
+    else if(tag === 0x0006) ele = racional(e, 0);
+  });
+  var salida = { fecha: fecha || fechaIfd0 || "", lat: null, lon: null, ele: null };
+  /* 0,0 exacto es casi siempre EXIF basura ("isla nula"), mejor descartarlo */
+  if(isFinite(lat) && isFinite(lon) && (lat || lon)){
+    salida.lat = (latRef === "S" ? -1 : 1) * lat;
+    salida.lon = (lonRef === "W" ? -1 : 1) * lon;
+    if(isFinite(ele)) salida.ele = (eleRef === 1 ? -1 : 1) * ele;
+  }
+  if(!salida.fecha && salida.lat === null) return null;
+  return salida;
+}
+function gpxLeerExif(buf){
+  try{
+    var v = new DataView(buf);
+    if(v.byteLength < 12) return null;
+    var m0 = v.getUint16(0);
+    if(m0 === 0x4949 || m0 === 0x4D4D) return gpxLeerTiffExif(v, 0); /* TIFF pelado */
+    if(m0 !== 0xFFD8) return null; /* no es JPEG */
+    var off = 2, marca, talla;
+    while(off + 4 <= v.byteLength){
+      marca = v.getUint16(off);
+      if((marca & 0xFF00) !== 0xFF00) return null;
+      if(marca === 0xFFDA || marca === 0xFFD9) return null; /* empezo la imagen: ya no habra EXIF */
+      talla = v.getUint16(off + 2);
+      if(talla < 2) return null;
+      if(marca === 0xFFE1 && off + 10 <= v.byteLength &&
+         v.getUint32(off + 4) === 0x45786966 && v.getUint16(off + 8) === 0){ /* "Exif\0\0" */
+        return gpxLeerTiffExif(v, off + 10);
+      }
+      off += 2 + talla;
+    }
+  }catch(_e){}
+  return null;
+}
+/* "2026:08:30 08:15:22" -> Date. El EXIF no trae zona horaria: se asume la
+   hora local del aparato, que es la misma vara con la que el navegador va a
+   comparar los <time> de la ruta (new Date de un ISO da epoch absoluto). */
+function gpxFechaExif(txt){
+  var m = /^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(String(txt || ""));
+  if(!m) return null;
+  var f = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+  return isFinite(f.getTime()) ? f : null;
+}
+function gpxHoraCorta(f){
+  function dos(n){ return (n < 10 ? "0" : "") + n; }
+  return dos(f.getHours()) + ":" + dos(f.getMinutes());
+}
+/* punto de la ruta cuya hora quede mas cerca de `ms` (epoch); null si la
+   ruta no trae <time> utilizable. */
+function gpxPuntoPorHora(puntos, ms){
+  var mejor = null, mejorDif = Infinity, i, t, dif;
+  for(i = 0; i < puntos.length; i++){
+    if(!puntos[i].tiempo) continue;
+    t = new Date(puntos[i].tiempo).getTime();
+    if(!isFinite(t)) continue;
+    dif = Math.abs(t - ms);
+    if(dif < mejorDif){ mejorDif = dif; mejor = puntos[i]; }
+  }
+  return mejor ? { punto: mejor, difMs: mejorDif } : null;
+}
 /* botones para crear waypoints a mano (spec 3.19): "clic en el mapa" para uno
    a la vez, o "cada N km" para generar varios de una -- las dos formas que
    el usuario pidió, ademas de los <wpt> que ya traiga el archivo o los que
@@ -5835,7 +6261,10 @@ function gpxAgregarPuntosHTML(datos){
     '<button type="button" class="gpx-boton-contexto gpx-boton-agregar-punto" aria-pressed="false" ' +
     'title="Hacé clic en el mapa (vista 2D) para crear un waypoint ahí">+ Agregar punto</button>' +
     '<button type="button" class="gpx-boton-contexto gpx-boton-generar-puntos" ' +
-    'title="Crea waypoints automáticos cada tantos kilómetros">Puntos cada N km</button></div>';
+    'title="Crea waypoints automáticos cada tantos kilómetros">Puntos cada N km</button>' +
+    '<label class="gpx-boton-contexto gpx-boton-foto" ' +
+    'title="Crea un waypoint donde se tomó cada foto, usando el GPS o la hora del EXIF">\ud83d\udcf7 Punto desde foto' +
+    '<input type="file" accept="image/jpeg,image/tiff" class="gpx-input-foto" hidden multiple></label></div>';
 }
 /* crea waypoints a intervalos regulares de distancia, reusando gpxPosEnProgreso
    (la misma interpolacion que ya mueve el carrito del simulador) para no
@@ -5874,7 +6303,10 @@ function gpxGenerarPuntosCadaN(fig, payload, indice, alTerminar){
 var gpxContador = 0;
 function dibujarGPX(xmlTexto, params, datosGpxTexto, indiceGpx){
   var datos;
-  try{ datos = parseGPX(/^\s*</.test(xmlTexto) ? xmlTexto : gpxDesdeLista(xmlTexto)); }
+  try{
+    datos = parseGPX(/^\s*</.test(xmlTexto) ? xmlTexto :
+      /^\s*[\[{]/.test(xmlTexto) ? gpxDesdeGeojson(xmlTexto) : gpxDesdeLista(xmlTexto));
+  }
   catch(e){ return '<div class="gpx-error"><strong>No se pudo leer el GPX.</strong><p>' + X(e.message) + "</p></div>"; }
   try{
     if(datosGpxTexto && datosGpxTexto.trim()){
@@ -5886,11 +6318,18 @@ function dibujarGPX(xmlTexto, params, datosGpxTexto, indiceGpx){
       }catch(e){ /* companero corrupto: se ignora, el mapa sigue sin contexto */ }
     }
     var stats = gpxEstadisticas(datos.puntos);
-    var modoColor = params.color === "pendiente" ? "pendiente" : (stats.sinVelocidadAlguna ? "pendiente" : "velocidad");
+    var variasRutas = datos.tracks && datos.tracks.length > 1;
+    var modoColor;
+    if(params.color === "pendiente") modoColor = "pendiente";
+    else if(params.color === "altitud" && !stats.sinElevacion) modoColor = "altitud";
+    else if(params.color === "velocidad" && !stats.sinVelocidadAlguna) modoColor = "velocidad";
+    else if(params.color === "ruta" && variasRutas) modoColor = "ruta";
+    else if(variasRutas) modoColor = "ruta";
+    else modoColor = stats.sinVelocidadAlguna ? "pendiente" : "velocidad";
     var exageracion = parseFloat(params.exageracion);
     if(!(exageracion > 0)) exageracion = 3;
     var vista = "2d";
-    if(params.vista === "3d" || params.vista === "perfil") vista = params.vista;
+    if(params.vista === "3d" || params.vista === "perfil" || params.vista === "2d+perfil") vista = params.vista;
     else if(params.vista === "captura" && datos.imagen) vista = "captura";
     gpxContador++;
     var payload = { datos: datos, stats: stats, modoColor: modoColor, exageracion: exageracion, firma: gpxFirma(xmlTexto) };
@@ -5996,12 +6435,12 @@ function pizarraPuntoDesde(e, rect, datos){
    o cortados. Todo numero de un "d" alterna x,y,x,y... sin excepcion porque
    M/L/Q solo emiten pares completos -- no hace falta parsear por comando. */
 function pizarraReescalarD(d, sx, sy){
-  var i = 0;
-  return d.replace(/-?\d+(?:\.\d+)?/g, function(num){
-    var n = Number(num) * (i % 2 === 0 ? sx : sy);
-    i++;
-    return Math.round(n * 10) / 10;
-  });
+  /* delega en pizarraTransformarD (definida mas abajo; a la hora de LLAMAR
+     ya existe) -- el reemplazo in situ anterior corrompia un d compacto
+     escrito a mano ("M10-20") si un numero cambiaba de signo. Un d que no
+     cumple el formato estricto se deja intacto: mejor sin reescalar que roto. */
+  if(!PIZARRA_RE_PARES.test(d)) return d;
+  return pizarraTransformarD(d, function(x){ return x * sx; }, function(y){ return y * sy; });
 }
 function pizarraReescalarDatos(datos, nuevoAncho, nuevoAlto){
   if(!datos.ancho || !datos.alto) return;
@@ -6081,27 +6520,37 @@ function pizarraFormaAPath(herramienta, x0, y0, x1, y1){
    donde todo numero alterna x,y (misma garantia que usa pizarraReescalarD);
    un "d" escrito a mano con H/V/C/A se avisa y no se toca, porque ahi la
    alternancia se rompe y la transformacion lo corromperia. */
-var PIZARRA_RE_PARES = /^[MLQZ0-9.\-,\s]+$/i;
+var PIZARRA_RE_PARES = /^[MLQZ0-9.\-,\s]+$/;   // SIN /i: m/l/q/z relativas romperian la matematica absoluta
+var PIZARRA_RE_TOKEN = /[MLQZ]|-?(?:\d+(?:\.\d+)?|\.\d+)/g;
 function pizarraTransformarD(d, fx, fy){
-  var i = 0;
-  return d.replace(/-?\d+(?:\.\d+)?/g, function(num){
-    var n = (i % 2 === 0) ? fx(Number(num)) : fy(Number(num));
-    i++;
-    return String(Math.round(n * 10) / 10);
-  });
+  /* tokenizar y RECONSTRUIR con espacios, nunca reemplazar in situ: en un d
+     compacto escrito a mano ("M10-20") el "-" hace de separador, y si la y
+     transformada deja de ser negativa el reemplazo in situ fusionaria los
+     dos numeros en uno ("M105"). El token -?(\.\d+) cubre ".5"/"-.5". */
+  var toks = d.match(PIZARRA_RE_TOKEN) || [], out = [], i, t, n = 0, v;
+  for(i = 0; i < toks.length; i++){
+    t = toks[i];
+    if(t === "M" || t === "L" || t === "Q" || t === "Z"){ out.push(t); continue; }
+    v = (n % 2 === 0) ? fx(Number(t)) : fy(Number(t));
+    n++;
+    out.push(String(Math.round(v * 10) / 10));
+  }
+  return out.join(" ");
 }
 /* caja delimitadora aproximada: para trazos con Q usa tambien los puntos de
    control (sobreestima un poco la curva real; para una caja de seleccion es
    suficiente y evita evaluar beziers). */
 function pizarraCajaDeD(d){
-  var i = 0, xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
-  d.replace(/-?\d+(?:\.\d+)?/g, function(num){
-    var n = Number(num);
-    if(i % 2 === 0){ if(n < xMin) xMin = n; if(n > xMax) xMax = n; }
-    else{ if(n < yMin) yMin = n; if(n > yMax) yMax = n; }
-    i++;
-    return num;
-  });
+  var toks = d.match(PIZARRA_RE_TOKEN) || [], i, t, n = 0, v;
+  var xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+  for(i = 0; i < toks.length; i++){
+    t = toks[i];
+    if(t === "M" || t === "L" || t === "Q" || t === "Z") continue;
+    v = Number(t);
+    if(n % 2 === 0){ if(v < xMin) xMin = v; if(v > xMax) xMax = v; }
+    else{ if(v < yMin) yMin = v; if(v > yMax) yMax = v; }
+    n++;
+  }
   return isFinite(xMin) && isFinite(yMin) ? { xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax } : null;
 }
 function pizarraSeleccionHTML(t, datos){
@@ -6135,25 +6584,36 @@ function pizarraSeleccionBajar(e, svgEl, datos, sel){
     t = datos.trazos[sel.idx];
     c = pizarraCajaDeD(t.d);
     if(!c) return;
+    if(c.xMax - c.xMin < 1 && c.yMax - c.yMin < 1){
+      /* un trazo-punto no tiene tamaño que escalar (fijo==movil daria escala
+         identidad y quedaria "congelado"): sus asas lo MUEVEN. */
+      sel.arrastre = { pointerId: e.pointerId, modo: "mover", svg: svgEl, d0: t.d, pt0: pt };
+      return;
+    }
     var tipo = el.getAttribute("data-asa") || "se";
     sel.arrastre = {
-      pointerId: e.pointerId, modo: "escalar", svg: svgEl, d0: t.d, pt0: pt,
+      pointerId: e.pointerId, modo: "escalar", svg: svgEl, d0: t.d, grosor0: t.grosor, pt0: pt,
       fijo: { x: tipo.indexOf("w") >= 0 ? c.xMax : c.xMin, y: tipo.indexOf("n") >= 0 ? c.yMax : c.yMin },
       movil0: { x: tipo.indexOf("w") >= 0 ? c.xMin : c.xMax, y: tipo.indexOf("n") >= 0 ? c.yMin : c.yMax }
     };
     return;
   }
-  el = e.target.closest ? e.target.closest(".pizarra-seleccion-caja") : null;
-  if(el && sel.idx >= 0 && datos.trazos[sel.idx]){
-    sel.arrastre = { pointerId: e.pointerId, modo: "mover", svg: svgEl, d0: datos.trazos[sel.idx].d, pt0: pt };
-    return;
+  var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
+  if(!trazoEl && e.target.closest && e.target.closest(".pizarra-seleccion-caja") && document.elementsFromPoint){
+    /* la caja es transparente y esta encima de todo: mirar que hay DEBAJO
+       del punto -- si es el trazo seleccionado se mueve, si es otro se
+       selecciona ese, y si no hay nada se deselecciona. Sin esto una caja
+       grande secuestraba todos los clics de su interior. */
+    var pila = document.elementsFromPoint(e.clientX, e.clientY), k;
+    for(k = 0; k < pila.length && !trazoEl; k++){
+      if(pila[k].classList && pila[k].classList.contains("pizarra-trazo")) trazoEl = pila[k];
+    }
   }
-  el = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
-  if(el){
-    var idx = parseInt(el.getAttribute("data-i"), 10);
+  if(trazoEl){
+    var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
     if(!isFinite(idx) || !datos.trazos[idx]) return;
     if(!PIZARRA_RE_PARES.test(datos.trazos[idx].d)){
-      aviso("Ese trazo tiene comandos SVG escritos a mano (H/V/C/A) que no sé mover sin dañarlo; se puede editar en el texto del bloque.");
+      aviso("Ese trazo tiene comandos SVG que no genera la app (relativos o H/V/C/A) y no sé moverlo sin dañarlo; se puede editar en el texto del bloque.");
       return;
     }
     sel.idx = idx;
@@ -6171,9 +6631,20 @@ function pizarraSeleccionMover(e, datos, sel){
   var rect = a.svg.getBoundingClientRect();
   if(!rect.width || !rect.height) return;
   var pt = pizarraPuntoDesde(e, rect, datos);
-  var t = datos.trazos[sel.idx], d;
+  var t = datos.trazos[sel.idx], d, grosor = t.grosor;
   if(a.modo === "mover"){
     var dx = pt.x - a.pt0.x, dy = pt.y - a.pt0.y;
+    /* umbral ~2 unidades: en tactil un simple tap emite moves de sub-pixel
+       que sin esto desplazaban el trazo sin querer. */
+    if(!a.activo && dx * dx + dy * dy < 4) return;
+    a.activo = true;
+    /* que el trazo nunca salga ENTERO del lienzo (quedaria invisible e
+       inalcanzable): al menos 10 unidades de su caja deben seguir dentro. */
+    if(!a.caja0) a.caja0 = pizarraCajaDeD(a.d0);
+    if(a.caja0){
+      dx = Math.max(10 - a.caja0.xMax, Math.min(datos.ancho - 10 - a.caja0.xMin, dx));
+      dy = Math.max(10 - a.caja0.yMax, Math.min(datos.alto - 10 - a.caja0.yMin, dy));
+    }
     d = pizarraTransformarD(a.d0, function(x){ return x + dx; }, function(y){ return y + dy; });
   }else{
     var baseX = a.movil0.x - a.fijo.x, baseY = a.movil0.y - a.fijo.y;
@@ -6181,17 +6652,38 @@ function pizarraSeleccionMover(e, datos, sel){
     var ey = baseY ? (a.movil0.y + (pt.y - a.pt0.y) - a.fijo.y) / baseY : 1;
     if(!isFinite(ex) || ex < 0.05) ex = 0.05;
     if(!isFinite(ey) || ey < 0.05) ey = 0.05;
+    if(ex > 40) ex = 40;
+    if(ey > 40) ey = 40;
+    a.activo = true;
     d = pizarraTransformarD(a.d0, function(x){ return a.fijo.x + (x - a.fijo.x) * ex; },
                                   function(y){ return a.fijo.y + (y - a.fijo.y) * ey; });
+    /* el grosor acompaña la escala, igual que pizarraReescalarDatos, siempre
+       partiendo de grosor0 (sin acumular entre eventos de move). */
+    grosor = Math.max(1, Math.min(60, Math.round((a.grosor0 || t.grosor) * Math.sqrt(ex * ey) * 10) / 10));
   }
   if(d.length > PIZARRA_D_MAX) return;
+  /* el trazo de ANTES del gesto se guarda una sola vez, para que Deshacer
+     pueda revertir el ultimo movimiento en vez de borrar un trazo ajeno. */
+  if(!a.cambio){ a.cambio = true; sel.previoGesto = { idx: sel.idx, trazo: t }; }
   /* objeto NUEVO en vez de mutar t.d: la copia "previo" que usa Cancelar en
      el bloque es un slice() del arreglo -- comparte los objetos originales,
      y estos deben conservar su "d" de antes para poder restaurarlos. */
-  datos.trazos[sel.idx] = { color: t.color, grosor: t.grosor, d: d };
+  datos.trazos[sel.idx] = { color: t.color, grosor: grosor, d: d };
   var pathEl = a.svg.querySelector('.pizarra-trazo[data-i="' + sel.idx + '"]');
-  if(pathEl) pathEl.setAttribute("d", d);
+  if(pathEl){ pathEl.setAttribute("d", d); pathEl.setAttribute("stroke-width", grosor); }
   pizarraSeleccionPintar(a.svg, datos, sel);
+}
+/* un trazo que llega de OTRA pestaña se valida antes de tocar el arreglo:
+   sin esto, un m.idx="__proto__" reemplazaba el prototipo del array (y todo
+   push/splice posterior tronaba) y un m.trazo arbitrario entraba al dato. */
+function pizarraIndiceValido(n, tope){
+  return typeof n === "number" && isFinite(n) && n >= 0 && n % 1 === 0 && n < tope;
+}
+function pizarraTrazoValido(t){
+  return !!t && typeof t === "object" &&
+    typeof t.d === "string" && t.d.length <= 20000 && PIZARRA_RE_PATH.test(t.d) &&
+    typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
+    typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 60;
 }
 function pizarraSeleccionSoltar(e, sel){
   if(sel.arrastre && e.pointerId === sel.arrastre.pointerId){ sel.arrastre = null; return true; }
@@ -8254,21 +8746,21 @@ function vigilarCanalPestanas(){
       if(m.tipo === "pizarron-trazo-fin"){
         pizarronVivoRemotoQuitar();
         var hF = pizarronHojaRemota(m.i, m.ancho, m.alto);
-        if(m.trazo && hF.trazos.length < PIZARRA_TRAZOS_MAX) hF.trazos.push(m.trazo);
+        if(pizarraTrazoValido(m.trazo) && hF.trazos.length < PIZARRA_TRAZOS_MAX) hF.trazos.push(m.trazo);
         if(m.i === PIZARRON.i) pizarronRedibujar();
         return;
       }
       if(m.tipo === "pizarron-trazo-borrar"){
-        var hB = PIZARRON.hojas[m.i];
-        if(hB && hB.trazos[m.idx]){
+        var hB = pizarraIndiceValido(m.i, PIZARRON.hojas.length) ? PIZARRON.hojas[m.i] : null;
+        if(hB && pizarraIndiceValido(m.idx, hB.trazos.length)){
           hB.trazos.splice(m.idx, 1);
           if(m.i === PIZARRON.i) pizarronRedibujar();
         }
         return;
       }
       if(m.tipo === "pizarron-trazo-cambiar"){
-        var hC = PIZARRON.hojas[m.i];
-        if(hC && hC.trazos[m.idx] && m.trazo){
+        var hC = pizarraIndiceValido(m.i, PIZARRON.hojas.length) ? PIZARRON.hojas[m.i] : null;
+        if(hC && pizarraIndiceValido(m.idx, hC.trazos.length) && pizarraTrazoValido(m.trazo)){
           hC.trazos[m.idx] = m.trazo;
           if(m.i === PIZARRON.i) pizarronRedibujar();
         }
@@ -8855,6 +9347,19 @@ function gpxEscalaRedonda(metros){
   }
   return mejor;
 }
+/* mueve el marcador de sonda del mapa 2D al punto p (o lo esconde con null):
+   la vista 2D+Perfil lo usa para reflejar en el mapa lo que se recorre con
+   el dedo en el perfil. El circulo ya viene en el svg (gpxSvg2D) para que el
+   zoom lo reescale como a los demas .gpx-punto-fijo. */
+function gpxMarcaEnMapa(fig, datos, p){
+  var marca = fig.querySelector(".gpx-svg .gpx-marca-sonda");
+  if(!marca) return;
+  if(!p){ marca.style.display = "none"; return; }
+  var q = gpx2dProyeccion(datos).proy(p);
+  marca.setAttribute("cx", gpxN(q.x));
+  marca.setAttribute("cy", gpxN(q.y));
+  marca.style.display = "inline";
+}
 function gpxActivarInteraccion(fig, estado2d, datos, alAgregarPunto){
   var svg = fig.querySelector(".gpx-svg"), escalaEl = fig.querySelector(".gpx-escala");
   if(!svg) return;
@@ -9007,7 +9512,7 @@ function gpxActivarCapturaVista(contenedor, payload){
 /* vista Perfil: recalcula la misma proyeccion que gpxSvgPerfil para no
    duplicar formulas, y mueve un punto + una etiqueta flotante con el cursor
    o el dedo. */
-function gpxActivarPerfil(contenedor, payload){
+function gpxActivarPerfil(contenedor, payload, alSondear, alSalir){
   var svg = contenedor.querySelector(".gpx-svg-perfil");
   var punto = contenedor.querySelector(".gpx-perfil-punto");
   var tip = contenedor.querySelector(".gpx-perfil-tip");
@@ -9026,14 +9531,18 @@ function gpxActivarPerfil(contenedor, payload){
     if(!rect.width) return;
     var p = masCercano(((e.clientX - rect.left) / rect.width) * 1000);
     punto.setAttribute("cx", p.x); punto.setAttribute("cy", p.y);
-    punto.style.display = "";
+    punto.style.display = "inline";
     tip.hidden = false;
     tip.textContent = (p.d / 1000).toFixed(2) + " km · " + Math.round(p.ele) + " m · " + (p.tieneVel ? gpxN(p.vel) + " km/h" : "—");
     tip.style.left = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)) + "%";
+    if(alSondear) alSondear(p);
   }
   svg.addEventListener("pointermove", mover);
   svg.addEventListener("pointerdown", mover);
-  svg.addEventListener("pointerleave", function(){ punto.style.display = "none"; tip.hidden = true; });
+  svg.addEventListener("pointerleave", function(){
+    punto.style.display = "none"; tip.hidden = true;
+    if(alSalir) alSalir();
+  });
   svg.style.touchAction = "pan-y";
 }
 function gpxSangria(n){ return n > 0 ? new Array(n + 1).join(" ") : ""; }
@@ -9109,6 +9618,77 @@ function gpxFirma(texto){ return String(texto || "").replace(/\s+/g, "").slice(0
    tambien <wpt> -- asi TODO lo demas (stats, contexto OSM, dividir, hoja de
    ruta, letras) funciona igual que con un GPX grabado. */
 var GPX_RE_LISTA = /^\s*(?:[-*\u2022]\s+)?(-?\d+\.?\d*)\s*[,;]\s*(-?\d+\.?\d*)\s*(.*)$/;
+/* GeoJSON de cortesia (investigacion de mercado 4.7): muchos servicios
+   exportan .geojson en vez de .gpx. Se aceptan FeatureCollection, Feature o
+   la geometria pelada; LineString/MultiLineString son rutas, Point/MultiPoint
+   son waypoints (y si SOLO hay puntos, ademas se enlazan como ruta, igual
+   que el modo lista). Se convierte a GPX de texto y sigue el camino de
+   siempre (parseGPX): un solo parser de rutas, no dos. */
+function gpxDesdeGeojson(texto){
+  var raiz;
+  try{ raiz = JSON.parse(texto); }
+  catch(e){ throw new Error("el GeoJSON no es un JSON v\u00e1lido"); }
+  var wpts = [], trks = [], sueltos = [];
+  function tiempos(p){
+    var t = p.coordTimes || (p.coordinateProperties && p.coordinateProperties.times);
+    return Object.prototype.toString.call(t) === "[object Array]" ? t : null;
+  }
+  function trkpt(c, ts){
+    return '<trkpt lat="' + Number(c[1]).toFixed(6) + '" lon="' + Number(c[0]).toFixed(6) + '">' +
+      (isFinite(c[2]) ? "<ele>" + Number(c[2]).toFixed(1) + "</ele>" : "") +
+      (ts ? "<time>" + X(String(ts)) + "</time>" : "") + "</trkpt>";
+  }
+  function linea(coords, nombre, ts){
+    var pts = [], i, c;
+    for(i = 0; i < (coords || []).length; i++){
+      c = coords[i];
+      if(!c || !isFinite(c[0]) || !isFinite(c[1])) continue;
+      pts.push(trkpt(c, ts && ts[i]));
+    }
+    if(pts.length < 2) return;
+    trks.push("<trk>" + (nombre ? "<name>" + X(String(nombre)) + "</name>" : "") +
+      "<trkseg>\n" + pts.join("\n") + "\n</trkseg></trk>");
+  }
+  function punto(c, p){
+    if(!c || !isFinite(c[0]) || !isFinite(c[1])) return;
+    var nombre = p.name || p.title || p.nombre || "Punto";
+    wpts.push('<wpt lat="' + Number(c[1]).toFixed(6) + '" lon="' + Number(c[0]).toFixed(6) + '">' +
+      (isFinite(c[2]) ? "<ele>" + Number(c[2]).toFixed(1) + "</ele>" : "") +
+      "<name>" + X(String(nombre)) + "</name>" +
+      (p.desc || p.description ? "<desc>" + X(String(p.desc || p.description)) + "</desc>" : "") +
+      "</wpt>");
+    sueltos.push(c);
+  }
+  function geometria(g, p){
+    if(!g || !g.type) return;
+    var i;
+    if(g.type === "LineString") linea(g.coordinates, p.name, tiempos(p));
+    else if(g.type === "MultiLineString"){
+      for(i = 0; i < (g.coordinates || []).length; i++){
+        linea(g.coordinates[i], p.name ? p.name + " " + (i + 1) : null, null);
+      }
+    }
+    else if(g.type === "Point") punto(g.coordinates, p);
+    else if(g.type === "MultiPoint"){ for(i = 0; i < (g.coordinates || []).length; i++) punto(g.coordinates[i], p); }
+    else if(g.type === "GeometryCollection"){ for(i = 0; i < (g.geometries || []).length; i++) geometria(g.geometries[i], p); }
+    /* Polygon y demas: no son rutas, se ignoran sin drama */
+  }
+  var feats = raiz && raiz.type === "FeatureCollection" ? (raiz.features || [])
+    : raiz && raiz.type === "Feature" ? [raiz]
+    : raiz && raiz.type ? [{ geometry: raiz, properties: {} }] : [];
+  var k, f;
+  for(k = 0; k < feats.length; k++){
+    f = feats[k];
+    if(f) geometria(f.geometry, f.properties || {});
+  }
+  if(!trks.length && sueltos.length > 1){
+    /* solo puntos: se enlazan en orden como ruta, igual que el modo lista */
+    trks.push("<trk><trkseg>\n" + sueltos.map(function(c){ return trkpt(c, null); }).join("\n") + "\n</trkseg></trk>");
+  }
+  if(!trks.length && !wpts.length) throw new Error("el GeoJSON no trae l\u00edneas (rutas) ni puntos");
+  return '<?xml version="1.0"?>\n<gpx version="1.1">\n' + wpts.join("\n") +
+    (wpts.length ? "\n" : "") + trks.join("\n") + "\n</gpx>";
+}
 function gpxDesdeLista(texto){
   var lineas = String(texto || "").split(/\r?\n/), filas = [], i, m, lat, lon;
   for(i = 0; i < lineas.length; i++){
@@ -9223,6 +9803,7 @@ function gpxWaypointXML(w){
   if(!isFinite(lat) || !isFinite(lon)) return "";
   var l = ['  <wpt lat="' + lat.toFixed(6) + '" lon="' + lon.toFixed(6) + '">'];
   if(isFinite(ele) && ele) l.push("    <ele>" + ele.toFixed(1) + "</ele>");
+  if(w.tiempo) l.push("    <time>" + X(w.tiempo) + "</time>");
   l.push("    <name>" + X(w.nombre) + "</name>");
   if(w.desc) l.push("    <desc>" + X(w.desc) + "</desc>");
   if(w.cmt) l.push("    <cmt>" + X(w.cmt) + "</cmt>");
@@ -9241,7 +9822,7 @@ function gpxEscribirWaypoint(indiceGpx, wpt, firma){
   var contenido = fuenteActual.slice(loc.contenidoInicio, loc.contenidoFin);
   var pos = contenido.search(/<\/gpx>/i);
   if(pos < 0){
-    if(/^\s*</.test(contenido)) return false;
+    if(/^\s*[<\[{]/.test(contenido)) return false;
     var linea = gpxLineaLista(wpt);
     if(!linea) return false;
     var sep = /\n$/.test(contenido) ? "" : "\n";
@@ -9414,6 +9995,14 @@ function gpxActivarFigura(fig){
     var contenedor = fig.querySelector(".gpx-vista-actual");
     if(vista === "3d") gpxActivar3D(contenedor, payload, estado3d, estadoSim, limites3d);
     else if(vista === "perfil") gpxActivarPerfil(contenedor, payload);
+    else if(vista === "2d+perfil"){
+      /* vista apilada (investigacion de mercado 4.6): recorrer el perfil con
+         el dedo/raton marca el punto correspondiente en el mapa de arriba */
+      gpxActivarInteraccion(fig, estado2d, payload.datos, agregarPuntoEnMapa);
+      gpxActivarPerfil(contenedor, payload,
+        function(p){ gpxMarcaEnMapa(fig, payload.datos, p); },
+        function(){ gpxMarcaEnMapa(fig, payload.datos, null); });
+    }
     else if(vista === "captura"){
       if(payload.datos.calibracion && !(calibEstado && calibEstado.paso)) gpxActivarCapturaVista(contenedor, payload);
     }else gpxActivarInteraccion(fig, estado2d, payload.datos, agregarPuntoEnMapa);
@@ -9436,6 +10025,8 @@ function gpxActivarFigura(fig){
     txt.textContent = (stats.distanciaKm * estadoSim.progreso).toFixed(2) + " / " + stats.distanciaKm.toFixed(2) + " km";
     boton.innerHTML = estadoSim.jugando ? "&#10074;&#10074; Pausar" : "&#9654; Simular ruta";
     boton.setAttribute("aria-pressed", String(estadoSim.jugando));
+    var velB = fig.querySelector(".gpx-boton-velsim");
+    if(velB) velB.textContent = "×" + (estadoSim.velocidad || 1);
   }
   /* durante la reproduccion, el progreso avanza a la tasa de rAF (~60fps) pero
      el mapa (que en 2D puede tener miles de puntos) se reconstruye a una tasa
@@ -9447,13 +10038,23 @@ function gpxActivarFigura(fig){
     if(estadoSim.ultimoTs == null) estadoSim.ultimoTs = ts;
     var dtS = (ts - estadoSim.ultimoTs) / 1000;
     estadoSim.ultimoTs = ts;
-    estadoSim.progreso = Math.min(1, estadoSim.progreso + dtS / GPX_SIM_DURACION_S);
-    var terminado = estadoSim.progreso >= 1;
+    var velSim = estadoSim.velocidad || 1, terminado;
+    if(estadoSim.plan){
+      /* ritmo real: el reloj corre sobre la linea de tiempo del GPX (con sus
+         aceleradas, frenadas y paradas) comprimida a ~3 min de recorrido */
+      estadoSim.tReal = Math.min(estadoSim.plan.total,
+        (estadoSim.tReal || 0) + dtS * velSim * estadoSim.plan.total / GPX_SIM_DURACION_REAL_S);
+      estadoSim.progreso = gpxProgresoEnTiempo(estadoSim.plan, estadoSim.tReal);
+      terminado = estadoSim.tReal >= estadoSim.plan.total;
+    }else{
+      estadoSim.progreso = Math.min(1, estadoSim.progreso + dtS * velSim / GPX_SIM_DURACION_S);
+      terminado = estadoSim.progreso >= 1;
+    }
     if(terminado) estadoSim.jugando = false;
     if(terminado || ts - estadoSim.ultimoRedibujo > 80){
       estadoSim.ultimoRedibujo = ts;
       var vistaAhora = fig.dataset.vista || "2d";
-      if(vistaAhora === "2d" || vistaAhora === "3d") mostrarVista(vistaAhora);
+      if(gpxVistaSimulable(vistaAhora)) mostrarVista(vistaAhora);
       actualizarControlesSim();
     }
     if(!terminado) requestAnimationFrame(simPaso);
@@ -9483,6 +10084,93 @@ function gpxActivarFigura(fig){
     trasRellenar();
     refrescarTodo();
   }
+  /* foto -> waypoint (spec 4.2): la ubicacion sale del GPS del EXIF si lo
+     trae; si no, de la hora de la foto casada contra los <time> de la ruta
+     (con un desfase en minutos que se pregunta una sola vez por tanda).
+     Solo se leen los primeros 512 KB de cada archivo: la foto no se embebe. */
+  function crearPuntosDesdeFotos(fotos){
+    var resultados = [];
+    function leerSiguiente(){
+      if(resultados.length >= fotos.length){ ubicar(); return; }
+      var f = fotos[resultados.length];
+      var lector = new FileReader();
+      lector.onload = function(){
+        resultados.push({ nombre: f.name, exif: gpxLeerExif(lector.result) });
+        leerSiguiente();
+      };
+      lector.onerror = function(){
+        resultados.push({ nombre: f.name, exif: null });
+        leerSiguiente();
+      };
+      lector.readAsArrayBuffer(f.slice ? f.slice(0, 524288) : f);
+    }
+    function ubicar(){
+      var puntos = payload.datos.puntos, conTiempoRuta = false, j;
+      for(j = 0; j < puntos.length; j++){
+        if(puntos[j].tiempo){ conTiempoRuta = true; break; }
+      }
+      var necesitaHora = false, r;
+      for(j = 0; j < resultados.length; j++){
+        r = resultados[j];
+        if(r.exif && r.exif.lat === null && gpxFechaExif(r.exif.fecha)) necesitaHora = true;
+      }
+      var desfaseMin = 0;
+      if(necesitaHora && conTiempoRuta){
+        var txt = window.prompt("Minutos de desfase del reloj de la c\u00e1mara frente al GPS (0 si ninguno; puede ser negativo):", "0");
+        if(txt === null) return;
+        desfaseMin = parseFloat(String(txt).replace(",", "."));
+        if(!isFinite(desfaseMin)) desfaseMin = 0;
+      }
+      var porGps = 0, porHora = 0, lejanas = 0, sinHoraRuta = 0, sinDatos = 0, algo = false;
+      for(j = 0; j < resultados.length; j++){
+        r = resultados[j];
+        var fecha = r.exif ? gpxFechaExif(r.exif.fecha) : null, w = null;
+        var nombre = String(r.nombre || "Foto").replace(/\.[A-Za-z0-9]+$/, "").replace(/[\r\n]+/g, " ").trim() || "Foto";
+        if(r.exif && r.exif.lat !== null){
+          w = { lat: r.exif.lat, lon: r.exif.lon, ele: r.exif.ele || 0, nombre: nombre, enlace: "" };
+          if(fecha) w.tiempo = fecha.toISOString();
+          porGps++;
+        }else if(fecha && conTiempoRuta){
+          var enGps = fecha.getTime() + desfaseMin * 60000;
+          var casada = gpxPuntoPorHora(puntos, enGps);
+          if(casada && casada.difMs <= 6 * 3600 * 1000){
+            w = { lat: casada.punto.lat, lon: casada.punto.lon, ele: casada.punto.ele || 0,
+                  nombre: nombre, enlace: "", tiempo: new Date(enGps).toISOString() };
+            porHora++;
+          }else{
+            /* a mas de 6 h de la ruta: casi seguro es de otro dia u otra zona */
+            lejanas++;
+          }
+        }else if(fecha){
+          sinHoraRuta++;
+        }else{
+          sinDatos++;
+        }
+        if(!w) continue;
+        if(fecha) w.desc = "Foto de las " + gpxHoraCorta(fecha);
+        if(indice && !gpxEscribirWaypoint(indice, w, payload.firma)){
+          aviso("No pude escribir el punto: no encontr\u00e9 d\u00f3nde cerrar el <gpx> en el texto.");
+          return;
+        }
+        payload.datos.waypoints.push(w);
+        algo = true;
+      }
+      if(algo){
+        fig.dataset.gpx = JSON.stringify(payload);
+        trasRellenar();
+        refrescarTodo();
+      }
+      var partes = [];
+      if(porGps) partes.push(porGps + " por el GPS de la foto");
+      if(porHora) partes.push(porHora + " por la hora");
+      var msj = partes.length ? "Puntos creados: " + partes.join(" y ") + "." : "Ninguna foto se pudo ubicar.";
+      if(lejanas) msj += " " + lejanas + " con hora a m\u00e1s de 6 h de la ruta (revis\u00e1 el desfase).";
+      if(sinHoraRuta) msj += " " + sinHoraRuta + " con hora, pero la ruta no trae <time>.";
+      if(sinDatos) msj += " " + sinDatos + " sin EXIF \u00fatil (prob\u00e1 con el JPEG original, no una copia).";
+      aviso(msj);
+    }
+    leerSiguiente();
+  }
   function guardarCompanero(campos, avisoSiFalla){
     if(indice && !gpxEscribirCompanero(indice, payload.firma, campos)) aviso(avisoSiFalla);
     fig.dataset.gpx = JSON.stringify(payload);
@@ -9493,10 +10181,19 @@ function gpxActivarFigura(fig){
     var t = e.target, el;
     el = t.closest ? t.closest(".gpx-boton-vista") : null;
     if(el){ mostrarVista(el.getAttribute("data-vista")); return; }
+    el = t.closest ? t.closest(".gpx-boton-color") : null;
+    if(el){
+      var modosC = gpxModosColor(payload.stats, payload.datos);
+      payload.modoColor = modosC[(modosC.indexOf(payload.modoColor) + 1) % modosC.length];
+      fig.dataset.gpx = JSON.stringify(payload);
+      refrescarTodo();
+      return;
+    }
     el = t.closest ? t.closest(".gpx-boton-resetvista") : null;
     if(el){
       estado2d.caja = null;
       estado3d.yaw = GPX3D_YAW_DEF; estado3d.pitch = GPX3D_PITCH_DEF; estado3d.escala = 1; estado3d.libre = false;
+      estado3d.chase = false;
       gpxCopiarLimites(limites3d, GPX3D_LIMITES);
       mostrarVista(fig.dataset.vista || "2d");
       return;
@@ -9506,12 +10203,17 @@ function gpxActivarFigura(fig){
     el = t.closest ? t.closest("[data-camara]") : null;
     if(el){
       var camara = el.getAttribute("data-camara");
-      if(camara === "libre"){
+      if(camara === "persecucion"){
+        estado3d.chase = !estado3d.chase;
+        if(estado3d.chase) estadoSim.activo = true;   /* que el carrito y el velocimetro existan ya */
+      }else if(camara === "libre"){
         estado3d.libre = !estado3d.libre;
+        estado3d.chase = false;
       }else if(GPX3D_CAMARAS[camara]){
         estado3d.yaw = GPX3D_CAMARAS[camara].yaw;
         estado3d.pitch = GPX3D_CAMARAS[camara].pitch;
         estado3d.libre = GPX3D_CAMARAS[camara].libre;
+        estado3d.chase = false;
       }
       gpxCopiarLimites(limites3d, estado3d.libre ? GPX3D_LIMITES_LIBRE : GPX3D_LIMITES);
       mostrarVista("3d");
@@ -9520,15 +10222,24 @@ function gpxActivarFigura(fig){
     el = t.closest ? t.closest(".gpx-boton-play") : null;
     if(el){
       estadoSim.activo = true;
+      if(!("plan" in estadoSim)) estadoSim.plan = gpxPlanSim(payload.datos.puntos);
       if(estadoSim.progreso >= 1) estadoSim.progreso = 0;
+      if(estadoSim.plan) estadoSim.tReal = gpxTiempoEnProgreso(estadoSim.plan, estadoSim.progreso);
       estadoSim.jugando = !estadoSim.jugando;
       estadoSim.ultimoTs = null;
       if(estadoSim.jugando) requestAnimationFrame(simPaso);
       else{
         var vistaTrasPausa = fig.dataset.vista || "2d";
-        if(vistaTrasPausa === "2d" || vistaTrasPausa === "3d") mostrarVista(vistaTrasPausa);
+        if(gpxVistaSimulable(vistaTrasPausa)) mostrarVista(vistaTrasPausa);
         actualizarControlesSim();
       }
+      return;
+    }
+    el = t.closest ? t.closest(".gpx-boton-velsim") : null;
+    if(el){
+      var iVel = GPX_SIM_VELOCIDADES.indexOf(estadoSim.velocidad || 1);
+      estadoSim.velocidad = GPX_SIM_VELOCIDADES[(iVel + 1) % GPX_SIM_VELOCIDADES.length];
+      actualizarControlesSim();
       return;
     }
     el = t.closest ? t.closest(".gpx-boton-dividir") : null;
@@ -9659,6 +10370,12 @@ function gpxActivarFigura(fig){
 
   fig.addEventListener("change", function(e){
     var t = e.target;
+    if(t.classList && t.classList.contains("gpx-input-foto")){
+      var fotos = Array.prototype.slice.call(t.files || []);
+      t.value = ""; /* que volver a elegir la misma foto dispare change */
+      if(fotos.length) crearPuntosDesdeFotos(fotos);
+      return;
+    }
     if(!t.classList || !t.classList.contains("gpx-input-captura")) return;
     var archivo = t.files && t.files[0];
     if(!archivo) return;
@@ -9693,8 +10410,10 @@ function gpxActivarFigura(fig){
     estadoSim.activo = true;
     estadoSim.jugando = false;
     estadoSim.progreso = Math.max(0, Math.min(1, Number(t.value) / 1000));
+    if(!("plan" in estadoSim)) estadoSim.plan = gpxPlanSim(payload.datos.puntos);
+    if(estadoSim.plan) estadoSim.tReal = gpxTiempoEnProgreso(estadoSim.plan, estadoSim.progreso);
     var vistaBarra = fig.dataset.vista || "2d";
-    if(vistaBarra === "2d" || vistaBarra === "3d") mostrarVista(vistaBarra);
+    if(gpxVistaSimulable(vistaBarra)) mostrarVista(vistaBarra);
     actualizarControlesSim();
   });
 
@@ -9810,6 +10529,7 @@ function pizarraActivarFigura(fig){
     enCurso = null;
     sel.idx = -1;
     sel.arrastre = null;
+    sel.previoGesto = null;
     estado.borrador = false;
     fig.classList.remove("pizarra-dibujando", "pizarra-borrador");
     fig.innerHTML = vistaHTML();
@@ -9831,6 +10551,13 @@ function pizarraActivarFigura(fig){
     }
     el = t.closest ? t.closest(".pizarra-boton-deshacer") : null;
     if(el){
+      if(sel.previoGesto && payload.datos.trazos[sel.previoGesto.idx]){
+        payload.datos.trazos[sel.previoGesto.idx] = sel.previoGesto.trazo;
+        sel.previoGesto = null;
+        enCurso = null;
+        redibujarTrazos();
+        return;
+      }
       if(payload.datos.trazos.length){ payload.datos.trazos.pop(); enCurso = null; redibujarTrazos(); }
       return;
     }
@@ -9839,6 +10566,7 @@ function pizarraActivarFigura(fig){
       if(!payload.datos.trazos.length) return;
       aviso("¿Borrar todos los trazos de esta pizarra?", "Borrar", function(){
         payload.datos.trazos = [];
+        sel.previoGesto = null;
         enCurso = null;
         redibujarTrazos();
       });
@@ -9880,6 +10608,7 @@ function pizarraActivarFigura(fig){
         var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
         if(isFinite(idx) && payload.datos.trazos[idx]){
           payload.datos.trazos.splice(idx, 1);
+          sel.previoGesto = null;   // el splice corre los indices: el deshacer de gesto ya no aplica
           enCurso = null;
           redibujarTrazos();
         }
@@ -10207,6 +10936,19 @@ function estiloDeLaApp(){
   for(i = 0; i < hojas.length; i++) t.push(hojas[i].textContent);
   return t.join("\n");
 }
+/* la foto y la impresion son "papel": siempre con la paleta clara. El cambio
+   de tema dura solo lo que tarda fn (misma tarea de JS): no llega a pintarse
+   en pantalla, pero getComputedStyle ya devuelve los valores claros. */
+function conTemaClaro(fn){
+  var raiz = document.documentElement;
+  var antes = raiz.getAttribute("data-tema");
+  raiz.setAttribute("data-tema", "claro");
+  try{ return fn(); }
+  finally{
+    if(antes === null) raiz.removeAttribute("data-tema");
+    else raiz.setAttribute("data-tema", antes);
+  }
+}
 /* dentro del svg no hay :root, asi que la paleta se lleva puesta */
 var nombresPaleta = null;
 function paletaEnLinea(){
@@ -10244,8 +10986,12 @@ function exportarPng(){
   var alto = Math.ceil(caja.getBoundingClientRect().height) || 1;
   var estilo = document.createElement("style");
   estilo.textContent = estiloDeLaApp();
+  var claro = conTemaClaro(function(){
+    return { paleta: paletaEnLinea(),
+             papel: getComputedStyle(document.documentElement).getPropertyValue("--papel").trim() || "#ffffff" };
+  });
   var envoltura = document.createElement("div");
-  envoltura.style.cssText = paletaEnLinea() +
+  envoltura.style.cssText = claro.paleta +
     ";width:" + ANCHO_FOTO + "px;background:var(--papel);color:var(--texto)" +
     ";font-family:var(--serif);font-size:18px;line-height:1.7";
   envoltura.appendChild(estilo);
@@ -10263,7 +11009,7 @@ function exportarPng(){
   var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + ANCHO_FOTO + '" height="' + alto + '">' +
             '<foreignObject x="0" y="0" width="100%" height="100%">' + cuerpo + "</foreignObject></svg>";
   var esc = alto * 2 > LADO_MAXIMO ? 1 : 2;
-  var papel = getComputedStyle(document.documentElement).getPropertyValue("--papel").trim() || "#ffffff";
+  var papel = claro.papel;
   var img = new Image();
   img.onload = function(){
     var lienzo = document.createElement("canvas");
@@ -12550,6 +13296,8 @@ function pizarronFondoAplicar(f){
 }
 function pizarronRedibujar(){
   if(PIZARRON.sel){ PIZARRON.sel.idx = -1; PIZARRON.sel.arrastre = null; }
+  /* OJO: previoGesto NO se limpia aqui (Deshacer redibuja tras restaurar);
+     se limpia donde los indices realmente se corren (borrar/limpiar/hoja). */
   var lienzo = $("#pizarronLienzo");
   if(lienzo) lienzo.innerHTML = pizarraSvgHTML(pizarronHoja(PIZARRON.i));
   pizarronActualizarBarra();
@@ -12637,6 +13385,7 @@ function emitirPizarronHoja(){
 function irAHojaPizarron(i){
   PIZARRON.i = i;
   PIZARRON.enCurso = null;
+  if(PIZARRON.sel) PIZARRON.sel.previoGesto = null;   // el gesto pertenece a la hoja anterior
   pizarronRedibujar();
   emitirPizarronHoja();
 }
@@ -12873,6 +13622,7 @@ function pizarronPointerDown(e){
       var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
       if(isFinite(idx) && hoja.trazos[idx]){
         hoja.trazos.splice(idx, 1);
+        if(PIZARRON.sel) PIZARRON.sel.previoGesto = null;
         PIZARRON.enCurso = null;
         pizarronRedibujar();
         emitirPizarronTrazoBorrar(idx);
@@ -12922,8 +13672,11 @@ function pizarronSoltarPuntero(e){
   if(!PIZARRON) return;
   if(PIZARRON.sel && PIZARRON.sel.arrastre && e.pointerId === PIZARRON.sel.arrastre.pointerId){
     var idxSel = PIZARRON.sel.idx, hojaSel = pizarronHoja(PIZARRON.i);
+    var huboCambio = PIZARRON.sel.arrastre.cambio;
     PIZARRON.sel.arrastre = null;
-    if(idxSel >= 0 && hojaSel.trazos[idxSel]) emitirPizarronTrazoCambiar(idxSel, hojaSel.trazos[idxSel]);
+    /* solo si de verdad cambio algo: un tap sin mover no debe mandar nada
+       (en la otra pestaña el mensaje redibuja y le mata la seleccion). */
+    if(huboCambio && idxSel >= 0 && hojaSel.trazos[idxSel]) emitirPizarronTrazoCambiar(idxSel, hojaSel.trazos[idxSel]);
     return;
   }
   if(!PIZARRON.enCurso || e.pointerId !== PIZARRON.enCurso.pointerId) return;
@@ -12972,8 +13725,18 @@ function prepararPizarron(){
   $("#pizarronDeshacer").addEventListener("click", function(){
     if(!PIZARRON) return;
     var hoja = pizarronHoja(PIZARRON.i);
+    var pg = PIZARRON.sel && PIZARRON.sel.previoGesto;
+    if(pg && hoja.trazos[pg.idx]){
+      hoja.trazos[pg.idx] = pg.trazo;
+      PIZARRON.sel.previoGesto = null;
+      PIZARRON.enCurso = null;
+      pizarronRedibujar();
+      emitirPizarronTrazoCambiar(pg.idx, pg.trazo);
+      return;
+    }
     if(hoja.trazos.length){
       hoja.trazos.pop();
+      if(PIZARRON.sel) PIZARRON.sel.previoGesto = null;   // el pop corre el final: gesto ya no confiable
       PIZARRON.enCurso = null;
       pizarronRedibujar();
       emitirPizarronTrazoDeshacer();

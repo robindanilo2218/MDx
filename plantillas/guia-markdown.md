@@ -1469,9 +1469,15 @@ La forma más fácil de traerlo es **`+ Insertar` → `Mapas y dibujo técnico` 
 
 | Parámetro (después de ` ```gpx `) | Valores | Qué hace |
 | --- | --- | --- |
-| `vista=` | `2d`, `3d`, `perfil` | qué vista se ve al abrir el documento — el lector puede cambiarla igual con los botones |
-| `color=` | `velocidad`, `pendiente` | de qué depende el color de la línea |
+| `vista=` | `2d`, `3d`, `perfil`, `2d+perfil` | qué vista se ve al abrir el documento — el lector puede cambiarla igual con los botones; `2d+perfil` apila el mapa y el perfil, y recorrer el perfil con el dedo marca el punto correspondiente en el mapa |
+| `color=` | `velocidad`, `pendiente`, `altitud`, `ruta` | de qué depende el color de la línea; el botón **Color** bajo el mapa cicla entre los modos que el archivo permita (`altitud` pide `<ele>`, `velocidad` pide `<time>`, `ruta` pide varios `<trk>`) |
 | `exageracion=` | un número, por defecto `3` | cuánto se exagera la altura en la vista 3D (el desnivel real es minúsculo junto a la distancia recorrida) |
+
+Si el archivo trae **varios `<trk>`** (la ida y la vuelta, o los días de un viaje), cada uno se dibuja como ruta aparte — sin conectores inventados entre el final de una y el inicio de la otra — con su color y su distancia en la leyenda; el modo de color `ruta` se activa solo. Y como cortesía, el bloque también acepta **GeoJSON** pegado tal cual (`FeatureCollection`, `Feature` o la geometría pelada): las `LineString` se vuelven rutas y los `Point` se vuelven puntos con nombre y nota.
+
+### Simular la ruta
+
+El botón **▶ Simular ruta** recorre el trayecto con un carrito sobre el mapa (en 2D, 3D, Perfil y 2D+Perfil). Si el archivo trae `<time>`, el recorrido entero dura unos 3 minutos **respetando el ritmo real** — acelera donde ibas rápido, frena en las cuestas y se detiene donde te detuviste — y un **velocímetro** en la esquina marca la velocidad de cada momento. El botón **×1** cambia la velocidad de reproducción (×2, ×4, ×8, ×0.5) y la barra permite saltar a cualquier punto. En la vista 3D, la cámara **Persecución** clava la flecha al centro de la pantalla y hace que el mapa gire y se incline debajo, siguiendo el rumbo — como un videojuego de carreras.
 
 Los puntos `<wpt>` del archivo (notas, paradas, sitios) se dibujan con su color según `<type>` — `combustible`, `incidente`, `cliente`, `parada`, o azul si no lleva tipo — y su `<name>`/`<desc>` aparecen al tocarlos. Cada punto lleva además una **letra de referencia (A, B, C…) asignada por su orden a lo largo de la ruta**, la misma en el mapa, en la lista de notas y al imprimir — así el papel y el mapa se corresponden. Si un punto lleva `<link>` con la dirección de una imagen, la miniatura aparece al pasar el mouse por encima. Si el GPX trae también una `<rte>` (ruta planificada, no el track real), se dibuja punteada debajo del recorrido real para comparar plan contra realidad.
 
@@ -1493,6 +1499,7 @@ Cada línea es `lat, lon` y un nombre; los extras van después de `|` en cualqui
 
 - **+ Agregar punto**: se activa y el siguiente clic sobre el mapa 2D crea un punto ahí, preguntando nombre y enlace opcional. Se escribe solo dentro del bloque, en el mismo formato que ya tenga (XML o lista).
 - **Puntos cada N km**: crea puntos automáticos a intervalos regulares ("Km 10", "Km 20"…) — útiles como referencia o para dividir después.
+- **📷 Punto desde foto**: elegís una o varias fotos del recorrido y cada una se vuelve un punto donde fue tomada — con el GPS de la foto si lo trae, o casando la hora de la cámara contra las horas del track (preguntando el desfase del reloj una sola vez). Solo se leen los datos EXIF del archivo: la foto en sí nunca se mete al documento.
 - **Hoja de ruta**: inserta debajo del bloque una tabla Markdown con letra, kilómetro, hora (si el track trae horas), nombre y nota de cada punto, en orden de ruta — la hoja de giros que se imprime y se lleva en papel.
 - **Dividir ruta en tramos**: corta la ruta en los puntos existentes y crea un bloque de mapa por tramo.
 

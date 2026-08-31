@@ -870,6 +870,162 @@ Verificado con Puppeteer: categoría y 4 plantillas presentes en el
 catálogo incrustado, las 4 renderizan con figura gpx, campos rellenables y
 botón Hoja de ruta, sin errores. Regresión en verde. SW v64→v65.
 
+### 3.23 Imprimir/exportar con paleta clara aunque el tema sea oscuro — hecho 31-ago-2026
+
+Defecto de toda la app, encontrado al revisar el GPX: con el tema oscuro
+activo, imprimir o exportar PNG sacaba texto casi blanco sobre papel blanco.
+Dos causas y dos arreglos:
+
+- Los bloques `@media print` definían la paleta clara solo sobre `:root`
+  (especificidad 0-1-0), y el tema oscuro la pisaba con
+  `:root[data-tema="oscuro"]` y `:root:not([data-tema="claro"])` (0-2-0).
+  Ambos bloques de print usan ahora la MISMA lista de selectores — al ir
+  después en el fuente, el empate lo ganan ellos.
+- `exportarPng` lee colores computados con `getComputedStyle`, que en oscuro
+  devuelve la paleta oscura. Nueva `conTemaClaro(fn)`: fija
+  `data-tema="claro"` en `documentElement`, corre `fn` (los estilos
+  computados cambian de forma síncrona, sin repintado visible dentro de la
+  misma tarea JS) y restaura el atributo en `finally`.
+
+Verificado: emulación de print en oscuro devuelve la paleta clara, el píxel
+de fondo del PNG exportado es `[255,255,255]` y al terminar el documento
+sigue en oscuro (`--papel #12171f`).
+
+### 3.24 Color por altitud — hecho 31-ago-2026
+
+Cuarto modo de color de la línea (investigación de mercado): rampa de 5
+bandas iguales verde→marrón (`GPX_COLORES_ALTITUD`) entre `eleMin` y
+`eleMax` (nuevos en `gpxEstadisticas`, con `sinElevacion` cuando el rango
+es < 1 m). Todo el color pasa ahora por un único despacho
+`gpxColorDePunto(p, modoColor, stats)` que usan la 2D, la cortina 3D y el
+Perfil — un modo nuevo se agrega en un solo lugar. `gpxModosColor(stats,
+datos)` decide qué modos tienen sentido para ESTE archivo (altitud pide
+`<ele>`, velocidad pide `<time>`, ruta pide varios `<trk>`) y el botón
+**Color: <modo>** bajo el mapa cicla entre ellos; la leyenda muestra los
+rangos en metros. Parámetro `color=altitud` aceptado en la valla.
+
+### 3.25 Varias rutas por mapa (multi-track) — hecho 31-ago-2026
+
+Cada `<trk>` del archivo es una ruta APARTE (spec 4.3 de la investigación):
+`parseGPX` llena `datos.tracks = [{nombre, desde, hasta}]` y marca cada
+punto con `p.track`. Los puntos siguen todos en `datos.puntos` —
+estadísticas, perfil, simulador y hoja de ruta no cambiaron — pero TODO
+dibujo corta el trazo donde `a.track !== b.track` (la 2D inserta ` M`,
+`gpxTrazoColoreado` cierra el tramo, la 3D no dibuja cortina), y
+`gpxEstadisticas` salta los segmentos frontera (sin distancia, velocidad ni
+pendiente inventadas entre el fin de una ruta y el inicio de otra). Modo de
+color `ruta` (paleta `GPX_COLORES_TRACK` de 7) por defecto cuando hay más
+de un track, con leyenda `nombre — X.X km` por ruta. `gpxAdelgazar` (la
+importación) conserva la estructura: un `<trk>` con su `<name>` por cada
+`<trk>` de origen, en vez de fusionarlos.
+
+### 3.26 Vista 2D+Perfil sincronizada — hecho 31-ago-2026
+
+Quinta vista, `vista=2d+perfil` (spec 4.6): el mapa y el perfil apilados.
+Recorrer el perfil con el dedo/mouse marca el punto correspondiente en el
+mapa de arriba (`gpxMarcaEnMapa`, un círculo `.gpx-marca-sonda`
+pre-renderizado en el SVG 2D) y al salir se esconde. `gpxActivarPerfil`
+ganó callbacks `(alSondear, alSalir)`. El simulador funciona en la vista
+combinada (carrito en el mapa Y punto en el perfil a la vez).
+
+**Gotcha del sanitizador que esta vista destapó**: `estiloSeguro()` elimina
+todo `style=` en línea que no sea color/alineación — un
+`style="display:none"` generado se PIERDE. Regla desde ahora: ocultar por
+CSS de clase (`.gpx-marca-sonda{display:none}`) y mostrar vía DOM
+(`el.style.display = "inline"`), que no pasa por el sanitizador. El punto
+del perfil (`.gpx-perfil-punto`) tenía este defecto desde su origen
+(visible en (0,0)); quedó arreglado igual.
+
+### 3.27 Foto → waypoint por EXIF — hecho 31-ago-2026
+
+Botón **📷 Punto desde foto** junto a "+ Agregar punto" (spec 4.2): elegís
+una o varias fotos y cada una se vuelve un `<wpt>` donde fue tomada.
+Lector EXIF a mano (~100 líneas ES5, `gpxLeerExif`/`gpxLeerTiffExif`):
+recorre los marcadores JPEG hasta el APP1 `Exif\0\0` (o TIFF pelado),
+soporta little/big endian, valores en línea y por puntero, y solo le
+interesan `DateTimeOriginal` (0x9003, con 0x9004 y 0x0132 de respaldo) y
+el IFD GPS (lat/lon en 3 racionales + refs N/S/E/W + altitud). Todo entre
+`try/catch` → `null` ante cualquier anomalía.
+
+Prioridad de ubicación: **GPS del EXIF** si lo trae (descartando el 0,0
+exacto, casi siempre basura); si no, **hora casada** contra los `<time>`
+del track (`gpxPuntoPorHora`, punto más cercano en tiempo) con un desfase
+en minutos que se pregunta UNA vez por tanda (cámara adelantada/atrasada o
+en otra zona horaria; la hora EXIF no trae zona y se asume la local del
+aparato). A más de 6 h de la ruta se descarta con aviso. El waypoint lleva
+`<time>` (nuevo en `gpxWaypointXML`, aparece en la hoja de ruta) y
+`<desc>Foto de las HH:MM</desc>`.
+
+Solo se leen los primeros 512 KB del archivo (`f.slice`) — el EXIF va al
+frente y la foto en sí JAMÁS entra al documento (regla de imágenes por
+enlace). Escritura por el mismo camino que "+ Agregar punto"
+(`gpxEscribirWaypoint` + payload + `refrescarTodo`). Verificado con dos
+JPEG sintéticos (uno con GPS+altitud, otro solo con hora): coordenadas,
+`<ele>1234.0</ele>`, descs y times correctos, desfase preguntado una vez.
+
+### 3.28 Simulador completo: ritmo real, ×N, velocímetro, Perfil y cámara Persecución — hecho 31-ago-2026
+
+Los 5 pedidos del 30-ago sobre "Simular ruta", de una vez:
+
+- **Ritmo real (~3 min)**: `gpxPlanSim(puntos)` construye la línea de
+  tiempo real del recorrido (`ts[i]` segundos acumulados / `ds[i]` metros
+  acumulados) desde los `<time>` (pausas reales incluidas, acotadas a 10
+  min por segmento) o desde la velocidad de cada punto; los huecos se
+  rellenan al ritmo medio. Con plan, `simPaso` avanza `tReal` y saca el
+  progreso con `gpxProgresoEnTiempo` (búsqueda binaria + interpolación):
+  el carrito acelera, frena y SE DETIENE donde el recorrido real lo hizo,
+  comprimido a `GPX_SIM_DURACION_REAL_S = 180` s. Sin datos de tiempo, se
+  mantiene el avance uniforme de 18 s de siempre. La barra sincroniza
+  `tReal` al arrastrarla (`gpxTiempoEnProgreso`, la inversa).
+- **Control de velocidad**: botón **×1** junto a play, cicla
+  `GPX_SIM_VELOCIDADES = [1, 2, 4, 8, 0.5]`.
+- **Velocímetro circular**: `gpxVelocimetroHTML` (aguja −120°..+120°,
+  tope = velMax redondeada a la decena) superpuesto en la esquina de la
+  vista durante la simulación, con la velocidad instantánea interpolada
+  (`gpxVelEnProgreso`); solo aparece si el tramo trae velocidad real.
+- **Vista Perfil**: `gpxVistaSimulable(v)` centraliza qué vistas simulan
+  (2d, 3d, perfil, 2d+perfil) — controles, redibujo de `simPaso`, barra y
+  pausa lo usan. El perfil dibuja su propio carrito (`.gpx-carrito-perfil`)
+  con la elevación interpolada (`gpxPerfilDatos` exporta `xDe`/`yDe` para
+  no duplicar la proyección).
+- **Cámara Persecución (flecha fija)**: botón nuevo en la vista 3D. El
+  origen del mundo pasa a ser el carrito y todo se rota para que el rumbo
+  apunte hacia arriba: la flecha queda CLAVADA al centro-abajo
+  (`LADO/2, LADO·0.72`) y es el mapa el que corre, gira y se inclina
+  debajo, siguiendo también la elevación. `motor3dRotarZ` nuevo (giro por
+  rumbo) + `motor3dRotarY` reusado como peralte (inclinación en curvas,
+  ±18°, desde el cambio de rumbo suavizado `estadoSim.rumboSuave` con
+  envoltura ±180°) + `motor3dRotarX` con `GPX_CHASE_PITCH = 1.05`. Zoom
+  fijo en metros (`GPX_CHASE_ZOOM_M = 300`, el pellizco multiplica encima)
+  y divisor de proyección acotado (`max(D + z, 60)`) para que lo que queda
+  detrás de la cámara no se dispare al infinito. Las cámaras fijas, Libre
+  y Reiniciar vista apagan el modo.
+
+Verificado con Puppeteer: a ×1 con plan la barra va en 7‰ tras 1 s (≈180 s
+totales) y el velocímetro marca los 6 km/h exactos del primer tramo; ×8
+avanza ~8 veces más rápido; el carrito del perfil cae en cx=500 con la
+barra al 50%; Persecución deja la flecha fija en `translate(320 460.8)`
+mientras el fondo cambia, sin NaN; la ruta sin `<time>` conserva los 18 s
+uniformes y no muestra velocímetro.
+
+### 3.29 GeoJSON de cortesía — hecho 31-ago-2026
+
+El bloque ` ```gpx ` acepta también GeoJSON pegado tal cual (spec 4.7):
+`dibujarGPX` despacha por el primer carácter (`<` XML, `{`/`[` JSON, si no
+modo lista) y `gpxDesdeGeojson` convierte a GPX de TEXTO que sigue el
+camino de siempre por `parseGPX` — un solo parser de rutas, no dos.
+`FeatureCollection`/`Feature`/geometría pelada; `LineString` → `<trk>` (con
+`<time>` desde `coordTimes`/`coordinateProperties.times` si vienen),
+`MultiLineString` → varios tracks, `Point`/`MultiPoint` → `<wpt>` con
+name/description, `GeometryCollection` recursiva, `Polygon` y demás se
+ignoran sin drama. Si SOLO hay puntos, además se enlazan en orden como
+ruta (la misma semántica del modo lista). Todo texto pasa por `X()`.
+
+Guarda nueva en `gpxEscribirWaypoint`: contenido que empiece con `{`/`[`
+se niega a recibir escrituras (antes le habría pegado una línea de lista
+al final, rompiendo el JSON). "Dividir en tramos" y "Hoja de ruta" siguen
+funcionando: insertan DESPUÉS del bloque, no dentro.
+
 ---
 
 ## 4. Bloque ```svg — vectores crudos
@@ -1344,20 +1500,37 @@ Pizarrón global; el lápiz de Presentar NO la tiene — no usa el selector
 compartido y sigue siendo solo lápiz).
 
 Comportamiento: un toque sobre un trazo lo selecciona (caja punteada + 4
-asas en las esquinas); arrastrar desde el trazo o desde dentro de la caja lo
-**mueve**; arrastrar un asa lo **escala** respecto a la esquina opuesta
-(ejes independientes, mínimo 5% para no invertirlo); un toque en zona vacía
-deselecciona. El grosor NO escala al redimensionar (decisión: predecible).
+asas en las esquinas); arrastrar desde el trazo lo **mueve** (con umbral de
+~2 unidades: un tap tembloroso en táctil no desplaza nada); arrastrar un
+asa lo **escala** respecto a la esquina opuesta (ejes independientes,
+mínimo 5%, máximo ×40); un toque en zona vacía deselecciona. El grosor SÍ
+escala al redimensionar (√(ex·ey), acotado 1..60, siempre desde el grosor
+inicial del gesto — mismo espíritu que `pizarraReescalarDatos`; revisión
+adversarial: sin esto un boceto encogido al 5% quedaba como una mancha).
+
+La caja punteada es transparente y está encima de todo, así que su rama de
+hit-test mira **qué hay debajo** con `elementsFromPoint`: el trazo
+seleccionado → mover; otro trazo → seleccionarlo; nada → deseleccionar.
+(Revisión adversarial: sin esto, la caja de un trazo grande secuestraba
+todos los clics de su interior — imposible seleccionar trazos solapados o
+deseleccionar.) Un trazo-punto (tap de lápiz) cuya caja es menor que las
+asas se MUEVE al arrastrar cualquier asa: con fijo==móvil el escalado sería
+identidad y quedaría congelado. Al mover, al menos 10 unidades de la caja
+del trazo se mantienen dentro del lienzo (no puede quedar invisible fuera).
 
 Motor compartido (junto a `pizarraFormaAPath`): `pizarraTransformarD(d, fx,
-fy)` aplica funciones a los números del `d` alternando x,y — la MISMA
-garantía de alternancia que ya usaba `pizarraReescalarD` (los `d` generados
-por la app solo usan M/L/Q/Z, siempre pares completos). Un `d` escrito a
-mano con H/V/C/A (que el parser sí acepta) rompe la alternancia, así que
-`PIZARRA_RE_PARES` lo detecta y la herramienta avisa y NO lo toca — mejor
-un trazo que no se puede mover que uno corrupto. `pizarraCajaDeD` saca la
-caja de los números (con Q sobreestima un pelo: usa también los puntos de
-control; suficiente para una caja de selección).
+fy)` **tokeniza** el `d` (`PIZARRA_RE_TOKEN`, que sí reconoce `.5`/`-.5`) y
+lo RECONSTRUYE con espacios explícitos, alternando x,y. Nunca reemplaza in
+situ: en un `d` compacto escrito a mano (`M10-20`) el `-` hace de
+separador, y si la y transformada deja de ser negativa el reemplazo in situ
+fusionaría los dos números (`M105`) — corrupción silenciosa e irreversible,
+reproducida por la revisión adversarial. `pizarraReescalarD` delega en el
+mismo motor (tenía el defecto latente) y deja intacto cualquier `d` que no
+pase el guard. `PIZARRA_RE_PARES` es ahora estricto **sin /i**: las
+minúsculas m/l/q/z son comandos RELATIVOS y la matemática absoluta los
+rompería; con H/V/C/A o relativas la herramienta avisa y no toca el trazo.
+`pizarraCajaDeD` usa el mismo tokenizador (con Q sobreestima un pelo: usa
+también los puntos de control; suficiente para una caja de selección).
 
 Detalles finos:
 - `pizarraSeleccionMover` crea un **objeto trazo nuevo** en vez de mutar
@@ -1370,18 +1543,37 @@ Detalles finos:
   herramienta, redibujo, rotación) limpia la selección — los índices no
   pueden quedar apuntando a un trazo que ya no está.
 - Pizarrón global: mensaje nuevo entre pestañas `pizarron-trazo-cambiar`
-  {i, idx, trazo} al soltar, para que la otra pestaña reemplace ese trazo
-  (mismo espíritu que `pizarron-trazo-borrar`).
-- "Deshacer" sigue siendo "quitar el último trazo", no deshace un
-  movimiento — limitación conocida; en el bloque, "Cancelar" sí restaura
-  todo.
+  {i, idx, trazo} al soltar — SOLO si el gesto de verdad cambió algo (un tap
+  sin mover no manda nada: el mensaje redibuja en la otra pestaña y le
+  mataría la selección). El receptor valida TODO lo que llega:
+  `pizarraIndiceValido` (entero, en rango — sin esto `m.idx="__proto__"`
+  reemplazaba el prototipo del arreglo y todo push posterior tronaba, y
+  `"length"` tiraba RangeError) y `pizarraTrazoValido` (forma completa del
+  trazo: color #hex, grosor 1..60, `d` que pasa `PIZARRA_RE_PATH` y ≤20k).
+  Los receptores `-fin` y `-borrar` usan los mismos validadores.
+- **"Deshacer" deshace el último movimiento/escalado**: al primer cambio
+  real de un gesto se guarda `sel.previoGesto = {idx, trazo}` (el objeto de
+  ANTES, que sigue intacto porque mover crea objetos nuevos); el botón lo
+  restaura y solo si no hay gesto pendiente cae al pop() clásico. En el
+  Pizarrón la restauración se emite como `-cambiar` para la otra pestaña.
+  `previoGesto` se limpia donde los índices se corren (borrador, limpiar,
+  pop, cambio de hoja, salir) — nunca puede restaurar sobre el trazo
+  equivocado.
+- Limitación conocida (revisión adversarial, gravedad baja): encoger cerca
+  del mínimo 5% y soltar cuantiza a la grilla de 0.1; re-agrandar deja
+  escalones de ~2 px. Mitigado porque "Deshacer" ahora revierte el gesto.
+- Cursores: asas nw/se `nwse-resize`, ne/sw `nesw-resize`.
 
-Verificado con Puppeteer (9 comprobaciones): selección con 4 asas; mover
-+60,+40 exacto; redimensionar +50 con la esquina opuesta fija; deselección;
-trazo H/V avisado e intacto; "Listo" persiste el `d` transformado en la
-fuente; "Cancelar" restaura el original; Pizarrón global selecciona/mueve;
-el trazo movido llega al documento al Insertar. Regresión general en verde.
-SW v65→v66.
+Verificado con Puppeteer (9 comprobaciones originales + 11 de la revisión
+adversarial de 3 lentes): mover/escalar exactos; Deshacer restaura el
+movimiento sin borrar trazos (bloque y Pizarrón); trazo tapado por la caja
+se selecciona; vacío dentro de la caja deselecciona; temblor de 1px no
+mueve; `M110-20 L130 40` movido dy+25 da `M 110 5 L 130 65` (geometría
+correcta); trazo relativo `m.. l..` avisado e intacto; grosor 4→2 al
+encoger a la mitad; punto suelto se mueve vía asa; clamp mantiene el trazo
+alcanzable; receptor rechaza `__proto__`/índices fuera de rango y aplica
+los válidos. 22 casos unitarios del tokenizador en Node. Regresión general
+en verde. SW v65→v66 (herramienta), v66→v67 (correcciones de la revisión).
 
 ---
 
