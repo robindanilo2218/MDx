@@ -1473,7 +1473,28 @@ La forma más fácil de traerlo es **`+ Insertar` → `Mapas y dibujo técnico` 
 | `color=` | `velocidad`, `pendiente` | de qué depende el color de la línea |
 | `exageracion=` | un número, por defecto `3` | cuánto se exagera la altura en la vista 3D (el desnivel real es minúsculo junto a la distancia recorrida) |
 
-Los puntos `<wpt>` del archivo (notas, paradas, sitios) se dibujan con su color según `<type>` — `combustible`, `incidente`, `cliente`, `parada`, o azul si no lleva tipo — y su `<name>`/`<desc>` aparecen al tocarlos. Si el GPX trae también una `<rte>` (ruta planificada, no el track real), se dibuja punteada debajo del recorrido real para comparar plan contra realidad.
+Los puntos `<wpt>` del archivo (notas, paradas, sitios) se dibujan con su color según `<type>` — `combustible`, `incidente`, `cliente`, `parada`, o azul si no lleva tipo — y su `<name>`/`<desc>` aparecen al tocarlos. Cada punto lleva además una **letra de referencia (A, B, C…) asignada por su orden a lo largo de la ruta**, la misma en el mapa, en la lista de notas y al imprimir — así el papel y el mapa se corresponden. Si un punto lleva `<link>` con la dirección de una imagen, la miniatura aparece al pasar el mouse por encima. Si el GPX trae también una `<rte>` (ruta planificada, no el track real), se dibuja punteada debajo del recorrido real para comparar plan contra realidad.
+
+### Mapa sin archivo GPX: puntos escritos a mano
+
+No hace falta un track grabado para tener mapa — basta una lista de coordenadas, una por línea:
+
+````md
+```gpx
+- 15.5041, -88.0250 Salida bodega | tipo=parada
+- 15.5089, -88.0198 Cliente 1 | tipo=cliente | nota=entrega programada
+- 15.5170, -88.0300 Combustible | tipo=combustible | enlace=https://ejemplo.com/foto.jpg
+```
+````
+
+Cada línea es `lat, lon` y un nombre; los extras van después de `|` en cualquier orden: `tipo=` (el color), `nota=` (la descripción), `enlace=` (imagen o página) y `ele=` (altura en metros). Las líneas se unen en orden con la línea de la ruta, y todo lo demás — estadísticas, letras, contexto de OpenStreetMap, dividir en tramos — funciona igual que con un GPX real. Hacen falta al menos dos líneas.
+
+### Botones bajo el mapa
+
+- **+ Agregar punto**: se activa y el siguiente clic sobre el mapa 2D crea un punto ahí, preguntando nombre y enlace opcional. Se escribe solo dentro del bloque, en el mismo formato que ya tenga (XML o lista).
+- **Puntos cada N km**: crea puntos automáticos a intervalos regulares ("Km 10", "Km 20"…) — útiles como referencia o para dividir después.
+- **Hoja de ruta**: inserta debajo del bloque una tabla Markdown con letra, kilómetro, hora (si el track trae horas), nombre y nota de cada punto, en orden de ruta — la hoja de giros que se imprime y se lleva en papel.
+- **Dividir ruta en tramos**: corta la ruta en los puntos existentes y crea un bloque de mapa por tramo.
 
 > [!TIP]
 > El botón **"Obtener contexto del mapa"** que aparece bajo la ruta trae, una sola vez, las calles y ríos de alrededor (vía OpenStreetMap) y los deja guardados dentro del propio documento: desde ese momento el mapa se ve igual sin conexión, para siempre. Y si prefieres tu propia captura de pantalla de cualquier mapa, "Usar captura como fondo" la calibra con dos puntos conocidos de la ruta.

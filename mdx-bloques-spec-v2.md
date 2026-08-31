@@ -631,6 +631,245 @@ subcategorías) en vez de "Matemáticas y lógica" con subcategorías
 basó en una lectura desactualizada de la memoria — no hay nada que
 implementar aquí.
 
+### 3.17 Pizarrón: rotación de pantalla en móvil — hecho 30-ago-2026
+
+Reporte del usuario ([[md-crgm-pizarra-mobile-rotacion-menus-pendiente]]):
+al girar el teléfono con el Pizarrón abierto, el dibujo se quedaba angosto
+"como si siguiera vertical", y los botones de la barra no se veían bien en
+ninguna de las dos orientaciones.
+
+**Causa real, confirmada leyendo el código antes de tocar nada:** cada hoja
+del Pizarrón fija su `ancho`/`alto` (el `viewBox` del SVG) una sola vez, al
+abrirse (`abrirPizarron`) — no había ningún listener de `resize` ni
+`orientationchange`. Al rotar, el contenedor cambiaba de tamaño pero el
+`viewBox` no, y como el `<svg>` usa `preserveAspectRatio` por defecto
+("meet"), el dibujo quedaba centrado y con barras vacías a los lados —
+letterbox, no un dibujo roto. Peor: `pizarraPuntoDesde` seguía calculando la
+posición del puntero contra ese `viewBox` viejo, así que un trazo nuevo tras
+rotar habría caído en el lugar equivocado.
+
+**Arreglo:** `pizarronProgramarAjuste()` (debounced 250ms, igual de espíritu
+que el remedido de `abrirPizarron` tras resolver fullscreen) escucha
+`resize`/`orientationchange`; `pizarronAjustarTamano()` mide el `lienzo` de
+nuevo y llama a `pizarraReescalarDatos()` sobre TODAS las hojas (no solo la
+actual, para que sigan consistentes entre sí) — que reescala cada trazo
+existente con `pizarraReescalarD()`, multiplicando cada número del `d` por
+`sx`/`sy` alternando (todo `d` de esta app es solo M/L/Q/Z, siempre pares
+x,y — no hace falta parsear por comando), además del grosor por la media
+geométrica de ambas escalas. El resultado: el dibujo ya hecho se estira para
+ocupar el nuevo tamaño completo (sin recortar nada), y el viewBox nuevo
+vuelve a coincidir con el rect real, así que el mapeo de puntero sigue
+siendo correcto para trazos nuevos.
+
+**Barra de herramientas:** tenía `display:flex` sin `flex-wrap`, así que con
+~10 controles se desbordaba silenciosamente en cualquier pantalla angosta.
+Se agregó `flex-wrap:wrap` a la regla base (el lienzo, con `flex:1`, absorbe
+el alto que le quite una segunda fila — no hace falta nada más ahí) y, en
+el breakpoint móvil ya existente (`@media max-width:820px`), los controles
+quedan centrados con "Salir" en su propia fila de ancho completo abajo; en
+el breakpoint de apaisado bajo ya existente, la barra se hace más compacta
+(padding, gap y el `<input range>` más chicos) para no comerse tanto alto
+en una pantalla de ~390px.
+
+**Límite aceptado a propósito:** el reescalado es solo local — no se
+transmite a otras pestañas con el mismo documento por `canalPestanas`
+(BroadcastChannel). Si dos pestañas tienen el mismo Pizarrón abierto y una
+rota, la otra queda con las dimensiones viejas hasta el próximo sync
+completo — un caso raro (mismo documento, dos pestañas, rotando durante
+uso simultáneo) que no justificaba extender el protocolo de sync por ahora.
+
+Verificado con Puppeteer: viewBox portrait 390×682 → tras simular rotación
+a 844×390, viewBox pasa a 844×295 (coincide con el rect real, sin
+letterbox); el trazo dibujado en portrait cambia sus números (reescalado);
+un trazo nuevo dibujado cerca de la esquina inferior derecha tras "rotar"
+cae en esa misma esquina del viewBox nuevo (mapeo de puntero correcto); la
+barra no tiene ningún control fuera de pantalla ni desborda horizontalmente
+en 390×844 NI en 844×390. Regresión general en verde. SW v59→v60.
+
+### 3.18 Visor GPX: tamaño fijo → responsivo + botones de reiniciar vista y pantalla completa — hecho 30-ago-2026
+
+Reporte del usuario: la ventana del mapa (2D/3D/Perfil) se sentía chica y
+no se ajustaba a la pantalla.
+
+**Causa:** `.gpx-svg`/`.gpx-svg3d`/`.gpx-svg-perfil` tenían alturas fijas en
+píxeles (`400px`/`220px` en escritorio, `300px`/`180px` en el breakpoint
+móvil) que nunca escalaban con el alto real de la ventana. A diferencia del
+Pizarrón, estos SVG ya usan `viewBox` + `preserveAspectRatio` (o `none` en
+Perfil) correctamente proporcionado, así que agrandar el contenedor por CSS
+es suficiente — no hace falta reescalar ningún dato guardado.
+
+**Arreglo:**
+- Alturas pasaron a `height:min(64vh, 620px)` (2D/3D) y `min(46vh, 380px)`
+  (Perfil) en escritorio; `min(56vh, 480px)` y `min(36vh, 300px)` en el
+  breakpoint móvil (`max-width:820px`). Al depender de `vh`, también se
+  achica solo en apaisado bajo sin necesitar un breakpoint nuevo.
+- Nuevo botón **↔ Restablecer vista** (`.gpx-boton-resetvista`, junto a las
+  pestañas 2D/3D/Perfil): pone `estado2d.caja = null` (para que la próxima
+  vez que se active la interacción 2D recalcule el `viewBox` de cero, igual
+  que ya hacía el doble-clic, pero ahora también accesible en móvil) y
+  reinicia yaw/pitch/escala/libre de la vista 3D a sus valores por defecto
+  — esto último es un caso que ni "Norte" cubría del todo: los botones de
+  cámara (Norte/Frontal/Superior/Lateral/Libre) nunca tocaban `escala`, así
+  que un usuario que hiciera zoom y después cambiara de cámara seguía con
+  el zoom viejo.
+- Nuevo botón **⛶ Pantalla completa** (`.gpx-boton-pantalla`): llama
+  `fig.requestFullscreen()` sobre el propio `<figure class="gpx-viewer">`
+  (con el mismo patrón `requestFullscreen || webkitRequestFullscreen` que
+  ya usan Pizarrón/Presentar). En `:fullscreen` el CSS oculta las secciones
+  secundarias (estadísticas, notas, POIs, leyenda, contexto) y deja
+  vistas+reiniciar+pantalla arriba, el mapa ocupando el resto (`flex:1`,
+  `height:100%`) y los controles de "Simular ruta" abajo — sienta la base
+  para la vista de cámara tipo "Mario Kart" pendiente (ver
+  [[md-crgm-gpx-camara-fija-simulador-pendiente]]).
+
+**Límite aceptado:** en iOS Safari, `requestFullscreen()` sobre un elemento
+arbitrario (no `<video>`) tiene soporte históricamente inconsistente — el
+mismo límite que ya acepta el resto de la app para Pizarrón/Presentar. El
+botón no rompe nada si el navegador lo ignora: sin pantalla completa nativa,
+el visor sigue viéndose al tamaño responsivo normal.
+
+Verificado con Puppeteer: alto del SVG pasó de 400px fijo a 576px en
+escritorio 1400×900 (2D y 3D) y de 300px fijo a ~473px en móvil 390×844;
+botón Restablecer vista presente y no rompe la vista activa al hacer clic;
+botón Pantalla completa presente y clicleable sin lanzar errores. Regresión
+general en verde. SW v60→v61.
+
+### 3.19 Letras de referencia, impresión limpia y miniaturas al pasar el mouse — hecho 30-ago-2026
+
+Pedido del usuario, en dos partes: al imprimir aparecía también el contexto
+consultado a OpenStreetMap (calles/ríos/POIs sugeridos), y los waypoints
+reales no tenían ninguna referencia para correlacionar mapa ↔ lista impresa.
+Además esperaba ver una miniatura de la foto enlazada al pasar el mouse por
+un punto del mapa (el clic → bajar a la nota con la imagen ya existía).
+
+- **Letras de referencia (A, B, C… Z, AA, AB…)**: `gpxWaypointsLetras(datos)`
+  asigna letra a cada waypoint **por orden real sobre la ruta** (distancia
+  acumulada del punto más cercano del track, vía `gpxPuntoCercano`), no por
+  orden de aparición en el archivo — un GPX puede listar los `<wpt>` en
+  cualquier orden. La letra aparece en las 3 vistas (2D sobre el círculo,
+  3D en la etiqueta `letra — nombre`, Perfil sobre el marcador) y en la
+  lista de notas de abajo (`letra — nombre`), así el papel se lee solo.
+- Las letras del 2D son `<text class="gpx-wpt-letra gpx-punto-fijo">`: el
+  mecanismo de tamaño constante en pantalla durante el zoom se extendió a
+  textos (reescribe `font-size` en vez de `r`). Con halo `paint-order:stroke`
+  para que se lean sobre la línea de la ruta, y `pointer-events:none` para
+  que el clic/hover siga llegando al círculo de abajo.
+- **Impresión**: `@media print` ahora oculta también los elementos dibujados
+  del contexto (`.gpx-contexto-via/-rio/-puente/-poi`), no solo sus botones
+  — se imprime la ruta con SOLO los waypoints reales y sus letras.
+- **Miniatura al pasar el mouse**: una sola `<img class="gpx-previa-img">`
+  por figura (posicionada absoluta sobre el visor); `pointerover` sobre un
+  `.gpx-wpt` cuyo `enlace` parece imagen (jpg/png/gif/webp/avif) la muestra
+  junto al cursor, `pointermove` la sigue, `pointerout` la esconde. Se
+  oculta al imprimir.
+- De paso: `.gpx-suelo3d` bajó de `fill-opacity:.35` a `.12` — el relleno
+  bajo la cortina 3D tapaba la ruta (queja directa del usuario).
+
+Verificado con Puppeteer (waypoints deliberadamente desordenados en el
+archivo → letras correctas por ruta; miniatura aparece/desaparece; wpt
+reales visibles bajo `emulateMediaType("print")`) + regresión en verde.
+SW v61→v62.
+
+### 3.20 Crear waypoints a mano y automáticos — hecho 30-ago-2026
+
+Hueco señalado por el usuario: "Dividir ruta en tramos" exige waypoints,
+pero no había NINGUNA forma de crearlos dentro de MDx (solo los que traía
+el archivo o el "Agregar a la ruta" del contexto OSM). Dos botones nuevos
+bajo el mapa (`gpxAgregarPuntosHTML`, visibles si hay track):
+
+- **+ Agregar punto** (toggle): activa el modo con cursor de cruz; un clic
+  limpio en el mapa 2D (tap < 6px de movimiento, no sobre un punto ya
+  existente) pregunta nombre y enlace opcional con `window.prompt` y crea
+  el `<wpt>` ahí. La conversión pantalla→lat/lon usa `gpx2dProyeccion`,
+  la MISMA proyección equirectangular extraída de `gpxSvg2D` (con inversa
+  `invertir(x,y)` nueva) — factorizada para que clic y dibujo no puedan
+  divergir jamás. Un solo disparo por clic: el modo se apaga solo.
+- **Puntos cada N km**: pregunta el intervalo (acepta coma decimal) y
+  genera waypoints "Km 10", "Km 20"… (o "Km 0.4" si el intervalo es
+  sub-kilométrico) interpolando con `gpxPosEnProgreso` — la misma
+  interpolación del carrito del simulador. Ignora el último tramo corto
+  (margen 2% o 20 m) para no crear un punto pegado a la meta.
+- **`gpxWaypointXML` ahora serializa `<desc>`, `<cmt>` y `<link href>`**
+  (antes solo `<name>`/`<type>`, aunque `parseGPX` los leía todos): sin
+  esto, el enlace de imagen de un punto creado a mano se perdía en el
+  round-trip texto→render→texto. El `href` se escapa con
+  `escUI(hrefSeguro(...))` (escapa comillas), no con `X()`.
+- La detección tap-vs-arrastre vive en el `pointerup` de
+  `gpxActivarInteraccion` (firma extendida con `datos, alAgregarPunto`):
+  paneo y pellizco siguen intactos, solo el clic limpio en modo agregar
+  crea punto.
+
+Verificado con Puppeteer: clic crea el punto con lat/lon dentro de la caja
+de la ruta y lo persiste en `fuenteActual` (round-trip con `<link>` ok),
+arrastre NO crea nada, generador con "0.4" crea Km 0.4/0.8/1.2. Ojo del
+banco de pruebas: la sincronización inversa `fuenteActual→#ed` solo ocurre
+con el editor abierto (`abierto=true`), hay que clicar `#btnEditar` antes
+de medir. Regresión en verde. SW v62→v63.
+
+### 3.21 Hoja de ruta imprimible y modo "puntos a mano" — hecho 30-ago-2026
+
+Dos recomendaciones de la investigación de mercado
+(`rutasmarkdowninvestigacion.md`, §4.4 y §4.5), elegidas por ser las más
+baratas que profundizan la esquina propia de MDx ("es un documento" +
+"offline para siempre"):
+
+- **Hoja de ruta (cue sheet)**: botón "Hoja de ruta" junto a "Dividir ruta
+  en tramos" (visible si hay waypoints). `gpxHojaDeRuta` inserta después
+  del bloque un `## Hoja de ruta` con una **tabla Markdown real** — no HTML
+  del render — columnas Ref/Km/(Hora)/Punto/Nota: la Ref es la MISMA letra
+  de las vistas (`gpxWaypointsLetras`, orden de ruta), la Hora solo aparece
+  si el track trae `<time>`, la Nota sale de `desc`/`cmt` (con `|`
+  escapado como `\|`). Filas `·` de Inicio y Fin siempre. Al ser Markdown
+  se edita, se imprime y viaja en el `.html` exportado gratis. Reusa el
+  mecanismo de inserción de `gpxDividirRuta` (loc verificado por firma).
+- **Modo lista sin XML** (idea de mapdown): si el contenido del bloque NO
+  empieza con `<`, `gpxDesdeLista` lo interpreta como líneas
+  `- lat, lon Nombre | tipo=parada | enlace=https://… | nota=…`
+  (viñeta opcional, `#` comenta, separador `,` o `;`, extras en cualquier
+  orden). Cada línea válida se vuelve `trkpt` (la polilínea que las une en
+  orden) y, si tiene nombre, también `<wpt>` — la conversión pasa por el
+  MISMO `parseGPX`, así stats, letras, contexto OSM, dividir, hoja de ruta
+  y simulador funcionan idénticos. Menos de 2 líneas válidas → error
+  legible. La `firma` se calcula sobre el texto ORIGINAL del bloque (no el
+  XML convertido), así la verificación contra `fuenteActual` sigue válida.
+- **Escritura de vuelta coherente**: `gpxEscribirWaypoint` detecta que el
+  bloque no tiene `</gpx>` y, si tampoco parece XML, agrega una **línea de
+  lista** (`gpxLineaLista`) al final del bloque en vez de un `<wpt>` XML —
+  "+ Agregar punto", "Puntos cada N km" y "Agregar a la ruta" del contexto
+  funcionan igual sobre bloques lista, manteniendo el formato que el
+  usuario eligió.
+
+Verificado con Puppeteer: tabla insertada con letras/horas correctas y
+render como `<table>`; lista de 4 líneas → 4 trkpt + 3 wpt con
+tipo/nota/enlace parseados y letras A-C; agregar punto sobre bloque lista
+escribe `- lat, lon Nombre` (cero XML en la fuente); lista de 1 punto da
+error legible. Regresión en verde. SW v63→v64.
+
+### 3.22 Categoría "Rutas y viajes" en el catálogo — hecho 30-ago-2026
+
+Tercera recomendación de la investigación (§4.1, "costo casi cero, hazlo
+primero"): el catálogo tenía 103 plantillas y ninguna de rutas, y la única
+documentación viva del bloque ```gpx estaba en las specs del repo. Nueva
+categoría **rutas** (icono ➤) con 4 plantillas que usan el modo lista de
+3.21 como ejemplo que renderiza al instante (y enseñan de paso la sintaxis):
+
+- `ruta-bitacora-reparto.md` — conductor/vehículo/horarios rellenables,
+  recorrido, entregas con letra de referencia, gastos, incidentes, firmas.
+- `ruta-trip-report.md` — el formato canónico de trip report: condiciones,
+  agua, peligros, tiempos por tramo, "qué haría distinto".
+- `ruta-ficha.md` — una ruta repetida documentada para que otro la siga:
+  hoja de giros, combustible, contactos, historial de cambios.
+- `ruta-inspeccion-geo.md` — activos en el terreno como puntos del mapa,
+  formulario de revisión por punto (misma letra en mapa y papel).
+
+La guía (`guia-markdown.md` §27) ganó dos secciones: el modo "puntos a
+mano" y los cuatro botones bajo el mapa (agregar punto, cada N km, hoja de
+ruta, dividir). Empaquetado con `herramientas/empaquetar.py` (el campo del
+contenido en el catálogo incrustado se llama `cuerpo`, no `contenido`).
+Verificado con Puppeteer: categoría y 4 plantillas presentes en el
+catálogo incrustado, las 4 renderizan con figura gpx, campos rellenables y
+botón Hoja de ruta, sin errores. Regresión en verde. SW v64→v65.
+
 ---
 
 ## 4. Bloque ```svg — vectores crudos

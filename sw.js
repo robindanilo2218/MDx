@@ -3,7 +3,7 @@
    Sube el numero de VERSION cada vez que cambies index.html o las plantillas:
    asi el navegador se entera de que hay algo nuevo.
    ========================================================================== */
-var VERSION = "v59";
+var VERSION = "v65";
 var CACHE = "mdcrgm-" + VERSION;
 
 var CONCHA = [
@@ -124,6 +124,10 @@ var CONCHA = [
   "plantillas/calc-horas-proyecto.md",
   "plantillas/logica-tabla-verdad.md",
   "plantillas/logica-escalera-plc.md",
+  "plantillas/ruta-bitacora-reparto.md",
+  "plantillas/ruta-trip-report.md",
+  "plantillas/ruta-ficha.md",
+  "plantillas/ruta-inspeccion-geo.md",
 ];
 
 self.addEventListener("install", function (e) {
