@@ -1335,6 +1335,54 @@ Verificado con Puppeteer: aparece en el documento renderizado, en el Índice
 
 SW v54→v55.
 
+### 12.8 Herramienta "Seleccionar": mover y redimensionar trazos — hecho 30-ago-2026
+
+Hueco confirmado en 12.7: un trazo ya dibujado solo se podía borrar entero o
+deshacer, nunca mover ni cambiar de tamaño. Nueva herramienta **⬚
+Seleccionar** en el mismo selector de ambos editores (bloque ```pizarra y
+Pizarrón global; el lápiz de Presentar NO la tiene — no usa el selector
+compartido y sigue siendo solo lápiz).
+
+Comportamiento: un toque sobre un trazo lo selecciona (caja punteada + 4
+asas en las esquinas); arrastrar desde el trazo o desde dentro de la caja lo
+**mueve**; arrastrar un asa lo **escala** respecto a la esquina opuesta
+(ejes independientes, mínimo 5% para no invertirlo); un toque en zona vacía
+deselecciona. El grosor NO escala al redimensionar (decisión: predecible).
+
+Motor compartido (junto a `pizarraFormaAPath`): `pizarraTransformarD(d, fx,
+fy)` aplica funciones a los números del `d` alternando x,y — la MISMA
+garantía de alternancia que ya usaba `pizarraReescalarD` (los `d` generados
+por la app solo usan M/L/Q/Z, siempre pares completos). Un `d` escrito a
+mano con H/V/C/A (que el parser sí acepta) rompe la alternancia, así que
+`PIZARRA_RE_PARES` lo detecta y la herramienta avisa y NO lo toca — mejor
+un trazo que no se puede mover que uno corrupto. `pizarraCajaDeD` saca la
+caja de los números (con Q sobreestima un pelo: usa también los puntos de
+control; suficiente para una caja de selección).
+
+Detalles finos:
+- `pizarraSeleccionMover` crea un **objeto trazo nuevo** en vez de mutar
+  `t.d`: la copia `previo` de "Cancelar" en el bloque es `trazos.slice()`
+  (superficial, comparte objetos), y así conserva el `d` original.
+- El overlay `.pizarra-seleccion` vive solo en el DOM: `pizarraSerializar`,
+  la descarga PNG y los mensajes entre pestañas parten de `datos.trazos`,
+  nunca del DOM, así que no se filtra a nada.
+- Toda acción estructural (borrador, deshacer, limpiar, cambio de hoja o de
+  herramienta, redibujo, rotación) limpia la selección — los índices no
+  pueden quedar apuntando a un trazo que ya no está.
+- Pizarrón global: mensaje nuevo entre pestañas `pizarron-trazo-cambiar`
+  {i, idx, trazo} al soltar, para que la otra pestaña reemplace ese trazo
+  (mismo espíritu que `pizarron-trazo-borrar`).
+- "Deshacer" sigue siendo "quitar el último trazo", no deshace un
+  movimiento — limitación conocida; en el bloque, "Cancelar" sí restaura
+  todo.
+
+Verificado con Puppeteer (9 comprobaciones): selección con 4 asas; mover
++60,+40 exacto; redimensionar +50 con la esquina opuesta fija; deselección;
+trazo H/V avisado e intacto; "Listo" persiste el `d` transformado en la
+fuente; "Cancelar" restaura el original; Pizarrón global selecciona/mueve;
+el trazo movido llega al documento al Insertar. Regresión general en verde.
+SW v65→v66.
+
 ---
 
 ## 13. Presupuesto y orden de implementación

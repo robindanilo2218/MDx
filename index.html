@@ -1266,6 +1266,8 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .pizarra-dibujando .pizarra-svg{touch-action:none; cursor:crosshair}
 .pizarra-dibujando.pizarra-borrador .pizarra-svg{cursor:not-allowed}
 .pizarra-dibujando.pizarra-borrador .pizarra-trazo{cursor:pointer}
+.pizarra-seleccion-caja{fill:transparent; stroke:var(--acento); stroke-width:1.5; stroke-dasharray:6 4; cursor:move}
+.pizarra-asa{fill:var(--papel); stroke:var(--acento); stroke-width:1.5; cursor:nwse-resize}
 .pizarra-boton-editar{margin-top:.6rem; padding:.45rem 1rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.88em; cursor:pointer}
 .pizarra-barra{margin-top:.6rem; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap}
 .pizarra-barra input[type="color"]{width:2.2rem; height:2.2rem; padding:0; border:1px solid var(--borde); border-radius:.4rem; background:none; cursor:pointer}
@@ -1648,6 +1650,7 @@ math mo{font-family:inherit}
       <option value="triangulo">△ Triángulo</option>
       <option value="pentagono">⬠ Pentágono</option>
       <option value="rombo">◇ Rombo</option>
+      <option value="seleccionar">⬚ Seleccionar</option>
     </select>
     <button type="button" id="pizarronFondo" title="Cambiar el fondo (liso, líneas o cuadrícula)">Fondo: liso</button>
     <button type="button" id="pizarronHojaAnterior" title="Hoja anterior (Av Pág / flecha izquierda)">&#8249;</button>
@@ -6025,7 +6028,8 @@ var PIZARRA_HERRAMIENTAS = [
   { valor: "cuadrado", etiqueta: "☐ Cuadrado" },
   { valor: "triangulo", etiqueta: "△ Triángulo" },
   { valor: "pentagono", etiqueta: "⬠ Pentágono" },
-  { valor: "rombo", etiqueta: "◇ Rombo" }
+  { valor: "rombo", etiqueta: "◇ Rombo" },
+  { valor: "seleccionar", etiqueta: "⬚ Seleccionar" }
 ];
 function pizarraHerramientasOpciones(actual){
   var partes = [], i, h;
@@ -6068,6 +6072,130 @@ function pizarraFormaAPath(herramienta, x0, y0, x1, y1){
   if(herramienta === "pentagono") return pizarraPoligonoRegular(cx, cy, rx, ry, 5);
   if(herramienta === "circulo") return pizarraPoligonoRegular(cx, cy, rx, ry, 32);
   return null;
+}
+/* herramienta "Seleccionar" (mover/redimensionar trazos ya dibujados),
+   compartida entre el bloque ```pizarra y el Pizarron global: un toque en un
+   trazo lo selecciona (caja punteada + 4 asas), arrastrar dentro de la caja
+   lo mueve, arrastrar un asa lo escala respecto a la esquina opuesta. Solo
+   se transforman trazos con comandos M/L/Q/Z -- los que genera la app,
+   donde todo numero alterna x,y (misma garantia que usa pizarraReescalarD);
+   un "d" escrito a mano con H/V/C/A se avisa y no se toca, porque ahi la
+   alternancia se rompe y la transformacion lo corromperia. */
+var PIZARRA_RE_PARES = /^[MLQZ0-9.\-,\s]+$/i;
+function pizarraTransformarD(d, fx, fy){
+  var i = 0;
+  return d.replace(/-?\d+(?:\.\d+)?/g, function(num){
+    var n = (i % 2 === 0) ? fx(Number(num)) : fy(Number(num));
+    i++;
+    return String(Math.round(n * 10) / 10);
+  });
+}
+/* caja delimitadora aproximada: para trazos con Q usa tambien los puntos de
+   control (sobreestima un poco la curva real; para una caja de seleccion es
+   suficiente y evita evaluar beziers). */
+function pizarraCajaDeD(d){
+  var i = 0, xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+  d.replace(/-?\d+(?:\.\d+)?/g, function(num){
+    var n = Number(num);
+    if(i % 2 === 0){ if(n < xMin) xMin = n; if(n > xMax) xMax = n; }
+    else{ if(n < yMin) yMin = n; if(n > yMax) yMax = n; }
+    i++;
+    return num;
+  });
+  return isFinite(xMin) && isFinite(yMin) ? { xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax } : null;
+}
+function pizarraSeleccionHTML(t, datos){
+  var c = pizarraCajaDeD(t.d);
+  if(!c) return "";
+  var m = Math.max(4, t.grosor / 2 + 3);
+  var x = Math.round((c.xMin - m) * 10) / 10, y = Math.round((c.yMin - m) * 10) / 10;
+  var w = Math.round((c.xMax - c.xMin + m * 2) * 10) / 10, h = Math.round((c.yMax - c.yMin + m * 2) * 10) / 10;
+  var a = Math.max(9, Math.round(Math.min(datos.ancho, datos.alto) / 45));
+  function asa(ax, ay, tipo){
+    return '<rect class="pizarra-asa" data-asa="' + tipo + '" x="' + (Math.round((ax - a / 2) * 10) / 10) +
+      '" y="' + (Math.round((ay - a / 2) * 10) / 10) + '" width="' + a + '" height="' + a + '"></rect>';
+  }
+  return '<g class="pizarra-seleccion">' +
+    '<rect class="pizarra-seleccion-caja" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"></rect>' +
+    asa(x, y, "nw") + asa(x + w, y, "ne") + asa(x, y + h, "sw") + asa(x + w, y + h, "se") + "</g>";
+}
+function pizarraSeleccionPintar(svgEl, datos, sel){
+  var g = svgEl.querySelector(".pizarra-seleccion");
+  if(g && g.parentNode) g.parentNode.removeChild(g);
+  var t = sel.idx >= 0 ? datos.trazos[sel.idx] : null;
+  if(t) svgEl.insertAdjacentHTML("beforeend", pizarraSeleccionHTML(t, datos));
+}
+function pizarraSeleccionBajar(e, svgEl, datos, sel){
+  var rect = svgEl.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  var pt = pizarraPuntoDesde(e, rect, datos);
+  var el = e.target.closest ? e.target.closest(".pizarra-asa") : null;
+  var t, c;
+  if(el && sel.idx >= 0 && datos.trazos[sel.idx]){
+    t = datos.trazos[sel.idx];
+    c = pizarraCajaDeD(t.d);
+    if(!c) return;
+    var tipo = el.getAttribute("data-asa") || "se";
+    sel.arrastre = {
+      pointerId: e.pointerId, modo: "escalar", svg: svgEl, d0: t.d, pt0: pt,
+      fijo: { x: tipo.indexOf("w") >= 0 ? c.xMax : c.xMin, y: tipo.indexOf("n") >= 0 ? c.yMax : c.yMin },
+      movil0: { x: tipo.indexOf("w") >= 0 ? c.xMin : c.xMax, y: tipo.indexOf("n") >= 0 ? c.yMin : c.yMax }
+    };
+    return;
+  }
+  el = e.target.closest ? e.target.closest(".pizarra-seleccion-caja") : null;
+  if(el && sel.idx >= 0 && datos.trazos[sel.idx]){
+    sel.arrastre = { pointerId: e.pointerId, modo: "mover", svg: svgEl, d0: datos.trazos[sel.idx].d, pt0: pt };
+    return;
+  }
+  el = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
+  if(el){
+    var idx = parseInt(el.getAttribute("data-i"), 10);
+    if(!isFinite(idx) || !datos.trazos[idx]) return;
+    if(!PIZARRA_RE_PARES.test(datos.trazos[idx].d)){
+      aviso("Ese trazo tiene comandos SVG escritos a mano (H/V/C/A) que no sé mover sin dañarlo; se puede editar en el texto del bloque.");
+      return;
+    }
+    sel.idx = idx;
+    sel.arrastre = { pointerId: e.pointerId, modo: "mover", svg: svgEl, d0: datos.trazos[idx].d, pt0: pt };
+    pizarraSeleccionPintar(svgEl, datos, sel);
+    return;
+  }
+  sel.idx = -1;
+  sel.arrastre = null;
+  pizarraSeleccionPintar(svgEl, datos, sel);
+}
+function pizarraSeleccionMover(e, datos, sel){
+  var a = sel.arrastre;
+  if(!a || e.pointerId !== a.pointerId || sel.idx < 0 || !datos.trazos[sel.idx]) return;
+  var rect = a.svg.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  var pt = pizarraPuntoDesde(e, rect, datos);
+  var t = datos.trazos[sel.idx], d;
+  if(a.modo === "mover"){
+    var dx = pt.x - a.pt0.x, dy = pt.y - a.pt0.y;
+    d = pizarraTransformarD(a.d0, function(x){ return x + dx; }, function(y){ return y + dy; });
+  }else{
+    var baseX = a.movil0.x - a.fijo.x, baseY = a.movil0.y - a.fijo.y;
+    var ex = baseX ? (a.movil0.x + (pt.x - a.pt0.x) - a.fijo.x) / baseX : 1;
+    var ey = baseY ? (a.movil0.y + (pt.y - a.pt0.y) - a.fijo.y) / baseY : 1;
+    if(!isFinite(ex) || ex < 0.05) ex = 0.05;
+    if(!isFinite(ey) || ey < 0.05) ey = 0.05;
+    d = pizarraTransformarD(a.d0, function(x){ return a.fijo.x + (x - a.fijo.x) * ex; },
+                                  function(y){ return a.fijo.y + (y - a.fijo.y) * ey; });
+  }
+  if(d.length > PIZARRA_D_MAX) return;
+  /* objeto NUEVO en vez de mutar t.d: la copia "previo" que usa Cancelar en
+     el bloque es un slice() del arreglo -- comparte los objetos originales,
+     y estos deben conservar su "d" de antes para poder restaurarlos. */
+  datos.trazos[sel.idx] = { color: t.color, grosor: t.grosor, d: d };
+  var pathEl = a.svg.querySelector('.pizarra-trazo[data-i="' + sel.idx + '"]');
+  if(pathEl) pathEl.setAttribute("d", d);
+  pizarraSeleccionPintar(a.svg, datos, sel);
+}
+function pizarraSeleccionSoltar(e, sel){
+  if(sel.arrastre && e.pointerId === sel.arrastre.pointerId){ sel.arrastre = null; return true; }
+  return false;
 }
 function pizarraTrazosHTML(datos){
   var partes = [], i, t;
@@ -8138,6 +8266,14 @@ function vigilarCanalPestanas(){
         }
         return;
       }
+      if(m.tipo === "pizarron-trazo-cambiar"){
+        var hC = PIZARRON.hojas[m.i];
+        if(hC && hC.trazos[m.idx] && m.trazo){
+          hC.trazos[m.idx] = m.trazo;
+          if(m.i === PIZARRON.i) pizarronRedibujar();
+        }
+        return;
+      }
       if(m.tipo === "pizarron-trazo-deshacer"){
         var hD = PIZARRON.hojas[m.i];
         if(hD && hD.trazos.length){
@@ -9636,6 +9772,13 @@ function pizarraActivarFigura(fig){
   var estado = { color: PIZARRA_COLOR_DEF, grosor: 3, borrador: false, herramienta: "lapiz" };
   var previo = null;    // copia de datos.trazos al entrar a dibujar, para "Cancelar"
   var enCurso = null;   // {pointerId, puntos, path, svg} del trazo que se esta dibujando ahora mismo
+  var sel = { idx: -1, arrastre: null };   // seleccion de la herramienta "Seleccionar"
+  function limpiarSeleccion(){
+    sel.idx = -1;
+    sel.arrastre = null;
+    var svgSel = fig.querySelector(".pizarra-svg");
+    if(svgSel) pizarraSeleccionPintar(svgSel, payload.datos, sel);
+  }
 
   function vistaHTML(){
     return pizarraLienzoHTML(payload.datos) + '<button type="button" class="pizarra-boton-editar no-print">✎ Dibujar</button>';
@@ -9653,6 +9796,8 @@ function pizarraActivarFigura(fig){
       "</div>";
   }
   function redibujarTrazos(){
+    sel.idx = -1;
+    sel.arrastre = null;
     var lienzo = fig.querySelector(".pizarra-lienzo");
     if(lienzo) lienzo.innerHTML = pizarraSvgHTML(payload.datos);
   }
@@ -9663,6 +9808,8 @@ function pizarraActivarFigura(fig){
   }
   function salirDibujo(guardado){
     enCurso = null;
+    sel.idx = -1;
+    sel.arrastre = null;
     estado.borrador = false;
     fig.classList.remove("pizarra-dibujando", "pizarra-borrador");
     fig.innerHTML = vistaHTML();
@@ -9679,6 +9826,7 @@ function pizarraActivarFigura(fig){
       el.setAttribute("aria-pressed", String(estado.borrador));
       el.classList.toggle("activo", estado.borrador);
       fig.classList.toggle("pizarra-borrador", estado.borrador);
+      if(estado.borrador) limpiarSeleccion();
       return;
     }
     el = t.closest ? t.closest(".pizarra-boton-deshacer") : null;
@@ -9715,7 +9863,10 @@ function pizarraActivarFigura(fig){
     if(!t.classList) return;
     if(t.classList.contains("pizarra-color")) estado.color = t.value;
     else if(t.classList.contains("pizarra-grosor")) estado.grosor = Number(t.value) || 3;
-    else if(t.classList.contains("pizarra-herramienta")) estado.herramienta = t.value;
+    else if(t.classList.contains("pizarra-herramienta")){
+      estado.herramienta = t.value;
+      if(t.value !== "seleccionar") limpiarSeleccion();
+    }
   });
 
   fig.addEventListener("pointerdown", function(e){
@@ -9735,6 +9886,11 @@ function pizarraActivarFigura(fig){
       }
       return;
     }
+    if(estado.herramienta === "seleccionar"){
+      try{ svgEl.setPointerCapture(e.pointerId); }catch(err2){}
+      pizarraSeleccionBajar(e, svgEl, payload.datos, sel);
+      return;
+    }
     var rect = svgEl.getBoundingClientRect();
     if(!rect.width || !rect.height) return;
     try{ svgEl.setPointerCapture(e.pointerId); }catch(err){}
@@ -9746,6 +9902,7 @@ function pizarraActivarFigura(fig){
     enCurso = { pointerId: e.pointerId, herramienta: herramienta, x0: pt.x, y0: pt.y, puntos: [pt], d: d0, tope: false, path: svgEl.lastElementChild, svg: svgEl };
   });
   fig.addEventListener("pointermove", function(e){
+    if(sel.arrastre){ pizarraSeleccionMover(e, payload.datos, sel); return; }
     if(!enCurso || e.pointerId !== enCurso.pointerId || enCurso.tope) return;
     var rect = enCurso.svg.getBoundingClientRect();
     if(!rect.width || !rect.height) return;
@@ -9763,6 +9920,7 @@ function pizarraActivarFigura(fig){
     enCurso.path.setAttribute("d", d);
   });
   function soltarPuntero(e){
+    if(pizarraSeleccionSoltar(e, sel)) return;
     if(!enCurso || e.pointerId !== enCurso.pointerId) return;
     if(payload.datos.trazos.length >= PIZARRA_TRAZOS_MAX){
       if(enCurso.path && enCurso.path.parentNode) enCurso.path.parentNode.removeChild(enCurso.path);
@@ -12391,6 +12549,7 @@ function pizarronFondoAplicar(f){
   if(b) b.textContent = PIZARRON_FONDO_ETIQUETA[f] || PIZARRON_FONDO_ETIQUETA.liso;
 }
 function pizarronRedibujar(){
+  if(PIZARRON.sel){ PIZARRON.sel.idx = -1; PIZARRON.sel.arrastre = null; }
   var lienzo = $("#pizarronLienzo");
   if(lienzo) lienzo.innerHTML = pizarraSvgHTML(pizarronHoja(PIZARRON.i));
   pizarronActualizarBarra();
@@ -12456,6 +12615,9 @@ function emitirPizarronTrazoFinal(trazo){
 }
 function emitirPizarronTrazoBorrar(idx){
   if(canalPestanas && PIZARRON) canalPestanas.postMessage({ tipo: "pizarron-trazo-borrar", i: PIZARRON.i, idx: idx });
+}
+function emitirPizarronTrazoCambiar(idx, trazo){
+  if(canalPestanas && PIZARRON) canalPestanas.postMessage({ tipo: "pizarron-trazo-cambiar", i: PIZARRON.i, idx: idx, trazo: trazo });
 }
 function emitirPizarronTrazoDeshacer(){
   if(canalPestanas && PIZARRON) canalPestanas.postMessage({ tipo: "pizarron-trazo-deshacer", i: PIZARRON.i });
@@ -12661,7 +12823,7 @@ function abrirPizarron(){
     hojas: [{ ancho: ancho, alto: alto, trazos: [] }], i: 0,
     estado: { color: $("#pizarronColor").value || PIZARRA_COLOR_DEF, grosor: Number($("#pizarronGrosor").value) || 3, borrador: false, herramienta: $("#pizarronHerramienta").value || "lapiz" },
     fondo: pizarronFondoInicial(),
-    previo: null, enCurso: null, enPantallaCompleta: false
+    previo: null, enCurso: null, sel: { idx: -1, arrastre: null }, enPantallaCompleta: false
   };
   PIZARRON = sesion;
   pizarronFondoAplicar(sesion.fondo);
@@ -12718,6 +12880,11 @@ function pizarronPointerDown(e){
     }
     return;
   }
+  if(PIZARRON.estado.herramienta === "seleccionar"){
+    try{ svgEl.setPointerCapture(e.pointerId); }catch(err2){}
+    pizarraSeleccionBajar(e, svgEl, hoja, PIZARRON.sel);
+    return;
+  }
   var rect = svgEl.getBoundingClientRect();
   if(!rect.width || !rect.height) return;
   try{ svgEl.setPointerCapture(e.pointerId); }catch(err){}
@@ -12729,7 +12896,12 @@ function pizarronPointerDown(e){
   PIZARRON.enCurso = { pointerId: e.pointerId, herramienta: herramienta, x0: pt.x, y0: pt.y, puntos: [pt], d: d0, tope: false, path: svgEl.lastElementChild, svg: svgEl, hoja: hoja };
 }
 function pizarronPointerMove(e){
-  if(!PIZARRON || !PIZARRON.enCurso || e.pointerId !== PIZARRON.enCurso.pointerId || PIZARRON.enCurso.tope) return;
+  if(!PIZARRON) return;
+  if(PIZARRON.sel && PIZARRON.sel.arrastre){
+    pizarraSeleccionMover(e, pizarronHoja(PIZARRON.i), PIZARRON.sel);
+    return;
+  }
+  if(!PIZARRON.enCurso || e.pointerId !== PIZARRON.enCurso.pointerId || PIZARRON.enCurso.tope) return;
   var rect = PIZARRON.enCurso.svg.getBoundingClientRect();
   if(!rect.width || !rect.height) return;
   var pt = pizarraPuntoDesde(e, rect, PIZARRON.enCurso.hoja);
@@ -12747,7 +12919,14 @@ function pizarronPointerMove(e){
   emitirPizarronTrazoVivo(PIZARRON.enCurso);
 }
 function pizarronSoltarPuntero(e){
-  if(!PIZARRON || !PIZARRON.enCurso || e.pointerId !== PIZARRON.enCurso.pointerId) return;
+  if(!PIZARRON) return;
+  if(PIZARRON.sel && PIZARRON.sel.arrastre && e.pointerId === PIZARRON.sel.arrastre.pointerId){
+    var idxSel = PIZARRON.sel.idx, hojaSel = pizarronHoja(PIZARRON.i);
+    PIZARRON.sel.arrastre = null;
+    if(idxSel >= 0 && hojaSel.trazos[idxSel]) emitirPizarronTrazoCambiar(idxSel, hojaSel.trazos[idxSel]);
+    return;
+  }
+  if(!PIZARRON.enCurso || e.pointerId !== PIZARRON.enCurso.pointerId) return;
   var hoja = PIZARRON.enCurso.hoja;
   if(hoja.trazos.length >= PIZARRA_TRAZOS_MAX){
     if(PIZARRON.enCurso.path && PIZARRON.enCurso.path.parentNode) PIZARRON.enCurso.path.parentNode.removeChild(PIZARRON.enCurso.path);
@@ -12770,12 +12949,17 @@ function prepararPizarron(){
   $("#pizarronSalir").addEventListener("click", intentarSalirPizarron);
   $("#pizarronColor").addEventListener("input", function(e){ if(PIZARRON) PIZARRON.estado.color = e.target.value; });
   $("#pizarronGrosor").addEventListener("input", function(e){ if(PIZARRON) PIZARRON.estado.grosor = Number(e.target.value) || 3; });
-  $("#pizarronHerramienta").addEventListener("change", function(e){ if(PIZARRON) PIZARRON.estado.herramienta = e.target.value; });
+  $("#pizarronHerramienta").addEventListener("change", function(e){
+    if(!PIZARRON) return;
+    PIZARRON.estado.herramienta = e.target.value;
+    if(PIZARRON.sel && PIZARRON.sel.idx >= 0 && e.target.value !== "seleccionar") pizarronRedibujar();
+  });
   $("#pizarronBorrador").addEventListener("click", function(e){
     if(!PIZARRON) return;
     PIZARRON.estado.borrador = !PIZARRON.estado.borrador;
     e.target.setAttribute("aria-pressed", String(PIZARRON.estado.borrador));
     e.target.classList.toggle("activo", PIZARRON.estado.borrador);
+    if(PIZARRON.estado.borrador && PIZARRON.sel && PIZARRON.sel.idx >= 0) pizarronRedibujar();
   });
   $("#pizarronFondo").addEventListener("click", function(){
     if(!PIZARRON) return;
