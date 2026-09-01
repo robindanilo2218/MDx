@@ -90,6 +90,12 @@
    "nombre": "Organización y planificación",
    "icono": "📅",
    "descripcion": "Calendarios, planificadores de semana, gestores de proyecto y cronogramas, hechos con tablas que se calculan solas, casillas y diagramas de Gantt — sin ningún bloque nuevo que aprender."
+  },
+  {
+   "id": "publicaciones",
+   "nombre": "Libro, revista y periódico",
+   "icono": "📖",
+   "descripcion": "Todas las piezas de una publicación de verdad — portada, capítulos, sumario, artículos, cabecera de periódico — con numeración de página y encabezados corridos al imprimir."
   }
  ],
  "plantillas": [
@@ -1127,6 +1133,33 @@
    "titulo": "Rastreador de hábitos",
    "destino": "—",
    "desc": "Cuadrícula semanal de casillas, una fila por hábito, que se marca al toque sin abrir el editor."
+  },
+  {
+   "id": "pub-libro",
+   "cat": "publicaciones",
+   "archivo": "plantilla-libro.md",
+   "nombre": "mi-libro.md",
+   "titulo": "Libro completo (portada, capítulos, glosario…)",
+   "destino": "Tu carpeta de escritura",
+   "desc": "Portada automática, página legal, dedicatoria, prólogo, índice, tres capítulos de ejemplo con salto de página y encabezado corrido, epílogo, glosario, bibliografía, sobre la autora o el autor y colofón. Al imprimir sale paginado como un libro de verdad."
+  },
+  {
+   "id": "pub-revista",
+   "cat": "publicaciones",
+   "archivo": "plantilla-revista.md",
+   "nombre": "mi-revista.md",
+   "titulo": "Revista (portada, sumario, artículos, directorio)",
+   "destino": "Tu carpeta de escritura",
+   "desc": "Portada de revista con edición y fecha, sumario, editorial, un reportaje con entradilla y recuadro, una entrevista, un espacio de publicidad y el directorio del equipo."
+  },
+  {
+   "id": "pub-periodico",
+   "cat": "publicaciones",
+   "archivo": "plantilla-periodico.md",
+   "nombre": "mi-periodico.md",
+   "titulo": "Periódico (cabecera, titulares, columnas)",
+   "destino": "Tu carpeta de escritura",
+   "desc": "Cabecera con edición, fecha y precio, primera plana con titular a tres columnas, una segunda noticia a dos columnas, columna de opinión y clasificados. Tamaño tabloide listo para imprimir."
   }
  ]
 }

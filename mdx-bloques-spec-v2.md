@@ -2207,3 +2207,217 @@ Por costo/aislamiento, no por lo pedido primero: **15.4 (fondos) → 15.2
 (tablas de verdad) → 15.1 (ladder) → 15.3 (categorías)** — cada una se
 prueba y se cierra sola, igual que las fases anteriores de este spec. Queda
 a decidir contigo si prefieres otro orden, o ir directo a una sola pieza.
+
+## 16. Fase 7 — Publicaciones: libro, revista y periódico (PLAN, sin implementar en index.html)
+
+A pedido explícito: sintaxis y plantillas completas para que un libro, una
+revista o un periódico se escriban y mantengan enteros dentro de un `.md`,
+listos para imprimir. Investigación previa en `UniversoMarkdown.md` /
+`EstructuraPlantillasMDx.md` / `MenuInsertarSintaxis.md` (sesión paralela,
+29/30-ago) no cubre este terreno — no hay nada que duplicar.
+
+**Decisión de diseño central:** ninguna pieza nueva es un bloque
+` ```valla ` con parser propio. Todas son `<div>`/`<p>`/`<dl>`/`<aside>` con
+clase, exactamente el mismo mecanismo que ya usan `salto-pagina`,
+`dos-columnas` y el `<details>` de la sección 17 de la guía — una etiqueta
+HTML con una línea en blanco antes y después de su contenido, para que el
+Markdown de adentro se siga procesando. Cero cambios al parser de bloques ni
+al de encabezados (`RE_ATX`): un capítulo sigue siendo un `#` normal, así
+que `[TOC]` lo recoge solo, sin tocar `mdAHtml`.
+
+### 16.1 `formato` y `papel` en el front matter — activan una capa, no un modo aparte
+
+Dos claves nuevas, leídas del mismo `meta`/`metaOrden` genérico que ya
+parsea `titulo`/`autor`/`fecha` (no hace falta parser nuevo: cualquier
+`clave: valor` del front matter ya llega a `meta.clave`). Se agregan a
+`CLAVES_DOC` para que no aparezcan duplicadas en el `<dl class="portada-meta">`
+de "otros campos".
+
+```md
+---
+titulo: Tinta propia
+autor: Marisol Andrade
+formato: libro
+papel: carta
+---
+```
+
+- `formato`: `libro` | `revista` | `periodico`. Sin esta clave, cero cambios
+  de comportamiento — es opt-in, no un interruptor que haya que salir a
+  buscar.
+- `papel`: `carta` | `a4` | `a5` | `oficio` | `tabloide`. Tamaño CSS real
+  (`@page{size:...}`) inyectado en un `<style>` propio en cada `pintar()`,
+  no toca la regla `@page` global de la sección de impresión.
+- `edicion` (revista y periódico) y `precio` (periódico): metadatos de
+  cabecera, mismo trato que `autor`/`fecha`.
+- `portada(meta, orden)` (línea ~9430) gana una rama por `meta.formato`:
+  agrega la clase `portada-libro`/`portada-revista`/`portada-periodico`
+  sobre el `<header class="portada">` de siempre (no un componente nuevo).
+  `portada-libro`/`portada-revista` fuerzan página completa centrada +
+  salto de página después (`break-after:page`); `portada-periodico` es una
+  cabecera compacta —sin salto de página, porque el diario arranca las
+  noticias en la misma hoja— que además muestra `edicion`/`fecha`/`precio`
+  en una línea.
+
+### 16.2 Piezas de libro
+
+Solo clases CSS + la convención de "etiqueta con línea en blanco alrededor".
+Sin lógica JS propia, salvo el registro en el menú Insertar (16.4):
+
+| Clase | Envuelve |
+| --- | --- |
+| `pagina-legal` | `<section>`, texto legal/ISBN |
+| `dedicatoria` | `<p>` |
+| `parte` | `<div>` con un `#`/`##` adentro — agrupa capítulos, salto de página |
+| `capitulo` | `<div>` con un `#`/`##` adentro — salto de página + `string-set` para el encabezado corrido (16.5) |
+| `epigrafe` / `epigrafe-autor` | `<p>` / `<span>` — cita al inicio de capítulo |
+| `indice-alfabetico` | `<nav>` — índice de cierre de libro, escrito a mano (no confundir con `[TOC]`) |
+| `colofon` | `<p>` |
+
+Prólogo, introducción, epílogo, glosario (`<dl>` normal), bibliografía y
+"sobre la autora o el autor" **no llevan clase propia**: son un `#`/`##` y
+párrafos comunes — ya se ven, se imprimen y entran al índice como
+cualquier título.
+
+### 16.3 Piezas de revista y periódico
+
+| Clase | Formato | Envuelve |
+| --- | --- | --- |
+| `articulo` | revista | `<div>`, agrupa título + `entradilla` + `byline` + cuerpo + `recuadro` opcional |
+| `entradilla` | revista | `<p>`, bajada del artículo |
+| `recuadro` | revista | `<aside>`, despiece aislado del cuerpo |
+| `sumario` | revista | `<ul>`, contenidos con página escrita a mano (no autogenerada: la paginación real solo existe en el momento de imprimir, sección 16.5, y el `.md` no la puede leer de vuelta) |
+| `directorio` | revista | `<dl>`, staff/equipo |
+| `publicidad` | revista | `<div>`, espacio reservado |
+| `articulo-periodico` | periódico | `<div>`, título + `bajada` + `byline` + cuerpo |
+| `bajada` | periódico | `<p>` |
+| `tres-columnas` | periódico | `<div>`, gemelo de `dos-columnas` con `columns:3` |
+| `cintillo` | periódico | `<p>`, banda de sección |
+| `clasificados` | periódico | `<div>`, columnas angostas para avisos cortos |
+
+`pie-foto`/`credito` (`<p>`/`<span>`) son compartidos entre revista y
+periódico — un solo par de clases, documentado una vez.
+
+### 16.4 Menú Insertar → "Libro, revista y periódico"
+
+Mismo patrón de dos niveles que `LOGICA`/`formLogica` (sección 15.3): un
+botón nuevo `data-ins="publicaciones"` en `menuInsertar()`, un array de
+datos (`LIBRO`, `REVISTA`, `PERIODICO`, `DICCIONARIO`), una `formPublicaciones()`
+y un bloque de delegación `[data-publicaciones]`. Como el panel agrupa ~25
+piezas (más que `LOGICA` o `TECNICOS`), reutiliza el patrón de **subtítulos
+dentro de un mismo panel** que ya existe en `formEstilo()` (`<p class="grupo">`,
+línea ~12151) en vez de inventar un tercer nivel de menú que no existe en
+ningún otro lado del código — visualmente son "subcategorías", técnicamente
+siguen siendo un solo `chico-menu` plano.
+
+Las tres portadas (`formato: libro/revista/periodico`) **no** son botones de
+`meterTexto`: `meterTexto` inserta en la posición del cursor, y un front
+matter solo es válido en la posición 0 del documento. Función aparte,
+`insertarPortadaPublicacion(formato)`: si el documento ya empieza con
+`---`, muestra un `aviso()` pidiendo agregar `formato:`/`papel:` a mano
+ahí mismo; si no hay front matter, antepone uno nuevo con
+`elEd.value = relleno + v` (nunca corta ni reordena texto existente).
+
+Diccionario (`DICCIONARIO`, un solo ítem por ahora, igual que `logica`
+nació con 2): `<dl class="diccionario">` con `dt`/`dd`, más `dic-cat`
+(categoría gramatical) y `dic-etim`/`dic-sinonimos`. El índice alfabético de
+un diccionario no pide nada nuevo: un `##` por letra + `[TOC]` ya alcanza.
+
+### 16.5 Paginación real al imprimir — Paged.js vendorizado
+
+**Decisión explícita, consultada:** los navegadores no implementan CSS
+Paged Media (`@top-center`, `string-set`, `content:counter(page)` en cajas
+de margen) — no hay forma nativa de poner un encabezado/pie de página con
+contenido propio y numeración real. Se vendoriza **Paged.js 0.4.3** (MIT),
+build minificado, como `md_crgm_app-main/paged.polyfill.min.js` (503 KB) —
+única dependencia nueva de esta fase, cargada perezosamente (con
+`<script>` inyectado en caliente) solo cuando `formato` está puesto y se
+pulsa Imprimir; el resto de la app no la toca ni la descarga. Se agrega a
+`CONCHA` en `sw.js` para que la "prueba del avión" siga cumpliéndose:
+disponible offline desde la primera visita, aunque no se use nunca.
+
+Flujo de `imprimirDocumento()` (reemplaza los `window.print()` sueltos de
+`#btnImprimir`/`#estadoImprimir`):
+
+1. Si `FORMATO_PUB` (calculado en cada `pintar()` desde `meta.formato`)
+   está vacío → `window.print()` de siempre, cero cambios de comportamiento
+   para el resto de los documentos.
+2. Si no: carga `paged.polyfill.min.js` (una vez), clona el documento con
+   `moldeDeLaFoto()` (función existente, línea ~9430 en su versión de
+   exportar PNG — ya sabe quitar `.no-print`/simuladores/etc.), arma una
+   hoja de estilo dedicada (`estiloDeLaApp()` + reglas nuevas, ver abajo) en
+   un Blob URL, y llama `new Paged.Previewer().preview(caja, [blobUrl],
+   contenedor)`.
+3. El resultado (`.pagedjs_page` reales, uno por hoja) se muestra en un
+   overlay (`#vistaPaginada`, nuevo en el HTML) con botones **Imprimir** y
+   **Cerrar**; **Imprimir** ahí sí dispara `window.print()`, ahora sobre el
+   contenido ya paginado por Paged.js — es lo que Paged.js recomienda en su
+   propia documentación, en vez de re-paginar durante el propio `print()`.
+
+Hoja de estilo dedicada a Paged.js (generada en JS, con el título del
+documento ya escapado e inyectado como texto literal — no `attr()`, poco
+confiable entre motores):
+
+```css
+@page{
+  size: 8.5in 11in; /* según PAPELES[meta.papel] */
+  margin: 2.2cm 1.8cm 2.1cm;
+  @top-left{ content: string(mdx-titulo); font-family:sans-serif; font-size:8.5pt; color:#666; }
+  @top-right{ content: string(mdx-cap); font-family:sans-serif; font-size:8.5pt; color:#666; text-align:right; }
+  @bottom-center{ content: counter(page); font-family:sans-serif; font-size:8.5pt; color:#666; }
+}
+@page :first{ @top-left{content:""} @top-right{content:""} @bottom-center{content:""} }
+.documento{ string-set: mdx-titulo "Tinta propia"; }
+.capitulo > :first-child, .articulo > :first-child, .articulo-periodico > :first-child{
+  string-set: mdx-cap content(); break-before:page;
+}
+```
+
+Efecto: título del documento arriba a la izquierda, capítulo/artículo/noticia
+en curso arriba a la derecha (cambia solo, `string-set` se recalcula en cada
+página según el último título que apareció), número de página abajo al
+centro, nada de esto en la portada. La regla `break-before:page` vive acá
+—no en el CSS general— porque solo debe forzar salto de hoja cuando Paged.js
+está paginando de verdad; en la vista normal en pantalla, `.capitulo`/
+`.articulo` no cortan nada (`salto-pagina` sigue siendo la única forma
+explícita de cortar página en pantalla/edición).
+
+`PAPELES` (mapa de `papel` → tamaño CSS): `carta` → `8.5in 11in`, `a4` →
+`210mm 297mm`, `a5` → `148mm 210mm`, `oficio` → `216mm 330mm` (convención
+aproximada; varía por país), `tabloide` → `11in 17in`.
+
+### 16.6 Categoría y plantillas del catálogo — hecho 1-sep-2026
+
+Categoría `publicaciones` ("Libro, revista y periódico", ícono 📖) agregada
+a `plantillas/indice.json`, igual de plana que `logica` (15.3) — 3
+plantillas no justifican el campo `sub` sin usar. Tres plantillas nuevas,
+cada una un documento completo y real (sin "Lorem ipsum" ni casilleros
+vacíos), escritas para poder usarse tal cual o como punto de partida:
+
+- `plantilla-libro.md` — *Tinta propia*: portada, página legal, dedicatoria,
+  prólogo, `[TOC]`, tres capítulos reales (~250 palabras cada uno, con
+  epígrafe), epílogo, glosario, bibliografía, "sobre la autora" y colofón.
+- `plantilla-revista.md` — *Camino y Oficio*: portada, sumario, editorial,
+  un reportaje con recuadro y pie de foto, una entrevista en formato
+  pregunta/respuesta, publicidad y directorio.
+- `plantilla-periodico.md` — *El Correo de Piedra Alta*: cabecera con
+  edición/fecha/precio, noticia principal a tres columnas, segunda noticia a
+  dos columnas, columna de opinión y clasificados.
+
+Documentado en `plantillas/guia-markdown.md`, sección nueva **30. Libro,
+revista y periódico** (mismo formato de `###` + demo en vivo que el resto
+de la guía; sin demo en las partes que dependen del front matter, porque
+—igual que con `@page` en la sección 20— no hay forma de simular
+"esto es la posición 0 del documento" dentro de la propia guía).
+
+### 16.7 Pendiente de implementar en `index.html`/`sw.js`
+
+Bloqueado durante la redacción de este spec por una sesión paralela
+editando `index.html` en simultáneo (ver la memoria de "dos sesiones a la
+vez"): CSS de 16.2/16.3, `portada()` con las tres ramas de `meta.formato`,
+`CLAVES_DOC` ampliado, `PAPELES`/`aplicarConfigImpresion()`, el vendorizado
+de Paged.js en `CONCHA` (`sw.js`), `imprimirDocumento()`/`imprimirPaginado()`
+reemplazando los `window.print()` de `#btnImprimir`/`#estadoImprimir`, el
+overlay `#vistaPaginada`, y `LIBRO`/`REVISTA`/`PERIODICO`/`DICCIONARIO` +
+`formPublicaciones()` en el menú Insertar. Se retoma en cuanto el archivo
+quede libre.

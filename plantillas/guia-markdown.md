@@ -789,8 +789,10 @@ Un comentario de HTML no se ve en la página ni se imprime, pero queda escrito e
 
 - **Forzar un cambio de página:** `<div class="salto-pagina"></div>` en una línea sola.
 - **Márgenes del papel:** se cambian en la hoja de estilo, en la regla `@page`, arriba del archivo.
+- **Tamaño de hoja distinto de carta:** la clave `papel` en el front matter (`a4`, `a5`, `oficio`, `tabloide`) — ver sección 30.
 - Los títulos nunca se quedan solos al final de una página, y las tablas, imágenes y bloques de código no se parten por la mitad: eso ya está resuelto en la hoja de estilo.
 - Para que salga el fondo gris de los bloques de código en el PDF, marca la casilla *Gráficos de fondo* en las opciones de impresión del navegador.
+- **Libro, revista o periódico:** con `formato` puesto en el front matter, imprimir numera las hojas y agrega encabezados solos — ver sección 30.
 
 ## 21. Diagramas
 
@@ -1596,6 +1598,206 @@ salida T = A O-EXCLUSIVA B
 </div>
 
 Cada línea es un peldaño: `| contenido | comentario opcional`. `[X]` es un contacto normalmente abierto, `[X/]` normalmente cerrado, `(Y)` una bobina, `[TON Tn t]` un temporizador a la conexión (`t` en segundos). Un `+` al final de un tramo lo conecta hacia arriba en vez de al riel derecho (rama de sello, sin bobina propia); un `+` al principio lo conecta hacia arriba en vez de al riel izquierdo (otra salida en paralelo, con su propia bobina) — **la columna importa**: un `+` se ancla al peldaño completo más cercano arriba, justo en la posición donde queda escrito. Una misma fila puede tener más de un `+`: cada uno de más cierra el tramo en curso y abre uno nuevo al lado, así que en una sola línea caben una rama a la izquierda, otra a la derecha y un puente al centro, todas juntas (ver la plantilla "Escalera PLC: varias ramas en una fila" en Comunidad de plantillas). El parámetro `norma=iec` (por defecto) o `norma=nema`, en la primera línea del bloque, solo cambia el símbolo dibujado — nunca el texto de entrada.
+
+## 30. Libro, revista y periódico
+
+El botón **➕ Insertar → Libro, revista y periódico** trae todas las piezas de abajo listas para pegar; la categoría **Libro, revista y periódico** del catálogo de plantillas (➕ Plantillas) trae tres ejemplos completos —un libro, una revista y un periódico— ya escritos de principio a fin, para usarlos tal cual o reemplazar el contenido.
+
+### El formato se elige en el front matter
+
+Dos claves nuevas, junto a `titulo`/`autor`/`fecha` de siempre:
+
+````md
+---
+titulo: Tinta propia
+autor: Marisol Andrade
+formato: libro
+papel: carta
+---
+````
+
+- **`formato`:** `libro`, `revista` o `periodico`. Cambia cómo se ve la portada automática (de página completa y centrada en libro o revista; una cabecera compacta con edición y precio en periódico, sin salto de página después) y activa la numeración de página al imprimir.
+- **`papel`:** `carta`, `a4`, `a5`, `oficio` o `tabloide`. Tamaño real de la hoja al imprimir; sin esta clave queda el tamaño de siempre.
+- Una revista o un periódico admiten además `edicion` (p. ej. `N.º 12`), y un periódico también `precio` — ambos se muestran junto a la fecha en la cabecera.
+
+Sin `formato`, el documento se comporta exactamente igual que cualquier otro: es una capa que se activa sola, no un modo aparte que haya que salir a buscar.
+
+### Capítulo y parte
+
+````md
+<div class="capitulo">
+
+# Capítulo 1 — El primer paso
+
+Texto del capítulo.
+
+</div>
+````
+
+<div class="demo">
+
+<div class="capitulo">
+
+# Capítulo de muestra
+
+Cada capítulo empieza en hoja nueva y, al imprimir, su título queda escrito en la esquina de la página mientras dure el capítulo, igual que en un libro de imprenta.
+
+</div>
+
+</div>
+
+El título va **dentro** del `<div>`, con una línea en blanco antes. `[TOC]` (sección 3) sigue recogiendo estos títulos como cualquier otro; no hace falta un índice aparte. Para agrupar varios capítulos bajo una misma parte, el mismo truco con `<div class="parte">`:
+
+````md
+<div class="parte">
+
+# Parte I — Los oficios de siempre
+
+</div>
+````
+
+### Otras piezas de un libro
+
+| Pieza | Cómo se escribe |
+| --- | --- |
+| Página legal | `<section class="pagina-legal">…</section>` |
+| Dedicatoria | `<p class="dedicatoria">…</p>` |
+| Epígrafe al inicio de un capítulo | `<p class="epigrafe">Frase.<br><span class="epigrafe-autor">— Autor</span></p>` |
+| Prólogo, introducción, epílogo, glosario, bibliografía, sobre la autora o el autor | un título normal (`# Prólogo`, etc.) — no llevan clase propia |
+| Índice alfabético al final del libro (no confundir con `[TOC]`, que es el índice de arriba) | `<nav class="indice-alfabetico">…</nav>`, escrito a mano por letra |
+| Colofón | `<p class="colofon">…</p>` |
+| Forzar hoja nueva antes de cualquiera de estas piezas | `<div class="salto-pagina"></div>` (sección 20) |
+
+<div class="demo">
+
+<p class="dedicatoria">Para quien me acompañó en cada página.</p>
+
+</div>
+
+### Piezas de una revista
+
+````md
+<div class="articulo">
+
+# Título del reportaje
+
+<p class="entradilla">Bajada que resume el artículo.</p>
+
+<p class="byline">Por Nombre Apellido</p>
+
+Cuerpo del artículo.
+
+<aside class="recuadro">
+
+### Dato aparte
+
+Información complementaria.
+
+</aside>
+
+</div>
+````
+
+<div class="demo">
+
+<div class="articulo">
+
+# Título del reportaje
+
+<p class="entradilla">Bajada que resume el artículo y engancha a quien lee.</p>
+
+<p class="byline">Por Nombre Apellido · Fotografías de Nombre Apellido</p>
+
+Cuerpo del artículo, con todo el Markdown normal disponible adentro.
+
+<aside class="recuadro">
+
+### Dato aparte
+
+Información complementaria, aislada del cuerpo principal.
+
+</aside>
+
+</div>
+
+</div>
+
+Además: `<ul class="sumario">` para la página de contenidos, `<dl class="directorio">` para el equipo, `<div class="publicidad">…</div>` como espacio reservado, y `<p class="pie-foto">Descripción. <span class="credito">Foto: Nombre</span></p>` para créditos de imagen.
+
+### Piezas de un periódico
+
+````md
+<p class="cintillo">Nacional</p>
+
+<div class="articulo-periodico">
+
+## Titular de la noticia
+
+<p class="bajada">Frase que amplía el titular.</p>
+
+<div class="tres-columnas">
+
+Cuerpo de la noticia.
+
+</div>
+
+</div>
+````
+
+<div class="demo">
+
+<p class="cintillo">Nacional</p>
+
+<div class="articulo-periodico">
+
+## Titular de muestra
+
+<p class="bajada">Una frase que amplía el titular y adelanta el contenido.</p>
+
+<p class="byline">Por Nombre Apellido</p>
+
+Cuerpo de la noticia, redactado en tercera persona.
+
+</div>
+
+</div>
+
+`tres-columnas` es la versión de tres columnas de `dos-columnas` (sección 17), pensada para el cuerpo apretado de una noticia. Para los avisos del final, `<div class="clasificados">…</div>` reparte texto corto en varias columnas angostas.
+
+### Diccionario y otras publicaciones
+
+Un diccionario es, en el fondo, una lista de definiciones con un índice alfabético — y las dos piezas ya existen:
+
+````md
+<dl class="diccionario">
+<dt>palabra <span class="dic-cat">sustantivo</span></dt>
+<dd>Definición de la palabra, con un ejemplo de uso.</dd>
+<dd class="dic-etim">Del latín <em>origen</em>.</dd>
+</dl>
+````
+
+<div class="demo">
+
+<dl class="diccionario">
+<dt>palabra <span class="dic-cat">sustantivo, femenino</span></dt>
+<dd>Unidad con significado propio, formada por sonidos o letras.</dd>
+<dd class="dic-etim">Del latín <em>parabola</em>.</dd>
+</dl>
+
+</div>
+
+Un `##` por cada letra (`## A`, `## B`…) y un `[TOC]` al principio arman solos el índice alfabético de entradas. Un boletín, un folleto o un informe anual no piden ningún bloque nuevo: son la misma combinación de portada, capítulos o artículos y columnas, con menos piezas.
+
+### La hoja se numera sola al imprimir
+
+Con `formato` puesto, el botón **Imprimir** ya no manda la página tal cual al diálogo del navegador: primero la repagina de verdad, hoja por hoja, y agrega:
+
+- El **número de página**, centrado abajo.
+- El **título del documento**, arriba a la izquierda.
+- El **título del capítulo, artículo o noticia en curso**, arriba a la derecha — cambia solo, página a página, según el último `capitulo`/`articulo`/`articulo-periodico` que haya empezado.
+- Nada de esto aparece en la portada.
+
+Esto pasa una sola vez, al imprimir, y no cambia en nada la vista normal del documento ni la edición.
 
 ## Empieza aquí
 

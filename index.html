@@ -1166,6 +1166,7 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 }
 .gpx-boton-norte3d:hover, .gpx-boton-camara:hover{border-color:var(--acento)}
 .gpx-boton-norte3d.activo, .gpx-boton-camara.activo{background:var(--acento); color:#fff; border-color:var(--acento)}
+.gpx-boton-camara2d{position:absolute; top:.5rem; left:.6rem}
 .gpx-suelo3d{fill:var(--borde); fill-opacity:.12; stroke:none}
 .gpx-etq3d{font-size:11px; fill:var(--texto); pointer-events:none}
 .gpx-wpt-letra{
@@ -1192,6 +1193,9 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .gpx-velo-txt{font-size:26px; font-weight:700; fill:var(--texto)}
 .gpx-velo-unidad{font-size:9px; fill:var(--texto); opacity:.7}
 .gpx-boton-velsim{padding:.35rem .7rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); cursor:pointer; font-size:.85em; min-width:3.2em}
+.gpx-select-vehiculo{padding:.3rem .5rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.85em}
+.gpx-boton-color-vehiculo{width:1.3rem; height:1.3rem; padding:0; border-radius:50%; border:1.5px solid #fff; box-shadow:0 0 0 1px var(--borde); cursor:pointer}
+.gpx-boton-color-vehiculo:hover{box-shadow:0 0 0 2px var(--acento)}
 .gpx-carrito3d-asta{stroke:#ff6a00; stroke-width:2}
 .gpx-carrito3d-cuerpo{fill:#ff6a00; stroke:#fff; stroke-width:1.5}
 .gpx-sim{display:flex; align-items:center; gap:.6rem; margin:0 0 .8rem; flex-wrap:wrap}
@@ -1414,7 +1418,7 @@ math mo{font-family:inherit}
   .gpx-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
   .gpx-svg, .gpx-svg3d{height:320px}
   .gpx-svg-perfil{height:200px}
-  .gpx-norte, .gpx-escala, .gpx-vistas, .gpx-ayuda3d, .gpx-boton-norte3d, .gpx-camara3d, .gpx-sim{display:none}
+  .gpx-norte, .gpx-escala, .gpx-vistas, .gpx-ayuda3d, .gpx-boton-norte3d, .gpx-camara3d, .gpx-sim, .gpx-boton-camara2d{display:none}
   .gpx-velocimetro, .gpx-carrito, .gpx-carrito-perfil, .gpx-carrito3d-asta, .gpx-carrito3d-cuerpo, .gpx-carrito-cuerpo{display:none}
   .gpx-boton-contexto, .gpx-boton-agregar-poi{display:none}
   .gpx-contexto-via, .gpx-contexto-rio, .gpx-contexto-puente, .gpx-contexto-poi{display:none}
@@ -4851,6 +4855,46 @@ function gpxColorWaypoint(datos, idx){
   for(i = 0; i < GPX_COLOR_PALABRA.length; i++) if(nombre.indexOf(GPX_COLOR_PALABRA[i][0]) >= 0) return GPX_COLOR_PALABRA[i][1];
   return "#0099ff";
 }
+var GPX_VEHICULO_COLOR_DEF = "#ff6a00";
+/* siluetas del carrito 2D (spec: icono de vehiculo elegible), todas apuntando
+   "arriba" en un cuadrado -r..r -- el mismo tamaño de referencia que ya usaba
+   la flecha (rCarro2D). El color llega siempre por style="fill:..." inline,
+   NUNCA por el atributo fill: la regla CSS .gpx-carrito-cuerpo{fill:#ff6a00}
+   le gana a un fill="" suelto (menor especificidad), pero un style en linea
+   la gana a ella. */
+var GPX_ICONOS_VEHICULO = {
+  flecha: function(r){
+    return "0," + gpxN(-r) + " " + gpxN(-r * 0.62) + "," + gpxN(r * 0.75) +
+      " 0," + gpxN(r * 0.32) + " " + gpxN(r * 0.62) + "," + gpxN(r * 0.75);
+  },
+  auto: function(r){
+    return "0," + gpxN(-r) + " " + gpxN(-r * 0.55) + "," + gpxN(-r * 0.35) + " " + gpxN(-r * 0.55) + "," + gpxN(r * 0.85) +
+      " " + gpxN(r * 0.55) + "," + gpxN(r * 0.85) + " " + gpxN(r * 0.55) + "," + gpxN(-r * 0.35);
+  },
+  moto: function(r){
+    return "0," + gpxN(-r) + " " + gpxN(-r * 0.28) + "," + gpxN(r * 0.15) + " " + gpxN(-r * 0.4) + "," + gpxN(r * 0.85) +
+      " 0," + gpxN(r * 0.55) + " " + gpxN(r * 0.4) + "," + gpxN(r * 0.85) + " " + gpxN(r * 0.28) + "," + gpxN(r * 0.15);
+  },
+  avion: function(r){
+    return "0," + gpxN(-r) + " " + gpxN(-r * 0.85) + "," + gpxN(r * 0.35) + " " + gpxN(-r * 0.22) + "," + gpxN(r * 0.2) +
+      " " + gpxN(-r * 0.35) + "," + gpxN(r * 0.85) + " 0," + gpxN(r * 0.55) + " " + gpxN(r * 0.35) + "," + gpxN(r * 0.85) +
+      " " + gpxN(r * 0.22) + "," + gpxN(r * 0.2) + " " + gpxN(r * 0.85) + "," + gpxN(r * 0.35);
+  }
+};
+var GPX_VEHICULO_ETIQUETAS = [["flecha","Flecha"], ["auto","Auto"], ["moto","Moto"], ["avion","Avión"]];
+function gpxFormaVehiculo(icono, r){
+  var f = Object.prototype.hasOwnProperty.call(GPX_ICONOS_VEHICULO, icono) ? GPX_ICONOS_VEHICULO[icono] : GPX_ICONOS_VEHICULO.flecha;
+  return f(r);
+}
+/* companion ```gpx-datos: {icono, color} del carrito -- ambos con default si
+   falta el campo o alguno de los dos, para que un documento viejo (o editado
+   a mano) siga dibujando la flecha naranja de siempre. */
+function gpxValidarVehiculo(v){
+  if(!v || typeof v !== "object") return null;
+  var icono = Object.prototype.hasOwnProperty.call(GPX_ICONOS_VEHICULO, v.icono) ? v.icono : "flecha";
+  var color = (typeof v.color === "string" && /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(v.color)) ? v.color : GPX_VEHICULO_COLOR_DEF;
+  return { icono: icono, color: color };
+}
 function gpxParametros(cadena){
   var out = {}, partes = String(cadena || "").trim().split(/\s+/), i, kv;
   for(i = 0; i < partes.length; i++){
@@ -5224,15 +5268,31 @@ function gpx2dProyeccion(datos){
   function invertir(x, y){ return { lon: mmLon.min + x / (111320 * k), lat: lat0 + (-y) / 110574 }; }
   return { mmLat: mmLat, mmLon: mmLon, lat0: lat0, k: k, xM: xM, yM: yM, proy: proy, invertir: invertir };
 }
-function gpxSvg2D(datos, stats, modoColor, estadoSim){
+function gpxSvg2D(datos, stats, modoColor, estadoSim, estado2d){
   var puntos = datos.puntos, waypoints = datos.waypoints, planificada = datos.planificada;
   var gp2d = gpx2dProyeccion(datos);
   var mmLat = gp2d.mmLat, mmLon = gp2d.mmLon, xM = gp2d.xM, yM = gp2d.yM, proy = gp2d.proy;
 
   var anchoM = Math.max(xM(mmLon.max), 1), altoM = Math.max(yM(mmLat.max), 1);
   var margenM = Math.max(anchoM, altoM) * 0.05 || 10;
-  var vb = [gpxN(-margenM), gpxN(-altoM - margenM), gpxN(anchoM + margenM * 2), gpxN(altoM + margenM * 2)];
   var radioMarcador = Math.max(anchoM, altoM) * 0.012 || 5;
+
+  /* "flecha fija" (spec: la flecha queda fija en el centro y el mapa gira/
+     corre debajo, siguiendo el rumbo) -- espejo 2D de estado3d.chase: el
+     mundo entero se traslada para que el vehiculo caiga en el origen y
+     despues se rota para que el rumbo apunte "arriba", en vez de mover el
+     viewBox como hace el pan/zoom normal (ver gpxActivarInteraccion). */
+  var chase = !!(estado2d && estado2d.persecucion && estadoSim && estadoSim.activo && puntos.length > 1);
+  var posChase = null, transformMundo = "";
+  if(chase){
+    posChase = gpxPosEnProgreso(puntos, estadoSim.progreso);
+    var pChase = proy(posChase);
+    transformMundo = "rotate(" + gpxN(-posChase.rumbo) + ") translate(" + gpxN(-pChase.x) + " " + gpxN(-pChase.y) + ")";
+  }
+  var vb = chase
+    ? ((estado2d.caja && estado2d.caja.length === 4) ? estado2d.caja :
+        [-GPX2D_CHASE_ZOOM_M, -GPX2D_CHASE_ZOOM_M, GPX2D_CHASE_ZOOM_M * 2, GPX2D_CHASE_ZOOM_M * 2])
+    : [gpxN(-margenM), gpxN(-altoM - margenM), gpxN(anchoM + margenM * 2), gpxN(altoM + margenM * 2)];
 
   var partes = gpxContextoSvgPartes(datos.contexto, proy);
   if(planificada.length > 1){
@@ -5288,24 +5348,36 @@ function gpxSvg2D(datos, stats, modoColor, estadoSim){
       '" font-size="' + gpxN(radioMarcador * 1.3) + '" text-anchor="middle" fill="' + gpxColorWaypoint(datos, i) + '">' + X(letrasWpt2D[i]) + "</text>");
   });
 
+  var carritoFijoHTML = "";
   if(estadoSim && estadoSim.activo && puntos.length > 1){
-    var posSim2D = gpxPosEnProgreso(puntos, estadoSim.progreso);
-    var pSim2D = proy(posSim2D);
     var rCarro2D = radioMarcador * 1.3;
-    partes.push('<g class="gpx-carrito" transform="translate(' + gpxN(pSim2D.x) + " " + gpxN(pSim2D.y) + ") rotate(" + gpxN(posSim2D.rumbo) + ')">' +
-      '<polygon class="gpx-carrito-cuerpo" points="0,' + gpxN(-rCarro2D) + " " + gpxN(-rCarro2D * 0.62) + "," + gpxN(rCarro2D * 0.75) +
-      " 0," + gpxN(rCarro2D * 0.32) + " " + gpxN(rCarro2D * 0.62) + "," + gpxN(rCarro2D * 0.75) + '"/></g>');
+    var vehiculo = datos.vehiculo || { icono: "flecha", color: GPX_VEHICULO_COLOR_DEF };
+    var puntosCarro = gpxFormaVehiculo(vehiculo.icono, rCarro2D);
+    var polyCarro = '<polygon class="gpx-carrito-cuerpo" points="' + puntosCarro + '" style="fill:' + vehiculo.color + '"/>';
+    if(chase){
+      /* fuera del grupo que rota/traslada: siempre en el centro, apuntando
+         "arriba" -- el rumbo ya quedo alineado hacia arriba por transformMundo. */
+      carritoFijoHTML = '<g class="gpx-carrito">' + polyCarro + "</g>";
+    }else{
+      var posSim2D = gpxPosEnProgreso(puntos, estadoSim.progreso);
+      var pSim2D = proy(posSim2D);
+      partes.push('<g class="gpx-carrito" transform="translate(' + gpxN(pSim2D.x) + " " + gpxN(pSim2D.y) + ") rotate(" + gpxN(posSim2D.rumbo) + ')">' +
+        polyCarro + "</g>");
+    }
   }
 
   partes.push('<circle class="gpx-marca-sonda gpx-punto-fijo" cx="0" cy="0" r="' + gpxN(radioMarcador * 1.1) + '"/>');
 
   var svg = '<svg class="gpx-svg" viewBox="' + vb.join(" ") + '" preserveAspectRatio="xMidYMid meet" ' +
-    'role="img" aria-label="Mapa de la ruta">' + partes.join("") + "</svg>";
+    'role="img" aria-label="Mapa de la ruta"><g class="gpx-mundo2d" transform="' + transformMundo + '">' +
+    partes.join("") + "</g>" + carritoFijoHTML + "</svg>";
 
-  return '<div class="gpx-mapa">' + svg +
-    '<div class="gpx-norte" aria-hidden="true">▲<br>N</div>' +
+  return '<div class="gpx-mapa' + (chase ? " gpx-mapa-chase" : "") + '">' + svg +
+    '<div class="gpx-norte"' + (chase ? ' style="transform:rotate(' + gpxN(-posChase.rumbo) + 'deg)"' : "") + ' aria-hidden="true">▲<br>N</div>' +
     '<div class="gpx-escala"></div>' +
     (datos.contexto ? '<div class="gpx-atribucion">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>' : "") +
+    '<button type="button" class="gpx-boton-camara gpx-boton-camara2d' + (chase ? " activo" : "") +
+    '" data-camara2d="persecucion" aria-pressed="' + chase + '" title="La flecha queda fija y el mapa corre debajo, siguiendo el rumbo (arrastrar adelanta/atrasa la ruta)">&#9660; Flecha fija</button>' +
     "</div>";
 }
 
@@ -5829,17 +5901,17 @@ function gpxSvgPerfil(datos, stats, modoColor, estadoSim){
     '<div class="gpx-perfil-tip" hidden></div></div>';
 }
 
-function gpxRenderizarVista(vista, payload, estado3d, calibEstado, estadoSim){
+function gpxRenderizarVista(vista, payload, estado3d, calibEstado, estadoSim, estado2d){
   var velo = "";
   if(estadoSim && estadoSim.activo && gpxVistaSimulable(vista)){
     velo = gpxVelocimetroHTML(payload.stats, gpxVelEnProgreso(payload.datos.puntos, estadoSim.progreso));
   }
   if(vista === "3d") return gpxRenderizar3D(payload.datos, payload.stats, payload.modoColor, payload.exageracion, estado3d, estadoSim) + velo;
   if(vista === "perfil") return gpxSvgPerfil(payload.datos, payload.stats, payload.modoColor, estadoSim) + velo;
-  if(vista === "2d+perfil") return gpxSvg2D(payload.datos, payload.stats, payload.modoColor, estadoSim) +
+  if(vista === "2d+perfil") return gpxSvg2D(payload.datos, payload.stats, payload.modoColor, estadoSim, estado2d) +
     gpxSvgPerfil(payload.datos, payload.stats, payload.modoColor, estadoSim) + velo;
   if(vista === "captura") return gpxRenderizarCaptura(payload.datos, calibEstado);
-  return gpxSvg2D(payload.datos, payload.stats, payload.modoColor, estadoSim) + velo;
+  return gpxSvg2D(payload.datos, payload.stats, payload.modoColor, estadoSim, estado2d) + velo;
 }
 /* que modos de color tienen sentido para ESTE track: velocidad solo con
    <time>, altitud solo con <ele> de verdad; pendiente vale siempre */
@@ -6129,11 +6201,17 @@ function gpxRenderizarCaptura(datos, calibEstado){
 
 /* todo lo de dentro de <figure>, aparte para poder reconstruirlo entero tras
    agregar contexto o un waypoint sin duplicar este armado en dos sitios. */
-function gpxSimControlesHTML(estadoSim, stats, oculto){
+function gpxSimControlesHTML(estadoSim, stats, oculto, vehiculo){
   var prog = (estadoSim && estadoSim.progreso) || 0;
   var distKm = stats.distanciaKm.toFixed(2);
   var progKm = (stats.distanciaKm * prog).toFixed(2);
   var jugando = !!(estadoSim && estadoSim.jugando);
+  var horaTxt = (estadoSim && estadoSim.plan) ? " · " + gpxHMS(estadoSim.tReal || 0) + " / " + gpxHMS(estadoSim.plan.total) : "";
+  var veh = vehiculo || { icono: "flecha", color: GPX_VEHICULO_COLOR_DEF };
+  var selectVehiculo = '<select class="gpx-select-vehiculo" title="Forma del vehículo" aria-label="Forma del vehículo">' +
+    GPX_VEHICULO_ETIQUETAS.map(function(o){
+      return '<option value="' + o[0] + '"' + (o[0] === veh.icono ? " selected" : "") + ">" + o[1] + "</option>";
+    }).join("") + "</select>";
   return '<div class="gpx-sim"' + (oculto ? " hidden" : "") + ' role="group" aria-label="Simular la ruta">' +
     '<button type="button" class="gpx-boton-play" aria-pressed="' + jugando + '">' +
     (jugando ? "&#10074;&#10074; Pausar" : "&#9654; Simular ruta") + "</button>" +
@@ -6141,9 +6219,12 @@ function gpxSimControlesHTML(estadoSim, stats, oculto){
     ((estadoSim && estadoSim.velocidad) || 1) + "</button>" +
     '<input type="range" class="gpx-sim-barra" min="0" max="1000" step="1" value="' + Math.round(prog * 1000) +
     '" aria-label="Progreso de la simulación">' +
-    '<span class="gpx-sim-txt">' + progKm + " / " + distKm + " km</span></div>";
+    '<span class="gpx-sim-txt">' + progKm + " / " + distKm + " km" + horaTxt + "</span>" +
+    selectVehiculo +
+    '<button type="button" class="gpx-boton-color-vehiculo" style="background:' + veh.color +
+    '" title="Color del vehículo" aria-label="Color del vehículo"></button></div>';
 }
-function gpxContenidoFigura(payload, vista, estado3d, calibEstado, estadoSim){
+function gpxContenidoFigura(payload, vista, estado3d, calibEstado, estadoSim, estado2d){
   var datos = payload.datos, stats = payload.stats;
   /* la barra de simular se dibuja SIEMPRE que haya ruta, aunque la vista
      inicial no la admita (p.ej. Captura): asi mostrarVista solo tiene que
@@ -6151,9 +6232,9 @@ function gpxContenidoFigura(payload, vista, estado3d, calibEstado, estadoSim){
      (que reconstruye la figura entera) para que aparezca alguna vez. */
   var conSim = datos.puntos.length > 1;
   return gpxBotonesVistaHTML(vista, datos, payload.modoColor, stats) +
-    '<div class="gpx-vista-actual">' + gpxRenderizarVista(vista, payload, estado3d, calibEstado, estadoSim) + "</div>" +
+    '<div class="gpx-vista-actual">' + gpxRenderizarVista(vista, payload, estado3d, calibEstado, estadoSim, estado2d) + "</div>" +
     '<img class="gpx-previa-img" alt="" hidden>' +
-    (conSim ? gpxSimControlesHTML(estadoSim, stats, !gpxVistaSimulable(vista)) : "") +
+    (conSim ? gpxSimControlesHTML(estadoSim, stats, !gpxVistaSimulable(vista), datos.vehiculo) : "") +
     gpxStatsHTML(stats) +
     (datos.waypoints.length ? gpxWaypointsHTML(datos) : "") +
     gpxAgregarPuntosHTML(datos, payload.soloLectura) +
@@ -6407,6 +6488,7 @@ function dibujarGPX(xmlTexto, params, datosGpxTexto, indiceGpx){
         if(companero && companero.imagen) datos.imagen = gpxValidarImagen(companero.imagen);
         if(companero && companero.calibracion) datos.calibracion = gpxValidarCalibracion(companero.calibracion);
         if(companero && companero.coloresWpt) datos.coloresWpt = gpxValidarColoresWpt(companero.coloresWpt, datos.waypoints.length);
+        if(companero && companero.vehiculo) datos.vehiculo = gpxValidarVehiculo(companero.vehiculo);
       }catch(e){ /* companero corrupto: se ignora, el mapa sigue sin contexto */ }
     }
     var stats = gpxEstadisticas(datos.puntos);
@@ -9515,7 +9597,7 @@ function gpxMarcaEnMapa(fig, datos, p){
   marca.setAttribute("cy", gpxN(q.y));
   marca.style.display = "inline";
 }
-function gpxActivarInteraccion(fig, estado2d, datos, alAgregarPunto){
+function gpxActivarInteraccion(fig, estado2d, datos, alAgregarPunto, alScrub, alSoltarScrub){
   var svg = fig.querySelector(".gpx-svg"), escalaEl = fig.querySelector(".gpx-escala");
   if(!svg) return;
   var gp2d = datos ? gpx2dProyeccion(datos) : null;
@@ -9548,6 +9630,11 @@ function gpxActivarInteraccion(fig, estado2d, datos, alAgregarPunto){
     puntosFijos.forEach(function(p){ p.el.setAttribute(p.esTexto ? "font-size" : "r", p.rBase * factor); });
   }
   function aplicar(){
+    /* "flecha fija": el centro queda SIEMPRE fijo en el origen (donde
+       transformMundo pone al vehiculo, ver gpxSvg2D) -- el pellizco/rueda
+       solo puede cambiar el tamaño (zoom), nunca el paneo, sin importar
+       sobre que punto de la pantalla se haya pellizcado. */
+    if(estado2d && estado2d.persecucion){ caja[0] = -caja[2] / 2; caja[1] = -caja[3] / 2; }
     svg.setAttribute("viewBox", caja.join(" "));
     if(estado2d) estado2d.caja = caja.slice();
     actualizarEscala();
@@ -9601,9 +9688,18 @@ function gpxActivarInteraccion(fig, estado2d, datos, alAgregarPunto){
     if(ids.length === 1){
       var previo = punteros[e.pointerId], rect = svg.getBoundingClientRect();
       if(rect.width && rect.height){
-        caja[0] -= (e.clientX - previo.x) / rect.width * caja[2];
-        caja[1] -= (e.clientY - previo.y) / rect.height * caja[3];
-        aplicar();
+        if(estado2d && estado2d.persecucion && alScrub){
+          /* arrastrar con la flecha fija activa no panea: adelanta/atrasa la
+             ruta en el tiempo (decision del usuario) -- arriba avanza, abajo
+             retrocede, con una sensibilidad ligada al zoom actual (mas cerca,
+             mas fino). */
+          var metrosPorPxV = caja[3] / rect.height;
+          alScrub(-(e.clientY - previo.y) * metrosPorPxV);
+        }else{
+          caja[0] -= (e.clientX - previo.x) / rect.width * caja[2];
+          caja[1] -= (e.clientY - previo.y) / rect.height * caja[3];
+          aplicar();
+        }
       }
       punteros[e.pointerId] = { x: e.clientX, y: e.clientY };
     }else if(ids.length === 2){
@@ -9618,7 +9714,10 @@ function gpxActivarInteraccion(fig, estado2d, datos, alAgregarPunto){
   });
   function soltar(e){
     delete punteros[e.pointerId];
-    if(estado2d && !Object.keys(punteros).length) estado2d.arrastrando = false;
+    if(estado2d && !Object.keys(punteros).length){
+      estado2d.arrastrando = false;
+      if(estado2d.persecucion && alSoltarScrub) alSoltarScrub();
+    }
   }
   /* modo "agregar punto" (spec 3.19): un clic limpio -- sin arrastre de por
      medio, y no sobre un punto ya existente -- convierte la posicion en
@@ -10161,7 +10260,7 @@ function gpxActivarFigura(fig){
   var estado3d = { yaw: GPX3D_YAW_DEF, pitch: GPX3D_PITCH_DEF, escala: 1, libre: false };
   var limites3d = { yawMin: GPX3D_LIMITES.yawMin, yawMax: GPX3D_LIMITES.yawMax, pitchMin: GPX3D_LIMITES.pitchMin, pitchMax: GPX3D_LIMITES.pitchMax };
   var estadoSim = { activo: false, jugando: false, progreso: 0, ultimoTs: null, ultimoRedibujo: 0 };   // transitorio, como calibEstado: nunca se persiste
-  var estado2d = { caja: null, agregando: false };   // zoom/paneo + modo "agregar punto", persiste entre redibujos (ver gpxActivarInteraccion)
+  var estado2d = { caja: null, agregando: false, persecucion: false, cajaPrevia: null };   // zoom/paneo + modo "agregar punto" + "flecha fija", persiste entre redibujos (ver gpxActivarInteraccion)
   var indice = parseInt(fig.dataset.gpxIndice, 10) || 0;
   var calibEstado = null;    // transitorio: paso de calibracion en curso, nunca se persiste
 
@@ -10173,18 +10272,18 @@ function gpxActivarFigura(fig){
     else if(vista === "2d+perfil"){
       /* vista apilada (investigacion de mercado 4.6): recorrer el perfil con
          el dedo/raton marca el punto correspondiente en el mapa de arriba */
-      gpxActivarInteraccion(fig, estado2d, payload.datos, agregarPuntoEnMapa);
+      gpxActivarInteraccion(fig, estado2d, payload.datos, agregarPuntoEnMapa, alScrubMapa, alSoltarScrubMapa);
       gpxActivarPerfil(contenedor, payload,
         function(p){ gpxMarcaEnMapa(fig, payload.datos, p); },
         function(){ gpxMarcaEnMapa(fig, payload.datos, null); });
     }
     else if(vista === "captura"){
       if(payload.datos.calibracion && !(calibEstado && calibEstado.paso)) gpxActivarCapturaVista(contenedor, payload);
-    }else gpxActivarInteraccion(fig, estado2d, payload.datos, agregarPuntoEnMapa);
+    }else gpxActivarInteraccion(fig, estado2d, payload.datos, agregarPuntoEnMapa, alScrubMapa, alSoltarScrubMapa);
   }
   function mostrarVista(vista){
     fig.dataset.vista = vista;
-    fig.querySelector(".gpx-vista-actual").innerHTML = gpxRenderizarVista(vista, payload, estado3d, calibEstado, estadoSim);
+    fig.querySelector(".gpx-vista-actual").innerHTML = gpxRenderizarVista(vista, payload, estado3d, calibEstado, estadoSim, estado2d);
     Array.prototype.forEach.call(fig.querySelectorAll(".gpx-boton-vista"), function(b){
       var activo = b.getAttribute("data-vista") === vista;
       b.classList.toggle("activo", activo);
@@ -10203,7 +10302,8 @@ function gpxActivarFigura(fig){
     if(!barra || !txt || !boton) return;
     var stats = payload.stats;
     barra.value = String(Math.round(estadoSim.progreso * 1000));
-    txt.textContent = (stats.distanciaKm * estadoSim.progreso).toFixed(2) + " / " + stats.distanciaKm.toFixed(2) + " km";
+    var horaTxt = estadoSim.plan ? " · " + gpxHMS(estadoSim.tReal || 0) + " / " + gpxHMS(estadoSim.plan.total) : "";
+    txt.textContent = (stats.distanciaKm * estadoSim.progreso).toFixed(2) + " / " + stats.distanciaKm.toFixed(2) + " km" + horaTxt;
     boton.innerHTML = estadoSim.jugando ? "&#10074;&#10074; Pausar" : "&#9654; Simular ruta";
     boton.setAttribute("aria-pressed", String(estadoSim.jugando));
     var velB = fig.querySelector(".gpx-boton-velsim");
@@ -10248,8 +10348,58 @@ function gpxActivarFigura(fig){
     if(!terminado) requestAnimationFrame(simPaso);
   }
   function refrescarTodo(){
-    fig.innerHTML = gpxContenidoFigura(payload, fig.dataset.vista || "2d", estado3d, calibEstado, estadoSim);
+    fig.innerHTML = gpxContenidoFigura(payload, fig.dataset.vista || "2d", estado3d, calibEstado, estadoSim, estado2d);
     activarVistaActual();
+  }
+  /* velocimetro: vive fuera del <svg> con puntero capturado (es un div
+     hermano dentro de .gpx-vista-actual), asi que se puede reemplazar solo
+     a el sin tocar el mapa -- necesario durante el arrastre de "flecha fija"
+     (ver alScrubMapa), donde reconstruir el <svg> entero cortaria el
+     arrastre a mitad de camino (pierde el pointer capture). */
+  function actualizarVelocimetro(){
+    var contenedor = fig.querySelector(".gpx-vista-actual");
+    if(!contenedor) return;
+    var veloDiv = contenedor.querySelector(".gpx-velocimetro");
+    var velKmH = gpxVelEnProgreso(payload.datos.puntos, estadoSim.progreso);
+    if(velKmH == null){
+      if(veloDiv && veloDiv.parentNode) veloDiv.parentNode.removeChild(veloDiv);
+    }else if(veloDiv){
+      veloDiv.outerHTML = gpxVelocimetroHTML(payload.stats, velKmH);
+    }else{
+      contenedor.insertAdjacentHTML("beforeend", gpxVelocimetroHTML(payload.stats, velKmH));
+    }
+  }
+  /* arrastrar el mapa con "flecha fija" activa no panea: adelanta o atrasa
+     la ruta (decision del usuario) -- mismo efecto que mover .gpx-sim-barra,
+     pero SIN reconstruir el <svg> (que tiene el pointer capture del propio
+     arrastre) en cada paso: solo se toca el transform de .gpx-mundo2d, la
+     rotacion de .gpx-norte, el velocimetro y los textos de progreso. El
+     redibujo completo (mostrarVista) llega recien al soltar. */
+  function alScrubMapa(deltaMetros){
+    var distTotalM = payload.stats.distanciaKm * 1000;
+    if(!(distTotalM > 0) || payload.datos.puntos.length < 2) return;
+    estadoSim.activo = true;
+    estadoSim.jugando = false;
+    estadoSim.progreso = Math.max(0, Math.min(1, estadoSim.progreso + deltaMetros / distTotalM));
+    if(!("plan" in estadoSim)) estadoSim.plan = gpxPlanSim(payload.datos.puntos);
+    if(estadoSim.plan) estadoSim.tReal = gpxTiempoEnProgreso(estadoSim.plan, estadoSim.progreso);
+    var contenedor = fig.querySelector(".gpx-vista-actual");
+    var g = contenedor && contenedor.querySelector(".gpx-mundo2d");
+    if(g){
+      var pos = gpxPosEnProgreso(payload.datos.puntos, estadoSim.progreso);
+      var gp2d = gpx2dProyeccion(payload.datos);
+      var p = gp2d.proy(pos);
+      g.setAttribute("transform", "rotate(" + gpxN(-pos.rumbo) + ") translate(" + gpxN(-p.x) + " " + gpxN(-p.y) + ")");
+      var norte = contenedor.querySelector(".gpx-norte");
+      if(norte) norte.style.transform = "rotate(" + gpxN(-pos.rumbo) + "deg)";
+    }
+    actualizarVelocimetro();
+    actualizarControlesSim();
+  }
+  function alSoltarScrubMapa(){
+    var vista = fig.dataset.vista || "2d";
+    if(gpxVistaSimulable(vista)) mostrarVista(vista);
+    actualizarControlesSim();
   }
   /* agregar un waypoint a mano tocando el mapa (spec 3.19): un solo disparo
      por clic -- el modo se apaga solo antes de preguntar el nombre, asi el
@@ -10403,7 +10553,7 @@ function gpxActivarFigura(fig){
     }
     el = t.closest ? t.closest(".gpx-boton-resetvista") : null;
     if(el){
-      estado2d.caja = null;
+      estado2d.caja = null; estado2d.persecucion = false; estado2d.cajaPrevia = null;
       estado3d.yaw = GPX3D_YAW_DEF; estado3d.pitch = GPX3D_PITCH_DEF; estado3d.escala = 1; estado3d.libre = false;
       estado3d.chase = false;
       gpxCopiarLimites(limites3d, GPX3D_LIMITES);
@@ -10436,6 +10586,22 @@ function gpxActivarFigura(fig){
       }
       gpxCopiarLimites(limites3d, estado3d.libre ? GPX3D_LIMITES_LIBRE : GPX3D_LIMITES);
       mostrarVista("3d");
+      return;
+    }
+    el = t.closest ? t.closest("[data-camara2d]") : null;
+    if(el){
+      estado2d.persecucion = !estado2d.persecucion;
+      if(estado2d.persecucion){
+        estado2d.cajaPrevia = estado2d.caja;
+        estado2d.caja = [-GPX2D_CHASE_ZOOM_M, -GPX2D_CHASE_ZOOM_M, GPX2D_CHASE_ZOOM_M * 2, GPX2D_CHASE_ZOOM_M * 2];
+        estadoSim.activo = true;   /* que el carrito y el velocimetro existan ya */
+        if(!("plan" in estadoSim)) estadoSim.plan = gpxPlanSim(payload.datos.puntos);
+        if(estadoSim.plan) estadoSim.tReal = gpxTiempoEnProgreso(estadoSim.plan, estadoSim.progreso);
+      }else{
+        estado2d.caja = estado2d.cajaPrevia;
+      }
+      mostrarVista(fig.dataset.vista || "2d");
+      actualizarControlesSim();
       return;
     }
     el = t.closest ? t.closest(".gpx-boton-play") : null;
@@ -10564,6 +10730,28 @@ function gpxActivarFigura(fig){
       inputColor.click();
       return;
     }
+    el = t.closest ? t.closest(".gpx-boton-color-vehiculo") : null;
+    if(el){
+      var vehiculoActual = payload.datos.vehiculo || { icono: "flecha", color: GPX_VEHICULO_COLOR_DEF };
+      var inputColorVeh = document.createElement("input");
+      inputColorVeh.type = "color";
+      inputColorVeh.value = vehiculoActual.color;
+      inputColorVeh.style.cssText = "position:fixed; left:-9999px; width:1px; height:1px";
+      document.body.appendChild(inputColorVeh);
+      inputColorVeh.addEventListener("change", function(){
+        /* {icono,color} viaja como un solo campo del companion -- hay que
+           escribir los dos juntos siempre, si no el que falta se pierde
+           (gpxEscribirCompanero fusiona solo al nivel superior). */
+        var nuevo = { icono: vehiculoActual.icono, color: inputColorVeh.value };
+        payload.datos.vehiculo = nuevo;
+        guardarCompanero({ vehiculo: nuevo }, "No pude guardar el color del vehículo en el documento.");
+        refrescarTodo();
+        document.body.removeChild(inputColorVeh);
+      });
+      inputColorVeh.addEventListener("cancel", function(){ document.body.removeChild(inputColorVeh); });
+      inputColorVeh.click();
+      return;
+    }
     el = t.closest ? t.closest(".gpx-wpt") : null;
     if(el){
       var li = fig.querySelector('.gpx-nota[data-widx="' + el.getAttribute("data-widx") + '"]');
@@ -10620,6 +10808,14 @@ function gpxActivarFigura(fig){
 
   fig.addEventListener("change", function(e){
     var t = e.target;
+    if(t.classList && t.classList.contains("gpx-select-vehiculo")){
+      var vehiculoAnterior = payload.datos.vehiculo || { icono: "flecha", color: GPX_VEHICULO_COLOR_DEF };
+      var nuevoVehiculo = { icono: t.value, color: vehiculoAnterior.color };
+      payload.datos.vehiculo = nuevoVehiculo;
+      guardarCompanero({ vehiculo: nuevoVehiculo }, "No pude guardar la forma del vehículo en el documento.");
+      refrescarTodo();
+      return;
+    }
     if(t.classList && t.classList.contains("gpx-input-foto")){
       var fotos = Array.prototype.slice.call(t.files || []);
       t.value = ""; /* que volver a elegir la misma foto dispare change */
@@ -11225,7 +11421,7 @@ function moldeDeLaFoto(){
      congelado a mitad de ruta y la aguja del velocimetro en cualquier lado. */
   Array.prototype.forEach.call(caja.querySelectorAll(".no-print, .copiar, .anclaje, .ver-codigo, .diagrama-fuente, " +
     ".gpx-sim, .gpx-velocimetro, .gpx-carrito, .gpx-carrito-perfil, .gpx-carrito3d-asta, .gpx-carrito3d-cuerpo, .gpx-carrito-cuerpo, " +
-    ".gpx-contexto"),
+    ".gpx-contexto, .gpx-boton-camara2d"),
     function(x){ if(x.parentNode) x.parentNode.removeChild(x); });
   return caja;
 }
@@ -14402,12 +14598,28 @@ function traerDocPrivado(ownerUid, docId, s){
   }, function(e){ throw sinRed(e); }).then(privDoc);
 }
 
+/* --- tope de usuarios_md/documentos.texto en firestore.rules: 100.000 bytes
+   UTF-8, no caracteres (por eso Blob y no .length). A propósito NO se sube
+   -- a diferencia de plantillas_md -- así que acá el límite real es el que
+   ya hay en las reglas; lo único que falta es avisar ANTES de intentar
+   escribir, para no confundir un rechazo por tamaño con una carrera real. */
+var TOPE_SYNC_PRIVADO = 100000;
+function bytesUTF8(s){ return new Blob([s || ""]).size; }
+function demasiadoGrandeParaSincronizar(texto){ return bytesUTF8(texto) > TOPE_SYNC_PRIVADO; }
+function avisoSyncGrande(){
+  return "Este documento pesa más de 100.000 caracteres y es demasiado grande para sincronizar con tu " +
+         "cuenta de Google (ese límite es sólo para la sincronización privada, no para guardar). Puedes " +
+         "seguir escribiéndolo y se va a guardar igual en Recientes o Mis plantillas, sin ese tope, o " +
+         "descargarlo a tu equipo con el botón Descargar.";
+}
+
 /* --- activar la sincronización de UN documento: lo crea en la nube ---
    Nace sin compartir (compartirActivo:false) y sin colaboradores: es privado
    hasta que su dueño pulse "Compartir para editar". */
 function activarSincronizacion(doc){
   if(!doc) return Promise.reject(new Error("no hay documento que sincronizar"));
   if(doc.sincronizado) return Promise.resolve(doc.sincronizado);
+  if(demasiadoGrandeParaSincronizar(doc.texto)) return Promise.reject(new Error(avisoSyncGrande()));
   return sesionGoogle().then(function(s){
     if(!s) return Promise.reject(new Error("inicia sesión con Google para sincronizar"));
     var docId = idComunidad();
@@ -14515,6 +14727,15 @@ function resolverConflicto(doc, sinc, remoto){
    La precondición de updateTime ES la comprobación: si falla, alguien ganó
    la carrera entre nuestro GET y este commit, y eso es un conflicto de verdad. */
 function subirCambiosLocales(doc, sinc, s){
+  /* si ya pasó el tope de las reglas, ni se intenta: subir de todos modos lo
+     rechazaría por precondición y esta misma función lo confundiría con una
+     carrera real, pisando el texto grande recién escrito con el remoto viejo
+     y más chico -- justo lo que "nunca se sobreescribe en silencio" prohíbe. */
+  if(demasiadoGrandeParaSincronizar(doc.texto)){
+    if(!sinc.avisoTamano){ sinc.avisoTamano = true; aviso(avisoSyncGrande(), "Descargar", descargarMd); }
+    return Promise.resolve("demasiado-grande");
+  }
+  sinc.avisoTamano = false;
   return fetch(comRaiz() + ":commit?key=" + COMUNIDAD.clave, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.idToken },
