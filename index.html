@@ -6439,20 +6439,15 @@ function pizarraTrazoApendice(anterior, pts){
   mx = (a.x + b.x) / 2; my = (a.y + b.y) / 2;
   return anterior + " Q" + a.x + " " + a.y + " " + mx + " " + my;
 }
-/* el svg de pantalla completa (#pizarron) llena el 100% del ancho Y del
-   alto de su contenedor, asi que si el viewBox ya no tiene el mismo ratio
-   que el contenedor (pasa siempre que datos.ancho/alto se preserva en vez
-   de estirarse -- ver pizarraReescalarDatos) el navegador deja franjas
-   vacias arriba/abajo o a los lados (preserveAspectRatio por defecto,
-   "meet"). Sin esto el puntero quedaria mal alineado con el trazo dentro
-   de esas franjas. */
+/* datos.ancho/alto SIEMPRE coinciden exactamente con el contenedor real
+   (ver pizarraReescalarDatos) -- el viewBox nunca queda con una relacion de
+   aspecto distinta a la del <svg>, asi que no hace falta lidiar con
+   franjas de preserveAspectRatio: un mapeo lineal directo alcanza y cada
+   punto del contenedor (esquinas incluidas, tras rotar) es un punto valido
+   del lienzo. */
 function pizarraPuntoDesde(e, rect, datos){
-  var escala = Math.min(rect.width / datos.ancho, rect.height / datos.alto);
-  var anchoDibujado = datos.ancho * escala, altoDibujado = datos.alto * escala;
-  var origenX = rect.left + (rect.width - anchoDibujado) / 2;
-  var origenY = rect.top + (rect.height - altoDibujado) / 2;
-  var x = (e.clientX - origenX) / escala;
-  var y = (e.clientY - origenY) / escala;
+  var x = (e.clientX - rect.left) / rect.width * datos.ancho;
+  var y = (e.clientY - rect.top) / rect.height * datos.alto;
   x = Math.max(0, Math.min(datos.ancho, x));
   y = Math.max(0, Math.min(datos.alto, y));
   return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
@@ -6463,33 +6458,34 @@ function pizarraPuntoDesde(e, rect, datos){
    que reescalar el lienzo sin tocarlos los dejaria encogidos en una esquina
    o cortados. Todo numero de un "d" alterna x,y,x,y... sin excepcion porque
    M/L/Q solo emiten pares completos -- no hace falta parsear por comando. */
-function pizarraReescalarD(d, sx, sy){
+function pizarraReescalarD(d, sx, sy, ox, oy){
   /* delega en pizarraTransformarD (definida mas abajo; a la hora de LLAMAR
      ya existe) -- el reemplazo in situ anterior corrompia un d compacto
      escrito a mano ("M10-20") si un numero cambiaba de signo. Un d que no
      cumple el formato estricto se deja intacto: mejor sin reescalar que roto. */
   if(!PIZARRA_RE_PARES.test(d)) return d;
-  return pizarraTransformarD(d, function(x){ return x * sx; }, function(y){ return y * sy; });
+  ox = ox || 0; oy = oy || 0;
+  return pizarraTransformarD(d, function(x){ return x * sx + ox; }, function(y){ return y * sy + oy; });
 }
 function pizarraReescalarDatos(datos, nuevoAncho, nuevoAlto){
   if(!datos.ancho || !datos.alto) return;
-  /* una sola escala para x e y (nunca sx != sy): estirar cada eje por
-     separado para llenar el nuevo ancho Y el nuevo alto exactos es lo que
-     distorsionaba el dibujo (un circulo se volvia ovalo) cada vez que la
-     rotacion cambiaba la relacion de aspecto. Se ancla al ancho -- "lo
-     horizontal se mantiene" -- y el alto lo sigue en la misma proporcion;
-     si sobra o falta alto respecto del contenedor, pizarraPuntoDesde ya
-     sabe mapear el puntero contra las franjas que deja el "meet" del svg. */
-  var s = nuevoAncho / datos.ancho;
-  if(Math.abs(s - 1) < 0.01) return;
+  if(datos.ancho === nuevoAncho && datos.alto === nuevoAlto) return;
+  /* el lienzo pasa a ocupar el contenedor nuevo EXACTO (nunca queda una
+     franja sin dibujar a los lados o arriba/abajo, sea cual sea el giro):
+     una sola escala para x e y (nunca sx != sy, eso distorsionaba figuras)
+     que ajusta el dibujo VIEJO por el eje mas restrictivo, y lo centra
+     dentro del lienzo nuevo -- el espacio que sobra alrededor no es una
+     franja muerta, es lienzo nuevo, en blanco, tan dibujable como el resto. */
+  var s = Math.min(nuevoAncho / datos.ancho, nuevoAlto / datos.alto);
+  var ox = (nuevoAncho - datos.ancho * s) / 2, oy = (nuevoAlto - datos.alto * s) / 2;
   var i, t;
   for(i = 0; i < datos.trazos.length; i++){
     t = datos.trazos[i];
-    t.d = pizarraReescalarD(t.d, s, s);
+    t.d = pizarraReescalarD(t.d, s, s, ox, oy);
     t.grosor = Math.max(1, Math.round(t.grosor * s * 10) / 10);
   }
   datos.ancho = nuevoAncho;
-  datos.alto = Math.round(datos.alto * s);
+  datos.alto = nuevoAlto;
 }
 /* herramientas de dibujo: ademas del trazo libre de siempre ("lapiz"), una
    linea recta y sellos de figura cerrada. Comparten el mismo formato de dato
@@ -13519,16 +13515,16 @@ function pizarronTieneAlgo(){
   for(var i = 0; i < PIZARRON.hojas.length; i++) if(PIZARRON.hojas[i].trazos.length) return true;
   return false;
 }
-/* gira el telefono con el Pizarron abierto: el ancho del lienzo se ajusta
-   al nuevo contenedor (si no, el dibujo queda angosto, como si la pantalla
-   siguiera vertical), pero pizarraReescalarDatos usa una sola escala para
-   x e y -- nunca estira un eje mas que el otro, eso es lo que distorsionaba
-   figuras (un circulo se volvia ovalo) al rotar. El alto sobrante o
-   faltante frente al contenedor lo resuelve el "meet" por defecto del svg
-   (franjas arriba/abajo, el trazo nunca se deforma) y pizarraPuntoDesde ya
-   sabe mapear el puntero contra esas franjas. Se reescala TODAS las hojas
-   (no solo la actual) para que sigan consistentes entre si al cambiar de
-   una a otra despues de rotar. */
+/* gira el telefono con el Pizarron abierto: el lienzo pasa a ocupar el
+   contenedor nuevo EXACTO (nunca queda una franja sin dibujar a los lados,
+   arriba o abajo -- toda la pantalla vuelve a ser dibujable de punta a
+   punta). pizarraReescalarDatos usa una sola escala para x e y (nunca
+   estira un eje mas que el otro, eso es lo que distorsionaba figuras --
+   un circulo se volvia ovalo -- al rotar) para ajustar el dibujo VIEJO sin
+   deformarlo y lo centra en el lienzo nuevo; lo que sobra alrededor es
+   lienzo nuevo en blanco, no una franja muerta. Se reescala TODAS las
+   hojas (no solo la actual) para que sigan consistentes entre si al
+   cambiar de una a otra despues de rotar. */
 function pizarronAjustarTamano(){
   if(!PIZARRON || $("#pizarron").hidden) return;
   if(PIZARRON.enCurso){
@@ -14042,7 +14038,13 @@ function idComunidad(){
 function publicarComunidad(titulo, desc){
   var texto = fuenteActual.replace(/^\n+/, "");
   if(!texto.trim()) return Promise.reject(new Error("no hay nada que publicar"));
-  if(texto.length > 100000) return Promise.reject(new Error("pasa de 100.000 caracteres"));
+  /* Firestore limita cada documento a ~1 MiB (campo + nombres + overhead);
+     900.000 caracteres deja margen para texto UTF-8 (acentos/emoji pesan
+     mas de 1 byte) mas titulo/desc/nombre/autorUid. Antes el tope era
+     100.000 -- mucho mas bajo de lo que Firestore realmente permite, y lo
+     primero que hacia caer un documento con una foto en un bloque ```gpx
+     (gpxValidarImagen admite imagenes de hasta 12 MB en base64). */
+  if(texto.length > 900000) return Promise.reject(new Error("pasa de 900.000 caracteres"));
   return sesionAnonima().then(function(s){
     var id = idComunidad();
     return fetch(comRaiz() + ":commit?key=" + COMUNIDAD.clave, {
