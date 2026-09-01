@@ -1026,6 +1026,183 @@ se niega a recibir escrituras (antes le habría pegado una línea de lista
 al final, rompiendo el JSON). "Dividir en tramos" y "Hoja de ruta" siguen
 funcionando: insertan DESPUÉS del bloque, no dentro.
 
+### 3.30 Investigación: compatibilidad total de GPX + optimización de tracks densos — investigado 31-ago-2026 (pendiente de implementar)
+
+Pedido del usuario: que MDx pueda leer cualquier variante real de GPX que
+exista, y que un track de miles de puntos se pueda aligerar sin perder
+fidelidad de velocidad/elevación, con una recomendación automática de en
+cuántos tramos dividir una ruta larga y cómo titularlos. Investigado con
+dos agentes en paralelo (formato + algoritmos); nada de esto está
+implementado todavía — queda como base para una futura fase.
+
+**A. GPX 1.0 vs 1.1 y qué le falta leer a `parseGPX()`**
+
+Como `parseGPX` ya busca por nombre de tag sin namespace
+(`getElementsByTagName` ignora el prefijo), un GPX 1.0 real (todavía común:
+exports viejos de GPSBabel/MapSource/BaseCamp, pocket queries de
+geocaching) entra sin fricción salvo un hueco: 1.0 usa `<url>`+`<urlname>`
+en vez de `<link href>` para el enlace de un wpt/rte/trk — hoy ese enlace
+se pierde en silencio. Lista priorizada de lo que le falta al parser
+(mayor valor/costo primero):
+
+1. **Saltar `<trkseg>` vacíos** (0 puntos) antes de tocar primer/último
+   punto — hoy puede colar `undefined`/`NaN` a toda la pista. Trivial.
+2. **Guardar contra `dt<=0`** (tiempo no monótono o duplicado) en
+   cualquier cálculo de velocidad — tratarlo como "sin dato", no
+   alimentarlo al filtro de mediana+MAD de 3.13. Trivial.
+3. **Recortar un BOM inicial** (`﻿`) antes de cualquier chequeo
+   manual de string y antes de `DOMParser`. Trivial.
+4. **Leer extensiones por `localName`**, no por prefijo calificado: `hr`,
+   `cad`/`cadence`, `atemp`, `wtemp`, `speed`, `course`,
+   `PowerInWatts`/`power` dentro de cualquier `<extensions>` de un
+   `trkpt`. Con una sola pieza de código cubre Garmin `gpxtpx`/`gpxpx`
+   (estándar de facto: Strava, Wahoo, Suunto, COROS y Polar exportan el
+   mismo esquema), ClueTrust `gpxdata` (legado) y OsmAnd — todos usan
+   nombres locales parecidos con prefijos distintos, y
+   `getElementsByTagName` compara por nombre calificado completo, así que
+   hoy ninguno se lee (`parseGPX` no toca `<extensions>` en ningún lado).
+   Mayor valor real (ritmo cardíaco, cadencia, potencia y temperatura
+   graficables junto al perfil de elevación que ya existe) al menor costo
+   (DOM nativo, cero dependencias nuevas).
+5. **Leer `sym`** en `<wpt>` — presente en la inmensa mayoría de archivos
+   reales de Garmin/OsmAnd/Locus, define el ícono correcto; hoy se pierde.
+6. **Cortar el trazo también entre `<trkseg>` distintos dentro de un mismo
+   `<trk>`**, no solo entre `<trk>` distintos (como ya hace hoy, 3.25). Un
+   `<trkseg>` nuevo casi siempre marca una pausa real de grabación
+   (auto-pausa de reloj deportivo, GPS que perdió señal en un túnel) o,
+   más raro, un corte artificial de un exportador — en ambos casos, hoy
+   `parseGPX` concatena todos los `trkseg` de un `trk` sin cortar, así que
+   se dibuja una línea recta inventada y se calcula una velocidad/
+   distancia falsa entre el último punto antes de la pausa y el primero
+   después. Mismo mecanismo que ya existe para saltar entre tracks
+   (`a.track !== b.track` en `gpxEstadisticas`), aplicado un nivel más
+   abajo.
+7. **Mensajes de error específicos para TCX/KML/FIT**: si
+   `documentElement.tagName` es `TrainingCenterDatabase` o `kml`, o el
+   contenido no es XML válido y pinta binario, avisar "esto es TCX/KML/
+   FIT, no GPX" en vez de un error genérico o un mapa vacío (KML/KMZ
+   siguen sin soportarse como formato de entrada, ver spec de decisión
+   original — esto es solo para el mensaje).
+8. **Leer `<url>`+`<urlname>` de GPX 1.0** como alias de `<link href>`
+   cuando este último no está.
+9. Nicho, opcional: lector aislado para `groundspeak:cache` de
+   geocaching.com (dificultad, terreno, tipo, pista cifrada en ROT13)
+   cuando el archivo es evidentemente de geocaching — sin tocar el resto
+   del parser.
+10. **No priorizar**: `magvar`, `geoidheight`, `ageofdgpsdata`, `dgpsid`,
+    `src`, `gpxx:DisplayColor` — están en el schema pero son rarísimos o
+    de bajo impacto en archivos reales de consumo.
+
+**B. Por qué Douglas-Peucker no alcanza para aligerar el archivo guardado**
+
+Douglas-Peucker (el que ya usa `gpxSimplificar`/`gpxSimplificarA`, hoy solo
+para la vista 3D con tope de 400 puntos, 3.5) es puramente geométrico: la
+prueba es "¿está este punto lejos de la línea recta?", no "¿cambió algo
+acá?". Ejemplo concreto: un ciclista frena a 0 km/h en un semáforo sobre
+una calle perfectamente recta y vuelve a acelerar — los puntos de la
+parada tienen distancia perpendicular ≈0 a la cuerda, así que DP los
+elimina primero de todos, y la parada desaparece sin dejar rastro,
+convertida en velocidad constante inventada. Por eso hoy solo se usa para
+dibujo (no necesita fidelidad de velocidad) y nunca para reducir la
+cantidad de puntos guardados — `gpxAdelgazar` (3.9) aligera bytes por
+punto, pero jamás reduce la cantidad de `trkpt`.
+
+El paralelo conceptual más cercano a lo pedido es **Swinging Door
+Trending** (históricos industriales/SCADA, patente US 4,669,097): sobre
+una serie casi-lineal, ancla un punto inicial y va "cerrando" dos puertas
+de tolerancia con cada punto nuevo hasta que ninguna puede contenerlo —
+ahí cierra el tramo y lo reemplaza por la recta inicio-fin. Es
+literalmente "colapsar un tramo estable a un resumen inicio/fin", solo
+que sobre una variable; el diseño de abajo lo extiende a las tres señales
+que importan en un GPX (distancia, velocidad, pendiente) a la vez. Otra
+referencia con pseudocódigo público reusable es **SQUISH/SQUISH-E**
+(compresión de trayectorias GPS online por cola de prioridad de error
+posición-en-el-tiempo), que en benchmarks reales da el menor error de
+velocidad de los métodos comparados — confirma que cuidar la velocidad
+como señal propia (no solo la geometría) es el criterio correcto.
+
+**Diseño propuesto — `gpxOptimizarTramosRectos(puntos, opciones)`:**
+recorre puntos consecutivos extendiendo un tramo candidato mientras se
+cumplen a la vez tres criterios; al romperse cualquiera, cierra el tramo y
+lo reemplaza por {inicio, un punto medio representativo, fin} con los
+datos resumidos:
+
+```javascript
+// opciones y sus defaults:
+//   toleranciaDistanciaM 6        -- desviación perpendicular máx. a la cuerda (metros;
+//                                    el ruido típico de GPS civil ronda 5-10m)
+//   toleranciaVelocidadPct 0.15   -- banda +-15% sobre el promedio del tramo
+//   toleranciaVelocidadMinKmh 3   -- piso absoluto (evita bandas ridículas a baja velocidad)
+//   toleranciaPendientePct 4      -- variación admitida de pendiente dentro del tramo, en
+//                                    puntos porcentuales, con corte obligatorio si el signo
+//                                    se invierte con claridad (no fusionar subida con bajada)
+//   minPuntosParaResumir 5        -- tramos más cortos no valen la pena, se guardan crudos
+function gpxOptimizarTramosRectos(puntos, opciones) {
+  // por cada candidato: (a) máxima desviación perpendicular de los puntos
+  // internos contra la cuerda inicio->candidato (misma proyección local
+  // plana que ya usa gpxSimplificar) <= toleranciaDistanciaM
+  // (b) velocidad instantánea dentro de la banda alrededor del promedio
+  // acumulado del tramo (null si falta <time>, no rompe el tramo)
+  // (c) pendiente sin giro brusco (rango acumulado <= toleranciaPendientePct,
+  //     y corte si el signo neto se invierte)
+  // al romperse cualquiera: cerrar el tramo, guardar en el punto final
+  // {puntosOriginales, velocidadPromedioKmh, elevacionInicial, elevacionFinal}
+  // y reiniciar desde ahí.
+}
+```
+
+**Con o sin pérdida, y cuándo aplicarlo:** a diferencia de `gpxAdelgazar`
+(sin pérdida, solo aligera bytes), esto SÍ descarta puntos crudos — debe
+ser un paso **opcional y explícito solo al importar**, nunca automático ni
+antes de un guardado normal, mostrando antes/después ("50.000 puntos →
+1.200 puntos, error de velocidad estimado <0.3 km/h") para que el usuario
+decida, y dejando una marca (comentario dentro del bloque ```gpx con las
+tolerancias usadas) para que no se pueda re-aplicar sobre datos ya
+optimizados sin saberlo.
+
+**C. Recomendar en cuántos tramos dividir, y titularlos — extiende
+`gpxDividirRuta` (3.14) sin cambiar su mecanismo de corte**
+
+`gpxDividirRuta` ya corta por waypoints puestos a mano y genera
+`## Tramo N: A → B` (entra solo al Índice/Esquema). Lo que falta es
+decidir DÓNDE poner esos waypoints de corte cuando el usuario no puso
+ninguno:
+
+1. `N` = total de trkpt, `D` = distancia total, `velMedia` = velocidad
+   media global (ya los da `gpxEstadisticas`).
+2. Detectar pausas candidatas recorriendo los segmentos: salto de tiempo
+   `Δt > 8 min`, o racha de velocidad `< 1 km/h` que acumula `≥ 5 min`
+   dentro de 50 m (evita contar cada semáforo). Ordenar por duración.
+3. Techo de puntos por tramo: `3000` (las vistas 2D/perfil/estadísticas
+   dibujan siempre todos los puntos, sin tope actual — a diferencia de la
+   3D que ya recorta a ~400 con Douglas-Peucker, 3.5).
+4. Techo de distancia por tramo según el modo, inferido de `velMedia` sin
+   pedirle nada nuevo al usuario: `< 8 km/h` → caminata, 15 km;
+   `8-25 km/h` → ciclismo, 40 km; `> 25 km/h` → auto/moto, 150 km.
+5. `K = max(1, ceil(N/3000), ceil(D/techoDistancia), pausas+1)`. Si
+   `K≤1`, no recomendar nada.
+6. Elegir los `K-1` cortes: primero las pausas más largas del paso 2; si
+   faltan (ruta larga sin pausas reales, ej. autopista), repartir el
+   resto equiespaciado por distancia acumulada con `gpxPuntoCercano`.
+7. Resolver cada corte contra waypoints existentes (misma tolerancia que
+   ya usa `gpxDividirRuta`: descartar a <3% de la distancia total o 30 m
+   del inicio/fin): si hay un `<wpt>` real a <150 m, usarlo tal cual y
+   tomar su nombre; si no, crear uno sintético `"Km {distanciaAcumulada}"`.
+8. Título de cada tramo, mismo formato que ya genera `gpxDividirRuta`: si
+   ambos extremos tienen nombre, usarlo (`## Tramo N: A → B`); si falta
+   alguno, `"Tramo N ({X} km, {HH:MM})"`.
+9. Presentar como propuesta ("esta ruta tiene N puntos / D km — se
+   recomienda dividirla en K tramos", cortes resaltados sobre el
+   mapa/perfil) y dejar que el usuario confirme antes de invocar
+   `gpxDividirRuta` sin cambios internos — solo recibe los waypoints ya
+   resueltos en el paso 7.
+
+Orden recomendado si se implementan ambas piezas: **dividir primero,
+comprimir después** — una vez separados los tramos, cada uno puede
+optimizarse con tolerancias propias (un tramo de autopista tolera mucha
+más simplificación que un sendero técnico con curvas cerradas) en vez de
+una sola tolerancia global para toda la ruta.
+
 ---
 
 ## 4. Bloque ```svg — vectores crudos
@@ -1161,20 +1338,13 @@ anterior). Render: dos rieles verticales, peldaños horizontales, símbolos IEC
 dibujados en SVG, etiquetas encima. ~200 líneas.
 (Diagrama unifilar: pregunta abierta 14.4.)
 
-### 9.1 Combinar varias ramas en paralelo (aclaración, no es bug)
+### 9.1 Combinar varias ramas en paralelo
 
-Un `+` solo puede ir como el primer carácter de un peldaño (deriva de arriba)
-o como el último (deriva hacia abajo) — nunca los dos dentro de la misma fila
-con más elementos alrededor. Esto significa que **una sola fila no puede
-tener dos pares de "+" independientes** (por ejemplo, dos ramas que se unen
-antes de una bobina, todo en una línea). El parser lo rechaza con
-`el "+" solo puede ir al principio o al final del peldaño`.
-
-Para combinar dos o más ramas en paralelo (p. ej. un sellado con
-arranque+mantenimiento, o tres condiciones cualquiera que activan la misma
-salida) se escribe **una fila por rama**, todas con su propio `+...+`; el
-buscador de ancla (`buscarAncla`) ya salta las filas que no son peldaños
-"completos" (las que tienen su propio `+` pendiente) y sigue subiendo hasta
+Para combinar dos o más ramas en paralelo que alimentan la misma bobina
+(p. ej. un sellado con arranque+mantenimiento, o tres condiciones
+cualquiera que activan la misma salida) se sigue escribiendo **una fila por
+rama**, todas con su propio `+...+`; el buscador de ancla (`buscarAncla`) ya
+salta las filas que no son peldaños "completos" y sigue subiendo hasta
 encontrar el peldaño completo más cercano — así que dos, tres o más filas de
 rama seguidas anclan todas al mismo peldaño de arriba sin que haga falta
 anidar nada:
@@ -1215,6 +1385,82 @@ Probado en `probar_ladder_error_parcial.js` (unitaria, 18 aserciones) y en
 `probar_ladder_v2.js`/`probar_ladder_dom.js` (extremo a extremo en el
 navegador, casos que antes eran "error fatal" ahora son "parcial": figura +
 avisos + marcas rojas). SW v52 → v54.
+
+### 9.3 Varios tramos en una misma fila (izquierda, derecha y centro) — hecho 31-ago-2026
+
+**Superada la limitación de "un `+` solo al principio o al final de la
+línea, nunca los dos con más elementos alrededor" que describía esta
+sección antes.** Se pidió poder usar una sola fila para tres cosas a la vez:
+una rama que sale por la derecha, una que entra por la izquierda, y un
+puente al centro que no toca ningún riel — sin tener que partir cada una en
+su propia línea. Ejemplo real que antes daba error en dos puntos distintos
+(el `+` de en medio, y la bobina `R1` sin ningún `+` al lado):
+
+```
+| [stop/]---[start]------(K1)                |
+|          +--[k1]--+    +--(R1)              | K1 en paralelo con start; R1: salida nueva
+| [sensor1/]---[R1]----(k2)                    |
+| [sensor2]---+   +--[sensor3/]--+  +--(R2)    | derecha, centro e izquierda en una sola fila
+```
+
+- Un peldaño ya no es "un tramo" fijo: es una **lista de tramos**, uno al
+  lado del otro en la misma línea, separados por los `+` que antes solo se
+  permitían en los extremos. Cada `+` **abre** un tramo si el tramo en curso
+  está vacío (todavía sin elementos ni `+` de entrada) — es su rama de
+  entrada — y lo **cierra** si ya tiene contenido — es su rama de salida —,
+  dejando listo el siguiente tramo. Así, con tantos `+` como hagan falta, una
+  misma fila arma tantos tramos como haga falta.
+- Solo el **primer** tramo de la fila puede arrancar sin `+` (entonces
+  arranca del riel izquierdo); solo el **último** puede terminar sin `+`
+  (entonces cierra contra el riel derecho, tenga o no bobina propia).
+  Cualquier tramo del medio necesita su propio `+` de entrada.
+- **Invariante que salió del propio algoritmo de escaneo, no de una regla
+  aparte:** un tramo solo pasa a formar parte de la lista, salvo el último,
+  cuando aparece SU PROPIO `+` de salida — así que, por construcción,
+  cualquier tramo que no sea el último tiene siempre `derivacionFin`
+  puesto. Como un tramo con bobina nunca puede tener también un `+` de
+  salida (esa regla ya existía, sin cambios), una bobina "suelta" —sin `+`
+  que la siga— solo puede quedar en el **último** tramo de la fila. Se
+  intentó (y se descartó, ver más abajo) un diseño donde un tramo con bobina
+  pudiera cerrarse "solo" con un hueco en blanco sin `+`; resultó ambiguo
+  con el siguiente `+` de la fila (¿cierra el tramo anterior o abre uno
+  nuevo?), así que se dejó fuera — para varias salidas nuevas en paralelo
+  se sigue usando una fila por rama (9.1).
+- Reglas de validez, generalizadas por tramo en vez de por fila entera: las
+  cuatro de la extensión v2 (bobina + `+` de salida es error; `+` de
+  entrada sin bobina ni `+` de salida es error; sin ningún `+` y sin bobina
+  es error; peldaño/tramo vacío es error) se aplican igual a cada tramo, más
+  dos nuevas ligadas a la posición: un tramo que no es el primero debe
+  empezar con `+`, y (garantizado por el invariante de arriba, no hace
+  falta comprobarlo aparte) cualquier tramo que no es el último ya tiene su
+  `+` de salida.
+- `ladderRenderSVG` quedó igual de simple que antes, ahora iterando tramos
+  en vez de un único `elementos`/`derivacionInicio`/`derivacionFin` por
+  fila: cada tramo dibuja su propio cable, símbolos y conectores verticales
+  sobre la misma `y` de la fila. El cierre del cable a la derecha
+  (`xFin`) es `xDe(derivacionFin)` si el tramo tiene `+` de salida, o
+  `railDer` si no —siempre correcto porque, por el invariante de arriba,
+  solo el último tramo llega ahí sin `+`.
+- Retrocompatible al 100%: una fila sin ningún `+` en medio se comporta
+  exactamente igual que antes (un solo tramo); los ejemplos de las
+  secciones 9 y 15.1, y de `plantillas/logica-escalera-plc.md`, siguen
+  dando cero errores tal cual estaban escritos.
+- Segunda entrada del menú **`+ Insertar` → `Lógica y electricidad` →
+  `Escalera PLC`** actualizada al ejemplo de arriba (las cuatro filas,
+  demostrando los tres tipos de rama a la vez). Plantilla nueva
+  `plantillas/logica-escalera-ramas.md` (registrada en `indice.json`,
+  categoría `logica`), dedicada a explicar esta extensión con el mismo
+  ejemplo, fila por fila; `guia-markdown.md` y `logica-escalera-plc.md`
+  actualizados con la mención y un ejemplo corto cada uno.
+- Probado con un arnés de Node que extrae las funciones puras del parser
+  directamente de `index.html` (sin navegador): retrocompatibilidad de los
+  tres patrones de v1/v2 (sello clásico, salida extra, puente en U), los
+  cinco errores que debían seguir siéndolo, el ejemplo exacto de cuatro
+  filas de arriba (columnas de cada `+` verificadas contra `indexOf` de la
+  línea original, ancla de cada tramo verificada por índice de fila), y los
+  casos estructurales nuevos (tramo del medio sin `+` de entrada, tres
+  tramos consecutivos con dos puentes y una salida final). 17 aserciones,
+  todas en verde. SW v69→v70.
 
 ---
 
@@ -1798,7 +2044,8 @@ daban error. Se generalizó el `+` de un solo extremo (siempre al final) a
   de punta a punta). Regresión general sigue en verde. SW v45→v46. Ver
   extensión de v2 (ramas y salidas múltiples) más arriba — pruebas ampliadas
   en `probar_ladder_v2.js`, `probar_ladder_unidad.js` actualizado a los
-  nombres de campo nuevos, SW v49→v50.
+  nombres de campo nuevos, SW v49→v50. Ver también la extensión de v3
+  (varios tramos por fila, izquierda/derecha/centro) en 9.3 — SW v69→v70.
 
 ### 15.2 ` ```verdad ` — tabla de verdad con cálculo automático — hecho 30-ago-2026
 

@@ -29,6 +29,15 @@ tramo del peldaño de arriba — con un `+` al PRINCIPIO del peldaño en vez de 
 | +-----[C]----------------+     | puente en U: entra y sale del mismo peldaño de arriba
 ```
 
+Y una misma fila puede tener **más de una rama a la vez** — cada `+` extra abre o cierra un tramo
+nuevo, así que en una sola línea caben una rama por la izquierda, una por la derecha y un puente al
+centro, todas juntas (ver la plantilla `escalera-ramas.md` para un ejemplo real completo):
+
+```ladder
+| [A] [B] ---------------- (M1)  | peldaño ancla (completo, sin ningún "+")
+| [D]------+   +--[C]--+   +--(M2) | tramo 1: rama a la derecha · tramo 2: puente al centro con C · tramo 3: rama a la izquierda con salida M2
+```
+
 ## Cómo se escribe
 
 ```md
@@ -45,8 +54,9 @@ Cada línea es un peldaño: `| <contenido> | <comentario opcional>`.
 | `[X/]` | contacto normalmente cerrado (NC) |
 | `(Y)` | bobina |
 | `[TON Tn t]` | temporizador a la conexión, `t` en segundos (`[TON T1 5s]` o `[TON T1 1.5s]`) |
-| `+` al final del peldaño | este extremo no llega al riel derecho: se conecta arriba (salida) |
-| `+` al principio del peldaño | este extremo no arranca en el riel izquierdo: se conecta arriba (entrada) |
+| `+` al final de un tramo | ese extremo no llega al riel derecho: se conecta arriba (salida) |
+| `+` al principio de un tramo | ese extremo no arranca en el riel izquierdo: se conecta arriba (entrada) |
+| un `+` de más en medio de la línea | cierra el tramo en curso y abre uno nuevo al lado — así caben varios tramos, cada uno con su propia rama, en un mismo peldaño |
 | `-` y los espacios | solo relleno visual del cable, no hacen nada |
 
 - `norma=iec` (por defecto) o `norma=nema` — parámetro del bloque, solo cambia el símbolo
@@ -59,19 +69,27 @@ Cada línea es un peldaño: `| <contenido> | <comentario opcional>`.
   ancla o sobre columnas distintas.
 
 > [!NOTA]
-> Un peldaño completo (con bobina) no lleva ningún `+`. Con `+` solo al final: rama de sello, sin
-> bobina propia (como el `[M1]` del primer ejemplo). Con `+` solo al principio: una salida más en
-> paralelo, con su propia bobina (segundo ejemplo). Con `+` en los dos extremos: un puente, sin
-> bobina propia — no representaría nada tener una bobina puenteando dos puntos del mismo cable.
+> Un peldaño completo (un solo tramo, con bobina, sin ningún `+`) no lleva ningún `+`. Dentro de un
+> tramo: con `+` solo al final, rama de sello, sin bobina propia (como el `[M1]` del primer
+> ejemplo). Con `+` solo al principio, una salida más en paralelo, con su propia bobina (segundo
+> ejemplo). Con `+` en los dos extremos, un puente, sin bobina propia — no representaría nada
+> tener una bobina puenteando dos puntos del mismo cable. Un tramo que no es el primero de la fila
+> siempre necesita su propio `+` de entrada (no hay a qué riel arrancar en medio de la línea), y uno
+> que no es el último siempre se cierra con su propio `+` de salida — así que una bobina "suelta",
+> sin `+` que la siga, solo puede estar en el último tramo de la fila.
 
 ## Lo que no hace
 
 - No hay contador (`CTU`/`CTD`) todavía, solo temporizador `TON`.
 - No dibuja diagramas unifilares (líneas de potencia, transformadores, disyuntores) — es otra
   familia de diagrama, pensada para contactos y bobinas de control.
-- Una rama (cualquier peldaño con `+`) no puede servir de ancla para otra: si el peldaño
-  inmediatamente arriba tampoco es completo, la búsqueda sigue subiendo hasta encontrar uno que sí
-  lo sea — no hace falta que la rama de arriba sea completa a propósito.
+- Una rama (cualquier peldaño con `+`, tenga uno o varios tramos) no puede servir de ancla para
+  otra: si el peldaño inmediatamente arriba tampoco es completo, la búsqueda sigue subiendo hasta
+  encontrar uno que sí lo sea — no hace falta que la rama de arriba sea completa a propósito.
+- Varias bobinas nuevas en una misma fila, cada una en su propio tramo, no funciona: un tramo con
+  bobina siempre tiene que ser el último de la fila (si le sigue otro tramo, ya no puede cerrar con
+  `+` de salida y con bobina a la vez). Para dos o más salidas en paralelo desde la misma condición
+  se sigue escribiendo **una fila por rama**, como en el segundo ejemplo de arriba.
 
 ## Esqueleto para empezar
 

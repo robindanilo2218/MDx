@@ -84,6 +84,12 @@
    "nombre": "Rutas y viajes",
    "icono": "➤",
    "descripcion": "Documentos con mapa dentro: bitácoras de reparto, reportes de excursión, fichas de ruta e inspecciones en el terreno. El bloque de mapa funciona sin internet y acepta un archivo GPX real o puntos escritos a mano."
+  },
+  {
+   "id": "organizacion",
+   "nombre": "Organización y planificación",
+   "icono": "📅",
+   "descripcion": "Calendarios, planificadores de semana, gestores de proyecto y cronogramas, hechos con tablas que se calculan solas, casillas y diagramas de Gantt — sin ningún bloque nuevo que aprender."
   }
  ],
  "plantillas": [
@@ -1030,7 +1036,16 @@
    "nombre": "escalera-plc.md",
    "titulo": "Escalera PLC (IEC/NEMA)",
    "destino": "—",
-   "desc": "Contactos, bobina, temporizador y derivación en paralelo; norma=iec o norma=nema."
+   "desc": "Contactos, bobina, temporizador y varias ramas en paralelo por fila; norma=iec o norma=nema."
+  },
+  {
+   "id": "logica-escalera-ramas",
+   "cat": "logica",
+   "archivo": "logica-escalera-ramas.md",
+   "nombre": "escalera-ramas.md",
+   "titulo": "Escalera PLC: varias ramas en una fila",
+   "destino": "—",
+   "desc": "Un mismo peldaño con rama a la izquierda, a la derecha y al centro a la vez — arranque-paro con sello y salidas auxiliares en una sola línea."
   },
   {
    "id": "ruta-bitacora-reparto",
@@ -1067,6 +1082,51 @@
    "titulo": "Inspección georreferenciada",
    "destino": "—",
    "desc": "Postes, válvulas o equipos repartidos en el terreno: cada punto del mapa con su formulario de revisión abajo, misma letra en mapa y papel."
+  },
+  {
+   "id": "org-calendario-mensual",
+   "cat": "organizacion",
+   "archivo": "org-calendario-mensual.md",
+   "nombre": "calendario-mensual.md",
+   "titulo": "Calendario mensual",
+   "destino": "—",
+   "desc": "Cuadrícula del mes para imprimir o rellenar en pantalla, con una agenda de eventos por fecha debajo."
+  },
+  {
+   "id": "org-planificador-semanal",
+   "cat": "organizacion",
+   "archivo": "org-planificador-semanal.md",
+   "nombre": "planificador-semanal.md",
+   "titulo": "Planificador semanal",
+   "destino": "—",
+   "desc": "Horario por bloques de tiempo, de lunes a domingo, con prioridades de la semana y pendientes sueltos."
+  },
+  {
+   "id": "org-gestor-proyectos",
+   "cat": "organizacion",
+   "archivo": "org-gestor-proyectos.md",
+   "nombre": "gestor-proyectos.md",
+   "titulo": "Gestor de proyectos",
+   "destino": "—",
+   "desc": "Tabla de tareas con responsable, prioridad y fecha límite; el avance del proyecto se calcula solo."
+  },
+  {
+   "id": "org-cronograma-gantt",
+   "cat": "organizacion",
+   "archivo": "org-cronograma-gantt.md",
+   "nombre": "cronograma-gantt.md",
+   "titulo": "Cronograma de proyecto (Gantt)",
+   "destino": "—",
+   "desc": "Tareas encadenadas en el tiempo con after, hitos y tramo crítico, más una tabla de hitos con fecha exacta."
+  },
+  {
+   "id": "org-rastreador-habitos",
+   "cat": "organizacion",
+   "archivo": "org-rastreador-habitos.md",
+   "nombre": "rastreador-habitos.md",
+   "titulo": "Rastreador de hábitos",
+   "destino": "—",
+   "desc": "Cuadrícula semanal de casillas, una fila por hábito, que se marca al toque sin abrir el editor."
   }
  ]
 }
