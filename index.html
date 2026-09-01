@@ -249,11 +249,11 @@ body.editando #ed{flex:1 1 auto; height:auto; min-height:0}
   border:1px solid var(--borde); background:var(--papel); color:var(--texto);
 }
 .estilo-rejilla button:hover{border-color:var(--acento); background:var(--acento-suave)}
-.chico-form .grupo{
+.chico-form .grupo, .chico-menu .grupo{
   font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.02em;
   text-transform:uppercase; color:var(--tenue); margin:.5rem 0 -.2rem;
 }
-.chico-form .grupo:first-child{margin-top:0}
+.chico-form .grupo:first-child, .chico-menu .grupo:first-child{margin-top:0}
 
 /* ==========================================================================
    BARRA DE HERRAMIENTAS
@@ -1261,7 +1261,10 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .gpx-viewer:-webkit-full-screen .gpx-cuestas, .gpx-viewer:-webkit-full-screen .gpx-aviso{
   display:none;
 }
+.gpx-boton-plegar-pois{display:block; width:100%; text-align:left; padding:.4rem .2rem; margin-bottom:.4rem; border:none; background:none; color:var(--texto); font-size:.9em; font-weight:600; cursor:pointer}
+.gpx-boton-plegar-pois:hover{color:var(--acento)}
 .gpx-pois{list-style:none; margin:0 0 .6rem; padding:0; display:grid; gap:.4rem}
+.gpx-pois[hidden]{display:none}
 .gpx-poi{display:flex; align-items:center; justify-content:space-between; gap:.6rem; padding:.4rem .6rem; background:var(--papel); border:1px solid var(--borde); border-radius:.4rem; font-size:.9em; transition:box-shadow .2s}
 .gpx-poi.gpx-resaltada{box-shadow:0 0 0 2px var(--acento)}
 .gpx-poi-acciones{display:flex; gap:.4rem; flex-shrink:0}
@@ -4845,6 +4848,17 @@ var GPX_COLOR_PALABRA = [
   ["Accidente","#e5484d"], ["Parada","#f5a623"], ["Entrega","#2fae4e"],
   ["Carga","#1f6feb"], ["Combustible","#e3b341"], ["Revisión","#c297ff"]
 ];
+/* (3.30-A5) vocabulario de <sym> real de Garmin/OsmAnd/Locus -- en ingles,
+   a diferencia de GPX_COLOR_PALABRA (palabras que el propio usuario de MDx
+   escribe en el nombre). Sin esto, un GPX de fabrica con <sym> pero sin
+   <type> ni una palabra clave en el nombre siempre caia al azul por defecto. */
+var GPX_SYM_PALABRA = [
+  ["danger","#e5484d"], ["hazard","#e5484d"], ["medical","#e5484d"], ["first aid","#e5484d"], ["hospital","#e5484d"],
+  ["water","#1f6feb"], ["fuel","#e3b341"], ["gas station","#e3b341"],
+  ["restaurant","#2fae4e"], ["food","#2fae4e"], ["campground","#2fae4e"],
+  ["parking","#f5a623"], ["summit","#f5a623"], ["scenic","#f5a623"],
+  ["lodging","#c297ff"]
+];
 function gpxColorWaypoint(datos, idx){
   var over = datos.coloresWpt && datos.coloresWpt[idx];
   if(over) return over;
@@ -4853,6 +4867,8 @@ function gpxColorWaypoint(datos, idx){
   if(Object.prototype.hasOwnProperty.call(GPX_COLOR_TIPO, tipo)) return GPX_COLOR_TIPO[tipo];
   var nombre = w.nombre || "", i;
   for(i = 0; i < GPX_COLOR_PALABRA.length; i++) if(nombre.indexOf(GPX_COLOR_PALABRA[i][0]) >= 0) return GPX_COLOR_PALABRA[i][1];
+  var sym = (w.sym || "").toLowerCase();
+  if(sym) for(i = 0; i < GPX_SYM_PALABRA.length; i++) if(sym.indexOf(GPX_SYM_PALABRA[i][0]) >= 0) return GPX_SYM_PALABRA[i][1];
   return "#0099ff";
 }
 var GPX_VEHICULO_COLOR_DEF = "#ff6a00";
@@ -4920,9 +4936,49 @@ function gpxMinMax(arr, obtener){
 function gpxN(n){ return Math.round(n * 10) / 10; }
 
 function parseGPX(xmlTexto){
+  xmlTexto = String(xmlTexto || "").replace(/^\uFEFF/, ""); // BOM inicial (3.30-A3): rompe chequeos de string antes del DOMParser
   var parser = new DOMParser();
-  var doc = parser.parseFromString(String(xmlTexto || ""), "text/xml");
+  var doc = parser.parseFromString(xmlTexto, "text/xml");
   if(doc.getElementsByTagName("parsererror").length) throw new Error("el GPX no es un XML válido");
+  var raiz = ((doc.documentElement && doc.documentElement.tagName) || "").toLowerCase();
+  if(raiz === "trainingcenterdatabase") throw new Error("esto es un archivo TCX, no GPX -- convertilo a GPX antes de pegarlo aquí.");
+  if(raiz === "kml") throw new Error("esto es un archivo KML/KMZ, no GPX -- convertilo a GPX antes de pegarlo aquí.");
+
+  /* extensiones de fabricante dentro de un <trkpt> (3.30-A4): Garmin
+     gpxtpx/gpxpx (mismo esquema que exportan Strava/Wahoo/Suunto/COROS/
+     Polar), ClueTrust gpxdata (legado) y OsmAnd usan nombres locales
+     parecidos con prefijos distintos -- getElementsByTagName compara por
+     nombre calificado completo, asi que ninguno se leia. Por localName los
+     cuatro entran con la misma pasada. */
+  function leerExtensiones(nodo){
+    var extEl = nodo.getElementsByTagName("extensions")[0];
+    if(!extEl) return null;
+    var hijos = extEl.getElementsByTagName("*"), out = null, i, local, campo, v;
+    for(i = 0; i < hijos.length; i++){
+      local = (hijos[i].localName || hijos[i].tagName || "").toLowerCase();
+      campo = local === "hr" ? "hr" :
+        (local === "cad" || local === "cadence") ? "cad" :
+        local === "atemp" ? "atemp" : local === "wtemp" ? "wtemp" :
+        local === "speed" ? "speedExt" : local === "course" ? "course" :
+        (local === "powerinwatts" || local === "power") ? "power" : null;
+      if(!campo) continue;
+      v = parseFloat(hijos[i].textContent);
+      if(!isFinite(v)) continue;
+      if(!out) out = {};
+      out[campo] = v;
+    }
+    return out;
+  }
+  function leerEnlace(nodo){
+    var linkEl = nodo.getElementsByTagName("link")[0];
+    if(linkEl) return linkEl.getAttribute("href") || "";
+    return gpxTexto(nodo, "url"); // GPX 1.0 (3.30-A8): <url>+<urlname> en vez de <link href>
+  }
+  function conExtensiones(base, nodo){
+    var ext = leerExtensiones(nodo), k;
+    if(ext) for(k in ext) base[k] = ext[k];
+    return base;
+  }
 
   function leerPuntos(tagPunto, contenedorTag){
     var out = [], contenedores = contenedorTag ? doc.getElementsByTagName(contenedorTag) : [doc], c, i, p;
@@ -4930,12 +4986,12 @@ function parseGPX(xmlTexto){
       var pts = contenedores[c].getElementsByTagName(tagPunto);
       for(i = 0; i < pts.length; i++){
         p = pts[i];
-        out.push({
+        out.push(conExtensiones({
           lat: parseFloat(p.getAttribute("lat")),
           lon: parseFloat(p.getAttribute("lon")),
           ele: parseFloat(gpxTexto(p, "ele") || "0"),
           tiempo: gpxTexto(p, "time") || null
-        });
+        }, p));
       }
     }
     return out;
@@ -4946,37 +5002,46 @@ function parseGPX(xmlTexto){
      recorrerlos), pero p.track marca a que ruta pertenece cada uno y
      `tracks` guarda nombre y rango [desde, hasta) de cada una. Los dibujos
      cortan el trazo donde cambia p.track: sin eso apareceria un conector
-     recto e inventado entre el fin de una ruta y el inicio de la otra. */
-  var puntos = [], tracks = [], trks = doc.getElementsByTagName("trk"), t, pts, punto;
+     recto e inventado entre el fin de una ruta y el inicio de la otra.
+     p.seg (3.30-A6) hace lo mismo un nivel mas abajo: cada <trkseg> dentro
+     de un mismo <trk> tambien corta el trazo -- una pausa real de grabacion
+     (auto-pausa de reloj deportivo, GPS que perdio señal en un tunel) no
+     debe dibujarse como una recta inventada ni contarse como tramo recorrido. */
+  var puntos = [], tracks = [], segGlobal = 0, trks = doc.getElementsByTagName("trk"), t, s, pts, trksegs, grupos, desde, punto;
   for(t = 0; t < trks.length; t++){
-    pts = trks[t].getElementsByTagName("trkpt");
-    if(!pts.length) continue;
-    var desde = puntos.length;
-    for(i = 0; i < pts.length; i++){
-      punto = pts[i];
-      puntos.push({
-        lat: parseFloat(punto.getAttribute("lat")),
-        lon: parseFloat(punto.getAttribute("lon")),
-        ele: parseFloat(gpxTexto(punto, "ele") || "0"),
-        tiempo: gpxTexto(punto, "time") || null,
-        track: tracks.length
-      });
+    trksegs = trks[t].getElementsByTagName("trkseg");
+    grupos = trksegs.length ? trksegs : [trks[t]]; // trkpt sueltos sin trkseg dentro de un trk real (tolerado desde siempre)
+    desde = puntos.length;
+    for(s = 0; s < grupos.length; s++){
+      pts = grupos[s].getElementsByTagName("trkpt");
+      if(!pts.length) continue; // trkseg vacio (3.30-A1): no toca ni el primer ni el ultimo punto
+      for(i = 0; i < pts.length; i++){
+        punto = pts[i];
+        puntos.push(conExtensiones({
+          lat: parseFloat(punto.getAttribute("lat")),
+          lon: parseFloat(punto.getAttribute("lon")),
+          ele: parseFloat(gpxTexto(punto, "ele") || "0"),
+          tiempo: gpxTexto(punto, "time") || null,
+          track: tracks.length,
+          seg: segGlobal
+        }, punto));
+      }
+      segGlobal++;
     }
-    tracks.push({ nombre: gpxTexto(trks[t], "name") || "Ruta " + (tracks.length + 1), desde: desde, hasta: puntos.length });
+    if(puntos.length > desde) tracks.push({ nombre: gpxTexto(trks[t], "name") || "Ruta " + (tracks.length + 1), desde: desde, hasta: puntos.length });
   }
   if(!puntos.length){
-    /* trkpt sueltos sin <trk> (tolerados desde siempre): una sola ruta */
+    /* trkpt sueltos sin <trk> (tolerados desde siempre): una sola ruta, un solo segmento */
     puntos = leerPuntos("trkpt");
-    for(i = 0; i < puntos.length; i++) puntos[i].track = 0;
+    for(i = 0; i < puntos.length; i++){ puntos[i].track = 0; puntos[i].seg = 0; }
     if(puntos.length) tracks = [{ nombre: "Ruta 1", desde: 0, hasta: puntos.length }];
   }
   if(!puntos.length) throw new Error("el GPX no trae puntos de ruta (trkpt)");
   var planificada = leerPuntos("rtept", "rte");
 
-  var waypoints = [], wpts = doc.getElementsByTagName("wpt"), i, w, enlaceEl;
+  var waypoints = [], wpts = doc.getElementsByTagName("wpt"), i, w;
   for(i = 0; i < wpts.length; i++){
     w = wpts[i];
-    enlaceEl = w.getElementsByTagName("link")[0];
     waypoints.push({
       lat: parseFloat(w.getAttribute("lat")),
       lon: parseFloat(w.getAttribute("lon")),
@@ -4985,8 +5050,9 @@ function parseGPX(xmlTexto){
       desc: gpxTexto(w, "desc"),
       cmt: gpxTexto(w, "cmt"),
       tipo: gpxTexto(w, "type"),
+      sym: gpxTexto(w, "sym"), // (3.30-A5) presente en casi todo GPX real de Garmin/OsmAnd/Locus
       tiempo: gpxTexto(w, "time") || null,
-      enlace: enlaceEl ? (enlaceEl.getAttribute("href") || "") : ""
+      enlace: leerEnlace(w)
     });
   }
   return { puntos: puntos, planificada: planificada, waypoints: waypoints, tracks: tracks };
@@ -5003,6 +5069,25 @@ function gpxAdelgazar(xmlTexto){
   if(doc.getElementsByTagName("parsererror").length) throw new Error("ese archivo no es un GPX/XML válido");
   function ex(s){ return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function texto(nodo, tag){ var el = nodo.getElementsByTagName(tag)[0]; return el && el.textContent ? el.textContent.trim() : ""; }
+  /* mismo mapeo por localName que leerExtensiones() de parseGPX (3.30-A4):
+     si se lee por prefijo calificado (gpxtpx:hr, etc.) nunca coincide, y si
+     esta funcion los tirara aqui el motor los volveria a perder para siempre
+     la proxima vez que se importe este mismo archivo ya adelgazado. */
+  var EXT_LOCAL_A_TAG = { hr:"hr", cad:"cad", cadence:"cad", atemp:"atemp", wtemp:"wtemp", speed:"speed", course:"course", powerinwatts:"power", power:"power" };
+  function extensionesXml(nodo){
+    var extEl = nodo.getElementsByTagName("extensions")[0];
+    if(!extEl) return "";
+    var hijos = extEl.getElementsByTagName("*"), out = {}, i, local, tagOut, v, salida = "", k;
+    for(i = 0; i < hijos.length; i++){
+      local = (hijos[i].localName || hijos[i].tagName || "").toLowerCase();
+      tagOut = EXT_LOCAL_A_TAG[local];
+      if(!tagOut || out[tagOut] != null) continue;
+      v = hijos[i].textContent && hijos[i].textContent.trim();
+      if(v) out[tagOut] = v;
+    }
+    for(k in out) salida += "<" + k + ">" + ex(out[k]) + "</" + k + ">";
+    return salida ? "<extensions>" + salida + "</extensions>" : "";
+  }
   function puntosDe(tag, raiz){
     var pts = (raiz || doc).getElementsByTagName(tag), out = [], i, p, lat, lon;
     for(i = 0; i < pts.length; i++){
@@ -5011,20 +5096,31 @@ function gpxAdelgazar(xmlTexto){
       out.push("<" + tag + ' lat="' + ex(lat) + '" lon="' + ex(lon) + '">' +
         (texto(p, "ele") ? "<ele>" + ex(texto(p, "ele")) + "</ele>" : "") +
         (texto(p, "time") ? "<time>" + ex(texto(p, "time")) + "</time>" : "") +
+        extensionesXml(p) +
         "</" + tag + ">");
     }
     return out;
   }
-  /* un <trk> de salida por cada <trk> de entrada, con su <name>: fundirlos
-     en uno solo destruiria las rutas multiples (parseGPX las separa por trk) */
-  var trks = doc.getElementsByTagName("trk"), trkXml = [], nTrkpts = 0, t, ptsT, nombreT;
+  /* un <trk> de salida por cada <trk> de entrada, con su <name>, y un
+     <trkseg> por cada <trkseg> real de entrada (3.30-A6): fundir todos los
+     trkseg de un trk en uno solo borraria las pausas de grabacion que
+     parseGPX ahora usa para cortar el trazo -- la proxima vez que se
+     importe este mismo archivo ya adelgazado, la pausa real se dibujaria
+     como una recta inventada. */
+  var trks = doc.getElementsByTagName("trk"), trkXml = [], nTrkpts = 0, t, s, segsT, gruposT, segXml, ptsS, nombreT;
   for(t = 0; t < trks.length; t++){
-    ptsT = puntosDe("trkpt", trks[t]);
-    if(!ptsT.length) continue;
-    nTrkpts += ptsT.length;
+    segsT = trks[t].getElementsByTagName("trkseg");
+    gruposT = segsT.length ? segsT : [trks[t]];
+    segXml = [];
+    for(s = 0; s < gruposT.length; s++){
+      ptsS = puntosDe("trkpt", gruposT[s]);
+      if(!ptsS.length) continue;
+      nTrkpts += ptsS.length;
+      segXml.push("<trkseg>" + ptsS.join("") + "</trkseg>");
+    }
+    if(!segXml.length) continue;
     nombreT = texto(trks[t], "name");
-    trkXml.push("<trk>" + (nombreT ? "<name>" + ex(nombreT) + "</name>" : "") +
-      "<trkseg>" + ptsT.join("") + "</trkseg></trk>");
+    trkXml.push("<trk>" + (nombreT ? "<name>" + ex(nombreT) + "</name>" : "") + segXml.join("") + "</trk>");
   }
   if(!trkXml.length){
     var sueltos = puntosDe("trkpt");
@@ -5032,13 +5128,17 @@ function gpxAdelgazar(xmlTexto){
   }
   if(!nTrkpts) throw new Error("ese GPX no trae puntos de ruta (trkpt)");
   var rtepts = puntosDe("rtept");
-  var wpts = doc.getElementsByTagName("wpt"), wptXml = [], i, w, nombre, desc;
+  var wpts = doc.getElementsByTagName("wpt"), wptXml = [], i, w, nombre, desc, sym, linkEl, href;
   for(i = 0; i < wpts.length; i++){
-    w = wpts[i]; nombre = texto(w, "name"); desc = texto(w, "desc");
+    w = wpts[i]; nombre = texto(w, "name"); desc = texto(w, "desc"); sym = texto(w, "sym");
+    linkEl = w.getElementsByTagName("link")[0];
+    href = linkEl ? (linkEl.getAttribute("href") || "") : texto(w, "url"); // (3.30-A8) GPX 1.0: <url> en vez de <link href>
     wptXml.push('<wpt lat="' + ex(w.getAttribute("lat")) + '" lon="' + ex(w.getAttribute("lon")) + '">' +
       (texto(w, "ele") ? "<ele>" + ex(texto(w, "ele")) + "</ele>" : "") +
       (nombre ? "<name>" + ex(nombre) + "</name>" : "") +
       (desc ? "<desc>" + ex(desc) + "</desc>" : "") +
+      (sym ? "<sym>" + ex(sym) + "</sym>" : "") + // (3.30-A5)
+      (href ? '<link href="' + ex(href) + '"></link>' : "") +
       "</wpt>");
   }
   var partes = ['<?xml version="1.0"?>', '<gpx version="1.1">'].concat(wptXml);
@@ -5063,7 +5163,7 @@ function gpxEstadisticas(puntos){
   puntos[0].distAcumM = 0;
   for(i = 1; i < puntos.length; i++){
     a = puntos[i - 1]; b = puntos[i];
-    if(a.track !== b.track){
+    if(a.seg !== b.seg){
       /* salto entre rutas: no es un tramo recorrido -- ni distancia, ni
          velocidad, ni pendiente (el "segmento" fin-de-una/inicio-de-otra
          inflaria todo con un desplazamiento que nadie hizo) */
@@ -5118,6 +5218,21 @@ function gpxEstadisticas(puntos){
     }
   }
 
+  /* sensores opcionales de <extensions> (3.30-A4): promedio/maximo simple,
+     sin el filtro de picos que usa la velocidad -- un pico real de ritmo
+     cardiaco SI paso, no es ruido de posicion GPS. */
+  function promedioMax(campo){
+    var suma = 0, max = -Infinity, n = 0, i, v;
+    for(i = 0; i < puntos.length; i++){
+      v = puntos[i][campo];
+      if(typeof v !== "number" || !isFinite(v)) continue;
+      suma += v; n++;
+      if(v > max) max = v;
+    }
+    return n ? { avg: suma / n, max: max } : null;
+  }
+  var hrStats = promedioMax("hr"), cadStats = promedioMax("cad"), powerStats = promedioMax("power");
+
   var ordenadas = velocidades.slice().sort(function(x, y){ return x - y; });
   function cuartil(p){
     if(!ordenadas.length) return 0;
@@ -5170,7 +5285,11 @@ function gpxEstadisticas(puntos){
       subida: subida.n ? subida.suma / subida.n : null,
       llano: llano.n ? llano.suma / llano.n : null,
       bajada: bajada.n ? bajada.suma / bajada.n : null
-    }
+    },
+    hrAvg: hrStats ? hrStats.avg : null,
+    hrMax: hrStats ? hrStats.max : null,
+    cadAvg: cadStats ? cadStats.avg : null,
+    powerAvg: powerStats ? powerStats.avg : null
   };
 }
 
@@ -5209,7 +5328,7 @@ function gpxTrazoColoreado(puntos, proy, colorFn){
   var partes = [], colorActual = null, d = "", i, a, b, pa, pb, color;
   for(i = 1; i < puntos.length; i++){
     a = puntos[i - 1]; b = puntos[i];
-    if(a.track !== b.track){
+    if(a.seg !== b.seg){
       if(d) partes.push({ d: d, color: colorActual });
       d = ""; colorActual = null;
       continue;
@@ -5309,7 +5428,7 @@ function gpxSvg2D(datos, stats, modoColor, estadoSim, estado2d){
     var kk, pk, salto2d;
     for(kk = 0; kk < puntos.length; kk++){
       pk = proy(puntos[kk]);
-      salto2d = kk === 0 || puntos[kk].track !== puntos[kk - 1].track;
+      salto2d = kk === 0 || puntos[kk].seg !== puntos[kk - 1].seg;
       dTotal += (salto2d ? (kk ? " M" : "M") : " L") + gpxN(pk.x) + " " + gpxN(pk.y);
     }
     /* "carretera" (spec 3.11): una calzada ancha detras del trazo coloreado
@@ -5397,6 +5516,9 @@ function gpxStatsHTML(s){
     caja("Pendiente media", s.pendienteMedia.toFixed(1) + " %") +
     caja("Pendiente máx.", s.pendienteMax.toFixed(1) + " %") +
     caja("Tiempo", tiempoTxt) +
+    (s.hrAvg != null ? caja("Frec. cardíaca", Math.round(s.hrAvg) + " · máx " + Math.round(s.hrMax) + " lpm") : "") +
+    (s.cadAvg != null ? caja("Cadencia", Math.round(s.cadAvg) + " rpm") : "") +
+    (s.powerAvg != null ? caja("Potencia media", Math.round(s.powerAvg) + " W") : "") +
     "</div>";
   if(s.cuestas.subida !== null || s.cuestas.llano !== null || s.cuestas.bajada !== null){
     out += '<p class="gpx-cuestas"><strong>Cómo maneja en cuesta:</strong> subida ' +
@@ -5541,7 +5663,7 @@ function gpxPlanSim(puntos){
     a = puntos[i - 1]; b = puntos[i];
     segM = (b.distAcumM || 0) - (a.distAcumM || 0);
     dt = NaN;
-    if(a.track !== b.track) dt = 0;      /* salto entre rutas: teletransporte */
+    if(a.seg !== b.seg) dt = 0;      /* salto entre rutas o trksegs: teletransporte */
     else if(a.tiempo && b.tiempo){
       ms = new Date(b.tiempo).getTime() - new Date(a.tiempo).getTime();
       /* pausas reales si, pero acotadas: una parada de almuerzo no debe
@@ -5785,7 +5907,7 @@ function gpxPrimitivas3D(datos, stats, modoColor, exageracion, estado, estadoSim
   var i, a, b, ra, rb, pa, pb, color;
   for(i = 1; i < simplificados.length; i++){
     a = simplificados[i - 1]; b = simplificados[i];
-    if(a.track !== b.track) continue;   // sin linea entre una ruta y otra
+    if(a.seg !== b.seg) continue;   // sin linea entre una ruta/trkseg y el siguiente
     ra = rotar(a); rb = rotar(b);
     pa = pantalla(ra); pb = pantalla(rb);
     color = gpxColorDePunto(b, modoColor, stats);
@@ -6106,20 +6228,28 @@ function gpxPuntoCalibrablePorClave(datos, clave){
    "agregar a la ruta" mas la atribucion obligatoria (si ya hay). Vive debajo
    del mapa, fuera de cualquier vista, para que se vea sin importar si estas
    en 2D/3D/Perfil. */
-function gpxContextoHTML(contexto){
+function gpxContextoHTML(contexto, plegado){
   if(!contexto){
     return '<div class="gpx-contexto"><button type="button" class="gpx-boton-contexto">Obtener contexto del mapa (una vez)</button></div>';
   }
   var pois = contexto.pois || [];
-  var lista = pois.length
-    ? '<ul class="gpx-pois">' + pois.map(function(p, i){
+  var lista = "";
+  if(pois.length){
+    /* plegada por default (pedido del usuario): la lista de POIs sin agregar
+       puede tener hasta 60 items (gpxSimplificarContexto) y alargaba mucho
+       la vista -- en impresion ya estaba oculta entera (.gpx-contexto), esto
+       solo cambia la pantalla. */
+    var colapsado = plegado !== false;
+    lista = '<button type="button" class="gpx-boton-plegar-pois" aria-expanded="' + !colapsado + '">' +
+      (colapsado ? "▸" : "▾") + " Puntos de interés sin agregar (" + pois.length + ")</button>" +
+      '<ul class="gpx-pois"' + (colapsado ? " hidden" : "") + ">" + pois.map(function(p, i){
         return '<li class="gpx-poi" data-poi-idx="' + i + '"><span>' + X(p.nombre || gpxClasePoiTexto(p.clase)) + "</span>" +
           '<span class="gpx-poi-acciones">' +
           '<button type="button" class="gpx-boton-agregar-poi" data-poi-idx="' + i + '">Agregar a la ruta</button>' +
           '<button type="button" class="gpx-boton-descartar-poi" data-poi-idx="' + i + '">Descartar</button>' +
           "</span></li>";
-      }).join("") + "</ul>"
-    : "";
+      }).join("") + "</ul>";
+  }
   return '<div class="gpx-contexto">' + lista +
     '<p class="gpx-atribucion-texto">Mapa de contexto: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.</p></div>';
 }
@@ -6224,7 +6354,7 @@ function gpxSimControlesHTML(estadoSim, stats, oculto, vehiculo){
     '<button type="button" class="gpx-boton-color-vehiculo" style="background:' + veh.color +
     '" title="Color del vehículo" aria-label="Color del vehículo"></button></div>';
 }
-function gpxContenidoFigura(payload, vista, estado3d, calibEstado, estadoSim, estado2d){
+function gpxContenidoFigura(payload, vista, estado3d, calibEstado, estadoSim, estado2d, poisPlegado){
   var datos = payload.datos, stats = payload.stats;
   /* la barra de simular se dibuja SIEMPRE que haya ruta, aunque la vista
      inicial no la admita (p.ej. Captura): asi mostrarVista solo tiene que
@@ -6241,7 +6371,7 @@ function gpxContenidoFigura(payload, vista, estado3d, calibEstado, estadoSim, es
     gpxDividirHTML(datos) +
     gpxLeyendaHTML(stats, payload.modoColor, datos) +
     gpxCapturaControlesHTML(datos) +
-    gpxContextoHTML(datos.contexto);
+    gpxContextoHTML(datos.contexto, poisPlegado);
 }
 /* boton para separar la ruta en tramos documentados (spec 3.15): solo tiene
    sentido si hay al menos un waypoint que sirva de corte, pero la elegibilidad
@@ -10263,6 +10393,7 @@ function gpxActivarFigura(fig){
   var estado2d = { caja: null, agregando: false, persecucion: false, cajaPrevia: null };   // zoom/paneo + modo "agregar punto" + "flecha fija", persiste entre redibujos (ver gpxActivarInteraccion)
   var indice = parseInt(fig.dataset.gpxIndice, 10) || 0;
   var calibEstado = null;    // transitorio: paso de calibracion en curso, nunca se persiste
+  var poisPlegado = true;    // transitorio: si la lista de POIs sin agregar esta plegada (pedido del usuario, arranca plegada)
 
   function activarVistaActual(){
     var vista = fig.dataset.vista || "2d";
@@ -10348,7 +10479,7 @@ function gpxActivarFigura(fig){
     if(!terminado) requestAnimationFrame(simPaso);
   }
   function refrescarTodo(){
-    fig.innerHTML = gpxContenidoFigura(payload, fig.dataset.vista || "2d", estado3d, calibEstado, estadoSim, estado2d);
+    fig.innerHTML = gpxContenidoFigura(payload, fig.dataset.vista || "2d", estado3d, calibEstado, estadoSim, estado2d, poisPlegado);
     activarVistaActual();
   }
   /* velocimetro: vive fuera del <svg> con puntero capturado (es un div
@@ -10654,6 +10785,8 @@ function gpxActivarFigura(fig){
     if(el){ gpxAgregarPoi(fig, payload, indice, parseInt(el.getAttribute("data-poi-idx"), 10), refrescarTodo); return; }
     el = t.closest ? t.closest(".gpx-boton-descartar-poi") : null;
     if(el){ gpxDescartarPoi(fig, payload, indice, parseInt(el.getAttribute("data-poi-idx"), 10), refrescarTodo); return; }
+    el = t.closest ? t.closest(".gpx-boton-plegar-pois") : null;
+    if(el){ poisPlegado = !poisPlegado; refrescarTodo(); return; }
     el = t.closest ? t.closest(".gpx-boton-calibrar") : null;
     if(el){
       var selA = fig.querySelector(".gpx-captura-a"), selB = fig.querySelector(".gpx-captura-b");

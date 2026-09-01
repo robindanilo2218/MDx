@@ -1799,6 +1799,18 @@ Con `formato` puesto, el botón **Imprimir** ya no manda la página tal cual al 
 
 Esto pasa una sola vez, al imprimir, y no cambia en nada la vista normal del documento ni la edición.
 
+### Imprimir como folleto o en pliegos
+
+En ese mismo diálogo de impresión hay una opción "Cómo imprimir", con tres formas:
+
+- **Normal** — una página por hoja, la de siempre.
+- **Folleto** — dos páginas por hoja, pensada para doblar la pila al medio y grapar o anillar al lomo. Sirve para documentos chicos: hasta unas 48 páginas queda cómodo, hasta unas 92 todavía se puede pero el lomo empieza a quedar grueso.
+- **Pliegos** — para libros grandes. El documento se corta en tandas de páginas (16 por defecto, ajustable) y cada tanda se imprime como su propio folleto por separado; después esos cuadernillos se cosen o pegan entre sí para armar el libro completo. Ese último paso de encuadernar es tuyo o de la imprenta — MDx solo te entrega las hojas ya en el orden correcto para plegar.
+
+Al elegir Folleto o Pliegos aparece además un aviso: "¿tu impresora imprime de los dos lados sola?". Si la respuesta es sí, antes de imprimir revisa en las opciones de tu impresora que el volteo sea **por el lado corto** de la hoja — es el motivo más común de que un folleto salga con las páginas boca abajo. Si tu impresora no imprime los dos lados sola, MDx te va a pedir imprimir primero un grupo de hojas, dar vuelta la pila (te indica cómo) y volver a cargarla para imprimir el resto.
+
+El tamaño de hoja que necesita tu impresora se calcula solo a partir de `papel`: si el documento está en `papel: carta`, cada hoja física del folleto sale del ancho de una hoja tabloide apaisada, con dos páginas carta lado a lado.
+
 ## Empieza aquí
 
 Borra desde el primer título de esta página hasta esta línea y escribe lo tuyo. Si te quedas con la duda de cómo se escribía algo, abre el archivo original: sigue estando entero.

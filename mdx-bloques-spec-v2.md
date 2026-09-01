@@ -2410,14 +2410,124 @@ de la guía; sin demo en las partes que dependen del front matter, porque
 —igual que con `@page` en la sección 20— no hay forma de simular
 "esto es la posición 0 del documento" dentro de la propia guía).
 
-### 16.7 Pendiente de implementar en `index.html`/`sw.js`
+### 16.7 Imposición al imprimir: folleto, pliegos y libros grandes (investigado, PLAN)
+
+Pedido explícito del usuario, 1-sep-2026: poder imprimir "dos páginas en
+una hoja" pensando en apilar y plegar las hojas (frente y reverso), con una
+opción distinta según si el documento es chico o grande — sea por cantidad
+de páginas o por tamaño de hoja. Investigado contra la práctica real de
+imprentas (ver fuentes al final de esta sección) antes de diseñar nada.
+
+**Tres modos al momento de imprimir** (viven en el diálogo de impresión de
+16.5, *no* en el front matter — es una preferencia de esta tirada, no del
+documento):
+
+- **Normal** (16.5, ya diseñado): una página por hoja, tal cual la entrega
+  Paged.js.
+- **Folleto**: 2 páginas por hoja física, para plegar **una vez** al medio
+  y grapar/anillar al lomo — un solo cuadernillo. Sirve para documentos
+  chicos.
+- **Pliegos** (cuadernillos): el documento se corte en tandas de *N*
+  páginas (múltiplo de 4, configurable — sugerido 16), y cada tanda se
+  imprime como su propio Folleto independiente. Sirve para libros grandes
+  que se van a coser o encolar por secciones.
+
+**Cuánto es "chico" y cuánto es "grande":** la práctica de imprenta usa
+rangos, no un corte tajante — cosido al caballete (saddle stitch) funciona
+entre 8 y 92 páginas, con el punto dulce entre 8 y 48; pasado eso conviene
+encuadernación por pliegos/lomo. MDx no bloquea nada, solo sugiere: con
+≤48 páginas totales propone Folleto sin más; entre 48 y 92 sigue
+permitiendo Folleto pero avisa que el lomo puede quedar grueso; con más de
+92 sugiere Pliegos con cuadernillos de 16 páginas por defecto (ajustable).
+
+**El tamaño de hoja física se calcula solo, no hace falta un mapa nuevo:**
+`papel` (ya existente, 16.1) sigue siendo el tamaño de la *página final*,
+la que se lee. En Folleto/Pliegos, MDx calcula la hoja física como el
+doble de ancho de esa página, apaisada: hoja = (ancho×2) × alto. Ej.:
+`papel: carta` (8.5in×11in) → hoja física 17in×8.5in (mismo tamaño físico
+que tabloide, apaisado); `papel: a5` (148×210mm) → hoja física
+297×148mm (mismo ancho que A4 apaisado). Se agrega `media-carta` → `5.5in
+8.5in` a `PAPELES`, útil para folletos chicos nativos (no hace falta para
+el cálculo de la hoja física, que es geométrico, pero sirve como página
+final elegible directamente).
+
+**Orden de páginas por pliego** (algoritmo estándar de imposición 2-up a
+caballete, confirmado contra varias fuentes de imprenta): con *N* páginas
+—rellenadas hasta el múltiplo de 4 siguiente con celdas en blanco, no
+páginas de Paged.js de más— y *S = N/4* hojas físicas, para cada hoja
+*i* (0-indexada):
+
+```
+frente-izquierda = N − 2i        frente-derecha = 2i + 1
+reverso-izquierda = 2i + 2       reverso-derecha = N − 2i − 1
+```
+
+Ejemplo con N=8 (2 hojas): hoja 0 → frente [8,1], reverso [2,7]; hoja 1 →
+frente [6,3], reverso [4,5]. Al plegar cada hoja al medio y anidarlas, las
+páginas quedan 1..8 en orden. En modo Pliegos la misma fórmula se aplica
+por separado dentro de cada cuadernillo, con numeración local 1..TAM_PLIEGO
+— la costura/encolado que une los cuadernillos entre sí es un paso físico
+fuera de MDx (le corresponde al usuario o a la imprenta); MDx solo entrega
+las hojas ya impuestas y en el orden correcto.
+
+**Dúplex automático o manual:** ni `window.print()` ni CSS pueden controlar
+el volteo del papel (borde corto vs. borde largo) — es una preferencia del
+driver de la impresora, invisible desde la página web. Por eso el diálogo
+de impresión suma un toggle "¿tu impresora imprime en dúplex automático?":
+si sí, se muestra un aviso fijo ("configurá volteo por el lado **corto**
+antes de imprimir — si las páginas salen boca abajo, es ese ajuste") y se
+manda todo en un solo `window.print()` con frentes y reversos intercalados
+por hoja; si no, se arma en dos tandas separadas (todos los frentes, con
+instrucciones en pantalla de cómo dar vuelta la pila por el borde corto y
+volver a cargarla, y luego todos los reversos en el orden que corresponde).
+
+**Calce/creep (diferido):** en cuadernillos gruesos y papel pesado, las
+hojas internas de un pliego sobresalen un poco al plegarse (*creep* o
+*shingling*) y conviene compensarlo corriendo el margen interior en las
+hojas centrales. Es real pero afecta sobre todo pliegos de 8+ hojas en
+papel grueso — se documenta la técnica pero se difiere la implementación
+(mismo criterio que la Fase 3.8 de GPX: no se construye hasta que alguien
+lo necesite de verdad).
+
+**Cómo se monta sobre Paged.js (16.5), sin una segunda pasada de
+paginación:** Paged.js ya entrega las `.pagedjs_page` con encabezado, pie y
+numeración reales, a tamaño de página final fijo. Para Folleto/Pliegos no
+hace falta volver a paginar: alcanza con tomar esas cajas ya renderizadas
+(tamaño en píxeles conocido) y reacomodarlas 2 por hoja física en una
+grilla nueva (CSS simple, sin Paged.js), aplicando la fórmula de orden de
+arriba y separando frente/reverso según el toggle de dúplex. Ese resultado
+reemplaza lo que se ve en `#vistaPaginada` antes de imprimir.
+
+**UI:** en el mismo diálogo de 16.5 (`imprimirDocumento()`/overlay
+`#vistaPaginada`), un select "Cómo imprimir" (Normal / Folleto / Pliegos);
+si no es Normal, el toggle de dúplex; si es Pliegos, un número "páginas por
+cuadernillo" (múltiplo de 4, sugerido 16). Todo vive en la tirada de
+impresión, nunca en el front matter del documento.
+
+Fuentes consultadas: [Create printer spreads for booklet printing —
+Adobe InDesign](https://helpx.adobe.com/africa/indesign/using/printing-booklets.html),
+[How to Layout Pages for Saddle-Stitched Booklets —
+Formax](https://www.formaxprinting.com/blog/how-to-arrange-pages-for-booklet-printing),
+[Booklet Page Order Tool —
+ColorCopiesUSA](https://www.colorcopiesusa.com/booklet-page-order-tool.html),
+[What is the Best Page Count for Saddle Stitch Binding? — Color Vision
+Printing](https://www.colorvisionprinting.com/blog/what-is-the-best-page-count-for-saddle-stitch-binding),
+[Tips: Perfect Binding vs Saddle Stitching —
+PaperSpecs](https://www.paperspecs.com/caught-our-eye/perfect-binding-vs-saddle-stitching/),
+[Booklet Creep Compensation — PDF
+Press](https://pdfpress.app/blog/booklet-creep-compensation-guide),
+[Shingling for creep compensation —
+Kodak Preps](https://workflowhelp.kodak.com/display/PREPS75/Shingling+the+page+images+for+creep+compensation).
+
+### 16.8 Pendiente de implementar en `index.html`/`sw.js`
 
 Bloqueado durante la redacción de este spec por una sesión paralela
 editando `index.html` en simultáneo (ver la memoria de "dos sesiones a la
 vez"): CSS de 16.2/16.3, `portada()` con las tres ramas de `meta.formato`,
-`CLAVES_DOC` ampliado, `PAPELES`/`aplicarConfigImpresion()`, el vendorizado
-de Paged.js en `CONCHA` (`sw.js`), `imprimirDocumento()`/`imprimirPaginado()`
-reemplazando los `window.print()` de `#btnImprimir`/`#estadoImprimir`, el
-overlay `#vistaPaginada`, y `LIBRO`/`REVISTA`/`PERIODICO`/`DICCIONARIO` +
-`formPublicaciones()` en el menú Insertar. Se retoma en cuanto el archivo
-quede libre.
+`CLAVES_DOC` ampliado, `PAPELES`/`aplicarConfigImpresion()` (incluida la
+entrada `media-carta` de 16.7), el vendorizado de Paged.js en `CONCHA`
+(`sw.js`), `imprimirDocumento()`/`imprimirPaginado()` reemplazando los
+`window.print()` de `#btnImprimir`/`#estadoImprimir`, el overlay
+`#vistaPaginada` con su selector Normal/Folleto/Pliegos y el reflow 2-up de
+16.7, y `LIBRO`/`REVISTA`/`PERIODICO`/`DICCIONARIO` + `formPublicaciones()`
+en el menú Insertar. Se retoma en cuanto el archivo quede libre.
