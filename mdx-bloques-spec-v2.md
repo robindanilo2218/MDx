@@ -1026,14 +1026,72 @@ se niega a recibir escrituras (antes le habría pegado una línea de lista
 al final, rompiendo el JSON). "Dividir en tramos" y "Hoja de ruta" siguen
 funcionando: insertan DESPUÉS del bloque, no dentro.
 
-### 3.30 Investigación: compatibilidad total de GPX + optimización de tracks densos — investigado 31-ago-2026 (pendiente de implementar)
+### 3.30 Compatibilidad total de GPX + optimización de tracks densos — completo 01-sep-2026
 
 Pedido del usuario: que MDx pueda leer cualquier variante real de GPX que
 exista, y que un track de miles de puntos se pueda aligerar sin perder
 fidelidad de velocidad/elevación, con una recomendación automática de en
 cuántos tramos dividir una ruta larga y cómo titularlos. Investigado con
-dos agentes en paralelo (formato + algoritmos); nada de esto está
-implementado todavía — queda como base para una futura fase.
+dos agentes en paralelo (formato + algoritmos); las tres partes se
+implementaron y probaron con Puppeteer/Playwright headless el mismo día.
+
+**Parte A (compatibilidad del parser) implementada y probada 01-sep-2026**:
+los 10 puntos de abajo están hechos en `parseGPX`/`gpxAdelgazar` — BOM
+inicial, `trkseg` vacíos, corte también entre `trkseg` de un mismo `trk`
+(usando el nuevo campo `.seg`, no solo `.track`), extensiones por
+`localName` (hr/cad/atemp/wtemp/speed/course/power), `sym` de waypoint,
+`<link href>` con fallback a `<url>` de GPX 1.0, y mensajes de error
+específicos para TCX/KML. `gpxAdelgazar` ya no aplana los `trkseg` de un
+track a uno solo (se habría comido la pausa que el corte por `.seg` acaba
+de aprender a respetar) y ahora conserva extensiones/sym/link al
+re-serializar. Probado con Playwright headless contra `window.plantilla`
+y con un script aparte para `gpxAdelgazar`.
+
+**Parte B (`gpxOptimizarTramosRectos`, compresión con pérdida) implementada
+y probada 01-sep-2026**: extiende un tramo candidato mientras se cumplen a
+la vez desviación espacial (≤6m contra la cuerda, proyección local
+metros-plano), banda de velocidad (±15%, piso 3km/h, contra el promedio
+real inicio-fin del tramo) y rango de pendiente (≤4 puntos porcentuales,
+corte obligatorio si el signo se invierte con claridad); al romperse
+cualquiera, colapsa el tramo a sus puntos REALES {inicio, medio
+representativo, fin} (nunca sintetiza lat/lon/ele/tiempo — la velocidad
+promedio del tramo omitido sale sola de esos tres puntos reales al
+recalcular estadísticas). Corre por separado en cada `.seg`/`.track`
+(`gpxOptimizarParaImportar`) para no fusionar dos segmentos que en la
+realidad no estuvieron conectados (una pausa real, o dos `<trk>`
+distintos), y reagrupa el resultado respetando esa misma estructura.
+Solo se ofrece **al importar un archivo** (`#gpxImportar`, umbral 2000
+puntos), nunca automático: `window.confirm` con antes/después y error de
+velocidad estimado antes de tocar el documento, y un comentario
+`<!-- mdx:optimizadoTramosRectos ... -->` con las tolerancias usadas para
+que una reimportación del mismo archivo ya optimizado no lo vuelva a
+comprimir sin avisar. Probado con Puppeteer: ruta sintética de 3001 puntos
+(tramo recto+velocidad constante seguido de curvas) comprimida a 287
+(90%, error de velocidad estimado 0.8 km/h), render final sin `NaN`,
+archivo chico sin ofrecer el diálogo, rechazo del diálogo sin tocar el
+documento, y reimportación del archivo ya optimizado sin volver a
+ofrecerlo.
+
+**Parte C (`gpxRecomendarTramos`, extiende `gpxDividirRuta` sin cambiar su
+mecanismo de corte) implementada y probada 01-sep-2026**: nuevo botón
+"Recomendar tramos" en `gpxDividirHTML`, visible siempre que haya ruta
+(a diferencia de "Dividir ruta en tramos", que sigue atado a tener
+waypoints propios). Calcula `K` con el techo de puntos (3000) y de
+distancia según el modo inferido de la velocidad media (caminata 15km,
+ciclismo 40km, auto/moto 150km), detecta pausas reales (salto de tiempo
+>8min o racha sostenida <1km/h por ≥5min sin desplazarse >50m) y rellena
+los cortes que falten bisecando siempre el hueco más grande (equivale a
+equiespaciado cuando no hay ninguna pausa). Cada corte se resuelve contra
+`<wpt>` existentes a <150m (a lo largo de la ruta) tomando su nombre, o
+genera uno sintético `"Km X.X"`. `gpxDividirRuta` ahora acepta un cuarto
+parámetro `cortesForzados` opcional — si viene, reemplaza a los cortes
+derivados de `datos.waypoints` sin tocar el resto del mecanismo (mismo
+`## Tramo N: A → B` de siempre). Probado con Puppeteer: ruta sintética de
+64km/2001 puntos con una pausa real de 10min a mitad de camino →
+recomienda K=4, ubica un corte justo en la pausa y bisecta el resto,
+confirma con `window.confirm`, e inserta 4 bloques ```gpx nuevos con
+encabezados `<h2>` reales ("Tramo 1: Inicio → Km 16.1", etc.) que entran
+solos al Esquema.
 
 **A. GPX 1.0 vs 1.1 y qué le falta leer a `parseGPX()`**
 
@@ -1204,6 +1262,145 @@ más simplificación que un sendero técnico con curvas cerradas) en vez de
 una sola tolerancia global para toda la ruta.
 
 ---
+
+### 3.31 Póster imprimible de la ruta — hecho 01-sep-2026
+
+Pedido del usuario: un "póster gigante" de la ruta para imprimir. Nuevo
+botón "Póster" en la barra de vistas de `gpx-boton-poster` que descarga un
+PNG de 1600×2200 (título + mapa 2D + perfil de elevación + estadísticas),
+generado 100% vectorial (nada de capturas de pantalla) para que se pueda
+imprimir a cualquier tamaño sin perder nitidez:
+
+- `gpxExtraerSvgInterno(html)` saca el `<svg viewBox=...>` de adentro del
+  `<div>` que devuelven `gpxSvg2D`/`gpxSvgPerfil` y descarta los puntos de
+  hover (`.gpx-perfil-punto`, `.gpx-marca-sonda`) que en pantalla quedan
+  escondidos por CSS pero que en un SVG aislado (sin la hoja de estilos de
+  la página) se verían como un punto negro parado en `(0,0)`.
+- `gpxPosterSvg(datos, stats, modoColor, titulo)` compone mapa + perfil +
+  estadísticas en un solo `<svg>` grande, cada uno anidado con su propio
+  `viewBox` (así no hay que recalcular ninguna coordenada). Como varias
+  clases del mapa/perfil (`.gpx-perfil-relleno`, `.gpx-ruta-asfalto`,
+  `.gpx-wpt-letra`, etc.) toman su color de la hoja de estilos de la
+  página — inexistente en un SVG aislado — el póster incluye su propio
+  `<style>` con los mismos valores del tema claro, para que el relleno del
+  perfil y el camino no queden con el negro por defecto del navegador.
+- `gpxDescargarPoster(payload)` reusa el patrón de `pizarronDescargarPng`
+  (Image → canvas a escala 3× → `toBlob`/`toDataURL` → `descargarBlob`)
+  para rasterizar a una resolución cómoda de imprimir.
+
+Probado con Playwright headless: `window.plantilla.pintar()` con un GPX
+real (waypoint, múltiples `trkseg`), clic en `.gpx-boton-poster`,
+descarga verificada e inspección visual del PNG resultante.
+
+### 3.32 Vista 3D: ruta "de cabeza"/volteada — corregido 01-sep-2026
+
+Feedback del usuario: en la vista 3D del GPX, con cualquier cámara, la ruta
+aparecía volteada/de cabeza en vez de leerse en el mismo sentido que el
+perfil de elevación. Dos bugs reales en `motor3dProyectar`/`gpxPrimitivas3D`,
+no relacionados entre sí:
+
+1. **Eje equivocado para el "yaw" de cámara**: usaba `motor3dRotarY` (mezcla
+   este/altura, es un "roll") en vez de `motor3dRotarZ` (mezcla este/norte
+   preservando altura, el verdadero yaw de brújula en los ejes de
+   `gpxAMundo`, x=este/y=norte/z=altura). La cámara de Persecución ya usaba
+   `RotarZ` para el rumbo — la vista libre/estática era la que estaba mal.
+2. **Sin normalizar la escala antes de proyectar**: `motor3dProyectar` (y el
+   motor3d genérico que comparte con el bloque ```3d alambrico) da por
+   sentado coordenadas ya chicas; `gpxAMundo` produce metros reales (miles a
+   decenas de miles para una ruta de varios km). Sin normalizar, un punto
+   rotado podía terminar más cerca de la cámara que `D=800`, el divisor de
+   la proyección en perspectiva se volvía negativo, y la ruta salía
+   espejada/con partes volteadas — tanto peor cuanto más larga la ruta.
+   Nuevo `GPX3D_RADIO_OBJETO=300` normaliza el radio del objeto antes de
+   rotar (independiente de si la ruta mide 200m o 200km), más un
+   acotamiento defensivo en `motor3dProyectar` (mismo patrón que ya usaba
+   la cámara de Persecución para este problema).
+
+Verificado con un modelo matemático aislado (Node, sin navegador) en 5
+ángulos de cámara distintos, y con Puppeteer contra la app real (ruta
+sintética de 20km): sin `NaN`, coordenadas siempre dentro del viewBox
+640×640, y comparando pines `INICIO`/`FIN` por `data-widx` (no por orden
+del DOM, que el pintado reordena por profundidad) en vez de por el
+`<title>` del SVG — se pierde en el DOM real de esta app por una razón no
+relacionada a este bug, aún sin investigar.
+
+**Lo que quedaba de "se lee al revés" NO es un bug**: para una ruta que
+viaja de este a oeste, con norte arriba (cámara "▲ N", `yaw=0`) el oeste
+cae a la izquierda por convención geográfica — igual que en cualquier
+mapa real. Es distinto del perfil de elevación porque ese eje es distancia
+acumulada (siempre izquierda→derecha por construcción), no geografía; forzar
+la vista 3D/2D a leerse siempre izquierda→derecha rompería la semántica del
+botón "▲ N" (spec 3.10) y la brújula que este mismo fix corrigió. Se dejó
+la geografía real, que es lo que ya hace cualquier mapa/GPS.
+
+Pendiente sin decidir: si "el gráfico 3D renderizado" (comparado por el
+usuario con un ejemplo Plotly/WebGL) pide mejorar el motor3d propio (SVG,
+cero dependencias) o reabrir la decisión de spec 3.11 que rechazó
+Plotly/CDN para esta vista — no se tocó nada de esto todavía.
+
+### 3.33 Imprimir el póster dividido en hojas carta — hecho 01-sep-2026
+
+Pedido del usuario: además de descargarlo en PNG, poder imprimir ese mismo
+póster directo desde el navegador, partido automáticamente en la cantidad
+de hojas carta que haga falta, para pegarlas y armar un cartel gigante.
+Nuevo botón "Imprimir póster" (`.gpx-boton-poster-imprimir`) junto al de
+descarga, que abre un diálogo `#posterImprimir`.
+
+Paged.js (ya usado para libro/revista/periódico) no aplica: paginan
+contenido que *fluye*, y acá el problema es al revés — una imagen de
+tamaño fijo hay que *cortarla* en una grilla. La solución es CSS nativo,
+sin librería:
+
+- `gpxPosterContenido(datos, stats, modoColor, titulo)` es el `gpxPosterSvg`
+  de 3.31 separado en dos: la función vieja solo le agrega el `<svg
+  viewBox="0 0 1600 2200">` envolvente; la nueva devuelve el contenido
+  interno solo, para poder meterlo dentro de un `viewBox` recortado
+  distinto por hoja sin volver a generarlo.
+- `gpxPosterGrilla(columnas)`: a partir de la cantidad de columnas que
+  elige el usuario (2/3/4/6 hojas de ancho, o un número a mano) calcula
+  una única escala (unidades-svg por pulgada) tal que esas columnas —
+  con solape — cubran el ancho de 1600 unidades del póster. Las filas
+  salen solas, a esa misma escala, para cubrir el alto de 2200. Al ser
+  una sola escala para todo, ninguna hoja queda estirada distinto que
+  su vecina.
+- Cada hoja es un `<svg viewBox="offsetX offsetY ancho alto"
+  preserveAspectRatio="none">` que apunta al *mismo* `gpxPosterContenido`
+  — igual que ya hacía `gpxExtraerSvgInterno`/`gpxPosterSvg`, un SVG
+  anidado reescala su contenido al cuadro que le den, sin recalcular
+  ninguna coordenada a mano.
+- Solape de 0.4in entre hojas: `gpxPosterMarcasSvg` dibuja marcas de
+  registro en las esquinas (escuadras) y una línea de corte punteada en
+  el borde que se repite en la hoja vecina — el mismo contenido aparece
+  duplicado en la franja de solape a propósito, para poder alinear a
+  ojo antes de pegar. Cada hoja se etiqueta con letra de columna + número
+  de fila (A1, B1, A2…), vía `gpxPosterLetraColumna`.
+- La vista previa (`#posterVista`, grilla CSS chica con
+  `--poster-columnas` como variable) y la salida de impresión son el
+  *mismo* HTML — no hay una construcción de DOM separada para imprimir.
+  `gpxPosterImprimirAhora()` solo inyecta un `<style>@page{size:8.5in
+  11in;margin:0}</style>`, agrega la clase `poster-imprimir-abierto` al
+  `<body>` y llama a `window.print()`; el `@media print` de
+  `.poster-hoja` (mismo patrón que `.hoja-imposicion` de la
+  paginación/imposición: `break-after:page` en flujo normal de
+  documento, nada de trucos de grilla 2D) hace que cada hoja ocupe una
+  página física entera.
+- Si la grilla elegida pasa de 40 hojas, `gpxPosterConfirmarImprimir()`
+  avisa con el patrón de confirmación de `aviso(texto, etiqueta,
+  accion)` antes de mandar a imprimir.
+
+Probado con Playwright headless: GPX real → abrir el diálogo → cambiar
+entre los presets (chico/mediano/grande/personalizado) verificando que
+la grilla y el texto de tamaño final se recalculan bien → `page.pdf()`
+con `emulateMedia('print')` para verificar de verdad las reglas
+`@media print`/`@page` (a diferencia del PNG de 3.31, que se prueba
+inspeccionando el canvas). Con el preset "chico" salieron 6 páginas de
+612×792pt (= 8.5×11in exactas) en el PDF, sin página extra en blanco al
+final; inspección visual de las páginas confirmó: el título y la línea
+de la ruta cruzan el borde entre hojas con el mismo trazo y ángulo (sin
+distorsión), la franja de solape duplica contenido a propósito, las
+marcas de esquina y la línea punteada de corte aparecen solo en los
+bordes internos (no en los bordes exteriores del póster), y la última
+hoja lleva la marca de agua "Hecho con MDx".
 
 ## 4. Bloque ```svg — vectores crudos
 
@@ -2519,15 +2716,70 @@ Press](https://pdfpress.app/blog/booklet-creep-compensation-guide),
 [Shingling for creep compensation —
 Kodak Preps](https://workflowhelp.kodak.com/display/PREPS75/Shingling+the+page+images+for+creep+compensation).
 
-### 16.8 Pendiente de implementar en `index.html`/`sw.js`
+### 16.8 Implementado y verificado en navegador — hecho 1-sep-2026 (SW v78)
 
-Bloqueado durante la redacción de este spec por una sesión paralela
-editando `index.html` en simultáneo (ver la memoria de "dos sesiones a la
-vez"): CSS de 16.2/16.3, `portada()` con las tres ramas de `meta.formato`,
-`CLAVES_DOC` ampliado, `PAPELES`/`aplicarConfigImpresion()` (incluida la
-entrada `media-carta` de 16.7), el vendorizado de Paged.js en `CONCHA`
-(`sw.js`), `imprimirDocumento()`/`imprimirPaginado()` reemplazando los
-`window.print()` de `#btnImprimir`/`#estadoImprimir`, el overlay
-`#vistaPaginada` con su selector Normal/Folleto/Pliegos y el reflow 2-up de
-16.7, y `LIBRO`/`REVISTA`/`PERIODICO`/`DICCIONARIO` + `formPublicaciones()`
-en el menú Insertar. Se retoma en cuanto el archivo quede libre.
+Todo lo que estaba pendiente quedó escrito: CSS de 16.2/16.3, `portada()`
+con las tres ramas de `meta.formato`, `CLAVES_DOC` ampliado con
+`edicion`/`precio`, `PAPELES` (incluida `media-carta` de 16.7),
+`hojaFisicaDim()`, `pagedImponer()` (la fórmula de imposición de 16.7),
+`cargarPagedJs()`/`hojaPaginadaCss()`/`abrirVistaPaginada()`, el overlay
+`#vistaPaginada` con su selector Normal/Folleto/Pliegos, `pgRepintar()` con
+el reflow 2-up y las dos tandas (frente/reverso) o el bloque intercalado
+cuando `#pgDuplexAuto` está marcado, `imprimirDocumento()` reemplazando los
+`window.print()` de `#btnImprimir`/`#estadoImprimir`, y
+`LIBRO_PUB`/`REVISTA_PUB`/`PERIODICO_PUB`/`DICCIONARIO_PUB` +
+`formPublicaciones()` en el menú Insertar.
+
+Verificado con Playwright headless contra el servidor local, navegando
+como lo haría una persona (clic en `#btnMenu` → fila de `#menuTres` →
+click real sobre el botón oculto que corresponde, nunca llamando funciones
+internas por `window.x`, porque toda la app vive adentro de un único
+`(function(){...})();` y no expone nada de esto): portada con
+`formato: libro` renderiza `header.portada.portada-libro`; el panel
+Insertar → "Libro, revista y periódico" muestra los 4 grupos (Libro,
+Revista, Periódico, Diccionario y otros) con sus 19 plantillas; Paged.js
+pagina de verdad un documento con saltos de página forzados; Folleto y
+Pliegos reacomodan esas páginas ya renderizadas en hojas de 2-up sin una
+segunda pasada de paginación; el cuadernillo de Pliegos y el checkbox de
+dúplex automático cambian el conteo de hojas/tandas y qué botones de
+imprimir se ven, como se diseñó en 16.7.
+
+Dos fallas reales aparecieron durante esa verificación (no del enfoque de
+16.7, sino de cómo Paged.js vive adentro del documento) y ya están
+corregidas:
+
+- **Los controles del propio diálogo se escondían.** Paged.js no arma sus
+  páginas en un iframe aparte: reinyecta toda `estiloDeLaApp()` (con su
+  `@media print{ .no-print{display:none} }` de siempre) como
+  `<style data-pagedjs-inserted-styles>` directo en el `<head>` del
+  documento vivo, y esa copia terminaba tapando `.pg-controles`/
+  `.pg-acciones`/la cabecera del diálogo aunque no se estuviera imprimiendo
+  de verdad. Se renombró esa clase a `.pg-no-imprimir` (propia, no
+  compartida) con su propia regla dentro del `@media print` de 16.7.
+- **El tema de toda la app quedaba pisado para siempre.** La misma
+  reinyección de Paged.js trae `:root{--fondo:#fff; ...}` fijo — si el
+  diálogo se cerraba (o el documento no se pudo paginar) sin borrar esas
+  hojas de estilo, la app entera se quedaba con los colores de "modo claro
+  para imprimir" hasta recargar la página. `limpiarEstilosPagedJs()` ahora
+  borra `style[data-pagedjs-inserted-styles]` al cerrar `#vistaPaginada` y
+  en los tres caminos de reserva (venció el plazo, Paged.js no devolvió
+  páginas, o rechazó la promesa).
+
+Además: Paged.js v0.4.3 (la última estable) tiene un bug propio,
+no de esta implementación — con ciertos párrafos largos que necesitan
+partirse entre dos páginas, su recuperación interna de "underflow tras
+resize" revienta con `Cannot read properties of null (reading
+'nextSibling')` (rastreado hasta `checkUnderflowAfterResize` →
+`findEndToken` en el polyfill) y a veces la promesa de `.preview()` nunca
+se resuelve ni se rechaza. Confirmado con bisección manual de contenido
+(un capítulo de muestra solo, dos capítulos: bien; el mismo texto
+triplicado, o el tercer capítulo de `plantilla-libro.md` solo: revienta) —
+depende del contenido exacto, no de la cantidad de páginas ni de las
+clases usadas. No se encontró un issue público que lo documente ni una versión
+más nueva que lo arregle. Mitigado con dos redes en `abrirVistaPaginada()`: el
+`.catch()` normal de la promesa (dispara casi siempre, típicamente en
+menos de 1s) y, por si la promesa se queda colgada de verdad sin
+resolver ni rechazar, un `setTimeout` de 15s que corta por las buenas.
+En ambos casos se limpia todo y se cae a `window.print()` liso, con un
+aviso explicando por qué no salió la numeración de página — nunca se
+deja a quien usa la app esperando frente a un diálogo que no llega.

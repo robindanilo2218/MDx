@@ -3,7 +3,7 @@
    Sube el numero de VERSION cada vez que cambies index.html o las plantillas:
    asi el navegador se entera de que hay algo nuevo.
    ========================================================================== */
-var VERSION = "v75";
+var VERSION = "v81";
 var CACHE = "mdcrgm-" + VERSION;
 
 var CONCHA = [
