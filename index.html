@@ -596,6 +596,59 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 #pizarron .pizarron-barra select{ font:inherit; color:inherit; background:#0b0d12; border:1px solid #3a4150; border-radius:.5rem; padding:.3em .6em; cursor:pointer }
 #pizarron .pizarron-barra #pizarronHojaContador{ min-width:3.5em; text-align:center }
 #pizarron .pizarron-barra #pizarronSalir{ margin-left:auto }
+/* el panel de capas es compartido con el bloque ```pizarra (pizarraCapasHTML),
+   que usa las variables de tema del documento -- #pizarron vive SIEMPRE en
+   modo oscuro fijo (nunca sigue el tema), asi que necesita su propia paleta
+   aqui para no quedar un panel claro flotando sobre la barra oscura. */
+#pizarron .pizarra-capas{ background:#0b0d12; border-color:#3a4150 }
+#pizarron .pizarra-capa-fila button{ background:transparent; color:inherit; border-color:#3a4150 }
+#pizarron .pizarra-capa-fila.activa{ background:rgba(26,115,232,.25) }
+#pizarron .pizarra-capa-agregar{ color:inherit; border-color:#3a4150 }
+
+/* anotar sobre la vista de lectura (mdx-bloques-spec-v2.md seccion 12.16):
+   a diferencia de #pizarron (lienzo opaco que REEMPLAZA la pantalla), #nota
+   se superpone TRANSPARENTE al documento que se esta leyendo -- el fondo
+   liso/lineas/cuadricula se pinta en .nota-lienzo (no en el svg, que se
+   queda transparente) para que el texto de abajo se siga viendo debajo de
+   la guia. La barra de abajo si necesita su propio fondo solido: sin uno,
+   sus botones quedarian ilegibles sobre cualquier color de documento. */
+#nota{
+  position:fixed; inset:0; z-index:9995; display:none; flex-direction:column;
+  background:transparent; font-family:var(--sans);
+}
+#nota:not([hidden]){ display:flex }
+#nota .nota-lienzo{ flex:1; position:relative; overflow:hidden }
+#nota .nota-lienzo svg{ width:100%; height:100%; touch-action:none; cursor:crosshair; background:transparent }
+#nota[data-fondo="lineas"] .nota-lienzo{
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgba(100,116,146,.4) 32px);
+}
+#nota[data-fondo="cuadricula"] .nota-lienzo{
+  background-image:
+    repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgba(100,116,146,.4) 32px),
+    repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(100,116,146,.4) 32px);
+}
+#nota.nota-borrador .nota-lienzo svg{ cursor:not-allowed }
+#nota.nota-borrador .nota-lienzo svg .pizarra-trazo{ cursor:pointer }
+#nota .nota-barra{
+  display:flex; align-items:center; flex-wrap:wrap; row-gap:.5rem; gap:.75rem; padding:.75rem 1.25rem;
+  font-size:.85rem; color:#f4f6fb; background:#0b0d12;
+}
+#nota .nota-barra button{
+  font:inherit; color:inherit; background:transparent; cursor:pointer;
+  border:1px solid #3a4150; border-radius:.5rem; padding:.3em .7em; line-height:1;
+}
+#nota .nota-barra button:hover:not(:disabled){ background:#1b2029; border-color:#5a6478 }
+#nota .nota-barra button.activo{ background:#1a73e8; border-color:#1a73e8; color:#fff }
+#nota .nota-barra button:disabled{ opacity:.4; cursor:default; pointer-events:none }
+#nota .nota-barra input[type="color"]{ width:2.2rem; height:2.2rem; padding:0; border:1px solid #3a4150; border-radius:.5rem; background:none; cursor:pointer }
+#nota .nota-barra input[type="range"]{ width:7rem }
+#nota .nota-barra select{ font:inherit; color:inherit; background:#0b0d12; border:1px solid #3a4150; border-radius:.5rem; padding:.3em .6em; cursor:pointer }
+#nota .nota-barra #notaGuardar{ border-color:#1a73e8; color:#8ecbff; font-weight:600 }
+@media (max-width:600px){
+  #nota .nota-barra{ justify-content:center; padding:.6rem .9rem; font-size:.78rem; gap:.5rem }
+  #nota .nota-barra input[type="range"]{ width:5rem }
+  #nota .nota-barra #notaGuardar{ flex:0 0 100%; text-align:center }
+}
 
 /* citas */
 blockquote{
@@ -1035,6 +1088,11 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
   background:transparent; border:1px solid var(--borde); border-radius:.45rem; padding:.25em .55em;
 }
 .estado-doc button:hover{ background:var(--acento-suave); border-color:var(--acento) }
+.estado-doc button.activo{ background:var(--acento); border-color:var(--acento); color:#fff }
+/* bloque que se esta leyendo en voz alta -- sirve tanto sobre #doc como sobre
+   #diaCuerpo (Presentar), por eso no va con selector propio de ninguno */
+.leyendo-actual{ outline:2px solid var(--acento); outline-offset:.15em; border-radius:.25em; background:var(--acento-suave) }
+@media print{ .leyendo-actual{ outline:none; background:none } }
 /* botones de accion: apilados en vertical encima de la pildora, de arriba hacia
    abajo por lo frecuente que se usan (Presentar primero, lo mas ocasional pegado
    a la pildora). El hueco antes de la lista es padding, no margen: si fuera
@@ -1438,6 +1496,8 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .pizarra-lienzo{position:relative; line-height:0}
 .pizarra-svg{width:100%; height:auto; display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:pan-y}
 .pizarra-trazo, .pizarra-trazo-actual{fill:none; stroke-linecap:round; stroke-linejoin:round}
+g.pizarra-trazo[data-tipo="texto"]{cursor:text; user-select:none}
+g.pizarra-trazo[data-tipo="texto"] text{stroke:none; font-family:inherit; white-space:pre}
 .pizarra-dibujando .pizarra-svg{touch-action:none; cursor:crosshair}
 .pizarra-dibujando.pizarra-borrador .pizarra-svg{cursor:not-allowed}
 .pizarra-dibujando.pizarra-borrador .pizarra-trazo{cursor:pointer}
@@ -1451,7 +1511,15 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 .pizarra-barra select{padding:.4rem .6rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.85em; cursor:pointer}
 .pizarra-barra button{padding:.4rem .8rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.85em; cursor:pointer}
 .pizarra-barra button.activo{background:var(--acento); color:#fff; border-color:var(--acento)}
+.pizarra-barra button:disabled{opacity:.45; cursor:default}
 .pizarra-barra .pizarra-boton-listo{margin-left:auto; border-color:var(--acento); color:var(--acento); font-weight:600}
+.pizarra-capas{flex:0 0 100%; display:flex; flex-direction:column; gap:.3rem; margin-top:.3rem; padding:.5rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--codigo-fondo); max-height:11rem; overflow-y:auto}
+.pizarra-capa-fila{display:flex; align-items:center; gap:.3rem}
+.pizarra-capa-fila.activa{background:color-mix(in srgb, var(--acento) 15%, transparent); border-radius:.3rem}
+.pizarra-capa-fila button{padding:.25rem .5rem; border:1px solid var(--borde); border-radius:.3rem; background:var(--papel); color:var(--texto); font-size:.8em; cursor:pointer}
+.pizarra-capa-fila button:disabled{opacity:.4; cursor:default}
+.pizarra-capa-nombre{flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pizarra-capa-agregar{align-self:flex-start; padding:.3rem .7rem; border:1px dashed var(--borde); border-radius:.3rem; background:none; color:var(--texto); font-size:.82em; cursor:pointer}
 
 /* bloque ```svg -- el saneamiento real lo hace desinfectarFragmento() sobre
    todo el documento, aqui solo hay marco visual */
@@ -1725,6 +1793,7 @@ math mo{font-family:inherit}
   <button type="button" id="btnImprimir"  title="Imprimir o guardar como PDF (Ctrl+P)"><b>&#128424;</b><span>Imprimir</span></button>
   <button type="button" id="btnPresentar" title="Presentar en pantalla completa, diapositiva a diapositiva"><b>&#9654;</b><span>Presentar</span></button>
   <button type="button" id="btnPizarron"  title="Pizarrón en blanco a pantalla completa"><b>&#9998;</b><span>Pizarrón</span></button>
+  <button type="button" id="btnAnotar"    title="Escribir o dibujar sobre la página que estás leyendo, y guardarlo como nota en el documento"><b>&#128221;</b><span>Anotar</span></button>
   <button type="button" id="btnTema"      title="Claro / oscuro"><b>&#9686;</b><span>Tema</span></button>
   <button type="button" id="btnInstalar"  title="Instalar o descargar la app"><b>&#10514;</b><span>Instalar</span></button>
   <button type="button" id="btnCuenta"    title="Cuenta de Google: opcional, para documentos privados sincronizados y compartidos"><b>&#128100;</b><span>Cuenta</span></button>
@@ -1741,6 +1810,9 @@ math mo{font-family:inherit}
   </button>
   <button type="button" class="fila" data-accion="btnPizarron" title="Pizarrón en blanco a pantalla completa">
     <span class="etiqueta">Pizarrón</span><span class="icono">&#9998;</span>
+  </button>
+  <button type="button" class="fila" data-accion="btnAnotar" title="Escribir o dibujar sobre la página que estás leyendo">
+    <span class="etiqueta">Anotar</span><span class="icono">&#128221;</span>
   </button>
   <button type="button" class="fila" id="menuEditar" data-accion="btnEditar" title="Escribir aquí mismo, con el resultado al lado">
     <span class="etiqueta" id="menuEditarEtq">Editar</span><span class="icono" id="menuEditarIco">&#9998;</span>
@@ -1813,6 +1885,7 @@ math mo{font-family:inherit}
     <button type="button" id="diaSiguiente" title="Siguiente diapositiva (&rarr;)">&#8594;</button>
     <button type="button" id="diaMiniaturas" title="Ver todas las diapositivas">&#8862; Miniaturas</button>
     <button type="button" id="diaEsquema" title="Índice: saltar a un título (O)">&#9776; Índice</button>
+    <button type="button" id="diaLeer" aria-pressed="false" title="Leer esta diapositiva en voz alta (V)">&#128266; Leer</button>
     <button type="button" id="diaLapiz" aria-pressed="false" title="Lápiz (L)">&#9998; Lápiz</button>
     <button type="button" id="diaPizarron" title="Abrir un pizarrón en blanco sin salir de Presentar">&#9998; Pizarrón</button>
     <span class="dia-lapiz-colores dia-solo-lapiz" id="diaLapizColores">
@@ -1841,9 +1914,13 @@ math mo{font-family:inherit}
       <option value="triangulo">△ Triángulo</option>
       <option value="pentagono">⬠ Pentágono</option>
       <option value="rombo">◇ Rombo</option>
+      <option value="texto">🗛 Texto</option>
       <option value="seleccionar">⬚ Seleccionar</option>
     </select>
     <button type="button" id="pizarronFondo" title="Cambiar el fondo (liso, líneas o cuadrícula)">Fondo: liso</button>
+    <button type="button" id="pizarronCapasBoton" aria-pressed="false">Capas</button>
+    <button type="button" id="pizarronAgrupar" disabled>Agrupar</button>
+    <button type="button" id="pizarronCopiar" disabled>Copiar</button>
     <button type="button" id="pizarronHojaAnterior" title="Hoja anterior (Av Pág / flecha izquierda)">&#8249;</button>
     <span id="pizarronHojaContador">1 / 1</span>
     <button type="button" id="pizarronHojaSiguiente" title="Hoja siguiente (Re Pág / flecha derecha)">&#8250;</button>
@@ -1852,6 +1929,24 @@ math mo{font-family:inherit}
     <button type="button" id="pizarronDeshacer">Deshacer</button>
     <button type="button" id="pizarronLimpiar">Limpiar</button>
     <button type="button" id="pizarronSalir" title="Salir (Esc)">&#10005; Salir</button>
+  </div>
+</div>
+
+<div id="nota" class="no-print" hidden>
+  <div class="nota-lienzo" id="notaLienzo"><svg id="notaSvg"></svg></div>
+  <div class="nota-barra">
+    <input type="color" id="notaColor" value="#1a73e8" title="Color del trazo">
+    <input type="range" id="notaGrosor" min="1" max="24" value="4" title="Grosor del trazo">
+    <select id="notaHerramienta" title="Herramienta">
+      <option value="lapiz" selected>✎ Lápiz</option>
+      <option value="texto">🗛 Texto</option>
+    </select>
+    <button type="button" id="notaFondo" title="Cambiar el fondo (liso, líneas o cuadrícula)">Fondo: liso</button>
+    <button type="button" id="notaBorrador" aria-pressed="false">Borrador</button>
+    <button type="button" id="notaDeshacer" disabled>Deshacer</button>
+    <button type="button" id="notaLimpiar" disabled>Limpiar</button>
+    <button type="button" id="notaCancelar" title="Salir sin guardar (Esc)">Cancelar</button>
+    <button type="button" id="notaGuardar" disabled title="Guarda lo escrito/dibujado como nota en este punto del documento">Guardar nota</button>
   </div>
 </div>
 
@@ -1989,6 +2084,7 @@ math mo{font-family:inherit}
 <div class="estado-doc no-print" id="estadoDoc" hidden>
   <div class="acciones">
     <button type="button" id="estadoPresentar" title="Presentar en pantalla completa, diapositiva a diapositiva"><span class="icono">&#9654;</span><span class="etiqueta">Presentar</span></button>
+    <button type="button" id="estadoLeer" aria-pressed="false" title="Leer el documento en voz alta"><span class="icono" id="estadoLeerIco">&#128266;</span><span class="etiqueta" id="estadoLeerEtq">Leer</span></button>
     <button type="button" id="estadoEditar" title="Escribir aquí mismo, con el resultado al lado"><span class="icono">&#9998;</span><span class="etiqueta">Editar</span></button>
     <button type="button" id="estadoImprimir" title="Imprimir o guardar como PDF (Ctrl+P)"><span class="icono">&#128424;</span><span class="etiqueta">Imprimir</span></button>
     <div class="item">
@@ -7330,6 +7426,14 @@ var PIZARRA_RE_TAMANO = /^tamaño\s+(\d+)\s*[x×]\s*(\d+)\s*$/i;
 var PIZARRA_RE_PAGINA = /^pagina\s+ocupa:(\d+|completa)\s*$/i;
 var PIZARRA_RE_CAPA = /^capa(?:\s+(oculta))?\s*(.*)$/i;
 var PIZARRA_RE_TRAZO = /^trazo\s+(\S+)\s+([0-9.]+)\s+(?:capa:(\d+)\s+)?(?:grupo:(\w+)\s+)?(.+)$/i;
+/* "texto" es una linea aparte, no un "trazo" mas: su "d" es solo la caja
+   M x0 y0 L x1 y1 (para reusar TAL CUAL todo el motor de mover/escalar/
+   seleccionar, que ya opera de forma generica sobre cualquier "d"), y el
+   contenido en si va al final de la linea con los saltos de renglon escapados
+   como "\n" literal -- sin eso, un texto de mas de una linea rompería el
+   formato de una-linea-por-trazo del resto del DSL. */
+var PIZARRA_RE_TEXTO = /^texto\s+(\S+)\s+([0-9.]+)\s+(?:capa:(\d+)\s+)?(?:grupo:(\w+)\s+)?(-?[\d.]+),(-?[\d.]+),(-?[\d.]+),(-?[\d.]+)\s+(.*)$/i;
+var PIZARRA_TEXTO_MAX = 400;
 var PIZARRA_RE_COLOR = /^#[0-9a-fA-F]{3,8}$/;
 var PIZARRA_RE_PATH = /^[MLHVCSQTAZ0-9.\-,\s]+$/i;
 var PIZARRA_ANCHO_DEF = 800, PIZARRA_ALTO_DEF = 500, PIZARRA_COLOR_DEF = "#1a73e8";
@@ -7369,6 +7473,20 @@ function pizarraParsear(codigo){
       capas.push({ nombre: (m[2] || "").trim().slice(0, 40) || ("Capa " + (capas.length + 1)), visible: !m[1] });
       continue;
     }
+    m = l.match(PIZARRA_RE_TEXTO);
+    if(m && trazos.length < PIZARRA_TRAZOS_MAX){
+      grosor = Number(m[2]);
+      if(!isFinite(grosor) || grosor <= 0) grosor = 24;
+      if(grosor > 120) grosor = 120;
+      var textoCrudo = (m[9] || "").replace(/\\n/g, "\n").slice(0, PIZARRA_TEXTO_MAX);
+      if(textoCrudo){
+        capa = m[3] !== undefined ? parseInt(m[3], 10) : 0;
+        grupo = m[4] !== undefined ? m[4].slice(0, 12) : null;
+        d = "M" + m[5] + " " + m[6] + " L" + m[7] + " " + m[8];
+        trazos.push({ color: PIZARRA_RE_COLOR.test(m[1]) ? m[1] : PIZARRA_COLOR_DEF, grosor: grosor, d: d, capa: isFinite(capa) ? capa : 0, grupo: grupo, tipo: "texto", texto: textoCrudo });
+      }
+      continue;
+    }
     m = l.match(PIZARRA_RE_TRAZO);
     if(!m || trazos.length >= PIZARRA_TRAZOS_MAX) continue;
     grosor = Number(m[2]);
@@ -7402,6 +7520,15 @@ function pizarraSerializar(datos){
   }
   for(i = 0; i < datos.trazos.length; i++){
     t = datos.trazos[i];
+    if(t.tipo === "texto"){
+      var cajaT = pizarraTextoCaja(t.d);
+      ls.push("texto " + t.color + " " + t.grosor +
+        (t.capa ? " capa:" + t.capa : "") +
+        (t.grupo ? " grupo:" + t.grupo : "") +
+        " " + cajaT.x0 + "," + cajaT.y0 + "," + cajaT.x1 + "," + cajaT.y1 +
+        " " + String(t.texto || "").replace(/\n/g, "\\n"));
+      continue;
+    }
     ls.push("trazo " + t.color + " " + t.grosor +
       (t.capa ? " capa:" + t.capa : "") +
       (t.grupo ? " grupo:" + t.grupo : "") +
@@ -7497,6 +7624,7 @@ var PIZARRA_HERRAMIENTAS = [
   { valor: "triangulo", etiqueta: "△ Triángulo" },
   { valor: "pentagono", etiqueta: "⬠ Pentágono" },
   { valor: "rombo", etiqueta: "◇ Rombo" },
+  { valor: "texto", etiqueta: "🗛 Texto" },
   { valor: "seleccionar", etiqueta: "⬚ Seleccionar" }
 ];
 function pizarraHerramientasOpciones(actual){
@@ -7553,6 +7681,60 @@ function pizarraSnapAngulo(x0, y0, x1, y1){
   var paso = Math.PI / 4;
   var ang = Math.round(Math.atan2(dy, dx) / paso) * paso;
   return { x: Math.round((x0 + Math.cos(ang) * dist) * 10) / 10, y: Math.round((y0 + Math.sin(ang) * dist) * 10) / 10 };
+}
+/* con Shift, un sello de figura (circulo/cuadrado/triangulo/pentagono/rombo)
+   queda con caja 1:1 en vez de libre: el lado mas largo de los dos manda, y
+   el signo de cada eje (hacia donde se arrastro) se conserva -- mismo
+   espiritu que pizarraSnapAngulo pero para forma en vez de angulo. */
+function pizarraSnapCuadrado(x0, y0, x1, y1){
+  var dx = x1 - x0, dy = y1 - y0;
+  var m = Math.max(Math.abs(dx), Math.abs(dy));
+  var sx = dx < 0 ? -1 : 1, sy = dy < 0 ? -1 : 1;
+  return { x: Math.round((x0 + sx * m) * 10) / 10, y: Math.round((y0 + sy * m) * 10) / 10 };
+}
+/* "texto" (mdx-bloques-spec-v2.md seccion 12.14) guarda su caja como un "d"
+   comun "M x0 y0 L x1 y1" -- x0,y0 es la esquina donde se escribio, x1,y1 el
+   borde opuesto estimado por ancho de letra y alto de linea. Al reusar el
+   formato "d" de siempre, TODO el motor de mover/escalar/seleccionar/
+   duplicar (pizarraTransformarD, pizarraCajaDeD) funciona sobre un texto sin
+   ningun caso especial: son dos puntos como cualquier otro trazo. */
+function pizarraTextoCaja(d){
+  var toks = (d || "").match(PIZARRA_RE_TOKEN) || [], n = [], i;
+  for(i = 0; i < toks.length; i++){ if(toks[i] !== "M" && toks[i] !== "L" && toks[i] !== "Q" && toks[i] !== "Z") n.push(Number(toks[i])); }
+  return { x0: n[0] || 0, y0: n[1] || 0, x1: n[2] || 0, y1: n[3] || 0 };
+}
+var pizarraCtxMedir = null;
+function pizarraMedirAncho(texto, fontSize){
+  if(!pizarraCtxMedir) pizarraCtxMedir = document.createElement("canvas").getContext("2d");
+  pizarraCtxMedir.font = fontSize + "px sans-serif";
+  var lineas = String(texto || "").split("\n"), max = 0, i, w;
+  for(i = 0; i < lineas.length; i++){
+    w = pizarraCtxMedir.measureText(lineas[i]).width;
+    if(w > max) max = w;
+  }
+  return Math.max(20, Math.round(max));
+}
+/* fontSize se lee SIEMPRE de la caja actual (y1-y0), nunca de t.grosor: asi
+   un texto escalado junto con el resto de una seleccion (que transforma su
+   "d" como cualquier otro trazo) crece o encoge sin ningun calculo aparte. */
+function pizarraTextoHTML(t, idx){
+  var c = pizarraTextoCaja(t.d);
+  var fs = Math.max(6, Math.round((c.y1 - c.y0) * 10) / 10);
+  var lineas = String(t.texto || "").split("\n"), partes = [], i;
+  /* "pizarra-trazo"/"data-i" van en el <g> que envuelve TODO (rect + texto),
+     no en el <text> solo: un tap entre letras (fuera de la tinta) no cae
+     sobre ningun glyph -- fill="transparent" en el rect (NO "none": eso no
+     recibe eventos) hace que toda la caja sea "clickeable" para seleccionar/
+     borrar/mover, igual que un trazo comun. Un solo elemento con ese data-i
+     tambien evita ambiguedad en querySelector('[data-i="N"]') durante mover. */
+  partes.push('<g class="pizarra-trazo" data-i="' + idx + '" data-tipo="texto">');
+  partes.push('<rect x="' + c.x0 + '" y="' + c.y0 + '" width="' + Math.max(1, c.x1 - c.x0) + '" height="' + Math.max(1, c.y1 - c.y0) + '" fill="transparent"></rect>');
+  partes.push('<text x="' + c.x0 + '" y="' + c.y0 + '" dominant-baseline="hanging" style="fill:' + escUI(t.color) + '; font-size:' + fs + 'px">');
+  for(i = 0; i < lineas.length; i++){
+    partes.push('<tspan x="' + c.x0 + '"' + (i ? ' dy="' + Math.round(fs * 1.2 * 10) / 10 + '"' : "") + '>' + escUI(lineas[i]) + "</tspan>");
+  }
+  partes.push("</text></g>");
+  return partes.join("");
 }
 /* preset de orientacion (mdx-bloques-spec-v2.md seccion 12.12): reusa
    pizarraReescalarDatos (ya probado con el giro de telefono) para pasar el
@@ -7666,6 +7848,32 @@ function pizarraAgrupar(datos, sel){
 function pizarraDesagrupar(datos, sel){
   var i;
   for(i = 0; i < (sel.idxs || []).length; i++){ if(datos.trazos[sel.idxs[i]]) datos.trazos[sel.idxs[i]].grupo = null; }
+}
+/* "Copiar" (seccion 12.9): duplica cada trazo seleccionado con un pequeño
+   desvio, y si varios miembros de la seleccion COMPARTEN un grupo, las
+   copias comparten un grupo nuevo entre si -- para que la copia se mueva
+   como bloque igual que el original, sin quedar mezclada con el grupo viejo. */
+function pizarraDuplicar(datos, sel){
+  if(!sel.idxs || !sel.idxs.length) return [];
+  var offset = 16, nuevos = [], mapaGrupos = {}, i, t, copia, gNuevo;
+  for(i = 0; i < sel.idxs.length; i++){
+    t = datos.trazos[sel.idxs[i]];
+    if(!t) continue;
+    copia = JSON.parse(JSON.stringify(t));
+    if(t.grupo){
+      if(!mapaGrupos[t.grupo]) mapaGrupos[t.grupo] = pizarraGrupoNuevoId();
+      gNuevo = mapaGrupos[t.grupo];
+    }else gNuevo = null;
+    copia.grupo = gNuevo;
+    if(PIZARRA_RE_PARES.test(copia.d)){
+      copia.d = pizarraTransformarD(copia.d, function(x){ return x + offset; }, function(y){ return y + offset; });
+    }
+    if(datos.trazos.length < PIZARRA_TRAZOS_MAX){
+      datos.trazos.push(copia);
+      nuevos.push(datos.trazos.length - 1);
+    }
+  }
+  return nuevos;
 }
 /* herramienta "Seleccionar" (mover/redimensionar trazos ya dibujados),
    compartida entre el bloque ```pizarra y el Pizarron global: un toque en un
@@ -7892,9 +8100,12 @@ function pizarraSeleccionMover(e, datos, sel){
     /* objeto NUEVO en vez de mutar t.d: la copia "previo" que usa Cancelar
        en el bloque es un slice() del arreglo -- comparte los objetos
        originales, y estos deben conservar su "d" de antes para restaurarlos. */
-    datos.trazos[it.idx] = { color: t.color, grosor: grosor, d: d, capa: t.capa, grupo: t.grupo };
+    datos.trazos[it.idx] = { color: t.color, grosor: grosor, d: d, capa: t.capa, grupo: t.grupo, tipo: t.tipo, texto: t.texto };
     var pathEl = a.svg.querySelector('.pizarra-trazo[data-i="' + it.idx + '"]');
-    if(pathEl){ pathEl.setAttribute("d", d); pathEl.setAttribute("stroke-width", grosor); }
+    if(pathEl){
+      if(t.tipo === "texto") pathEl.outerHTML = pizarraTextoHTML(datos.trazos[it.idx], it.idx);
+      else{ pathEl.setAttribute("d", d); pathEl.setAttribute("stroke-width", grosor); }
+    }
   }
   pizarraSeleccionPintar(a.svg, datos, sel);
 }
@@ -7905,12 +8116,19 @@ function pizarraIndiceValido(n, tope){
   return typeof n === "number" && isFinite(n) && n >= 0 && n % 1 === 0 && n < tope;
 }
 function pizarraTrazoValido(t){
-  return !!t && typeof t === "object" &&
-    typeof t.d === "string" && t.d.length <= 20000 && PIZARRA_RE_PATH.test(t.d) &&
-    typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
-    typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 60 &&
-    (t.capa === undefined || t.capa === null || (typeof t.capa === "number" && isFinite(t.capa) && t.capa >= 0 && t.capa < PIZARRA_CAPAS_MAX)) &&
+  if(!t || typeof t !== "object") return false;
+  var capaGrupoOk = (t.capa === undefined || t.capa === null || (typeof t.capa === "number" && isFinite(t.capa) && t.capa >= 0 && t.capa < PIZARRA_CAPAS_MAX)) &&
     (t.grupo === undefined || t.grupo === null || (typeof t.grupo === "string" && t.grupo.length <= 12 && /^\w+$/.test(t.grupo)));
+  if(!capaGrupoOk) return false;
+  if(t.tipo === "texto"){
+    return typeof t.texto === "string" && t.texto.length > 0 && t.texto.length <= PIZARRA_TEXTO_MAX &&
+      typeof t.d === "string" && t.d.length <= 200 && PIZARRA_RE_PATH.test(t.d) &&
+      typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
+      typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 120;
+  }
+  return typeof t.d === "string" && t.d.length <= 20000 && PIZARRA_RE_PATH.test(t.d) &&
+    typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
+    typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 60;
 }
 function pizarraSeleccionSoltar(e, sel){
   if(sel.arrastre && e.pointerId === sel.arrastre.pointerId){ sel.arrastre = null; return true; }
@@ -7930,6 +8148,7 @@ function pizarraTrazosHTML(datos){
     for(j = 0; j < datos.trazos.length; j++){
       t = datos.trazos[j];
       if((t.capa || 0) !== i) continue;
+      if(t.tipo === "texto"){ partes.push(pizarraTextoHTML(t, j)); continue; }
       partes.push('<path class="pizarra-trazo" data-i="' + j + '" d="' + escUI(t.d) + '" stroke="' + escUI(t.color) + '" stroke-width="' + t.grosor + '"></path>');
     }
   }
@@ -10846,6 +11065,179 @@ function marcarIdioma(meta){
     });
 }
 
+/* ==========================================================================
+   LEER EN VOZ ALTA -- Web Speech API nativa, sin dependencias nuevas.
+   Reusa translate="no" (arriba en marcarIdioma) como criterio de "esto no es
+   prosa": ya cubre codigo, formulas, math y las figuras de diagrama, gpx,
+   pizarra, plano, iso, 3d, verdad y ladder, porque cada dibujarX() se marca
+   asi al crearse. El idioma sale SIEMPRE de elDoc (nunca de #diaCuerpo, cuyos
+   clones no llevan el atributo lang) para que la voz sea correcta tanto en
+   la vista normal como dentro de Presentar.
+   ========================================================================== */
+var LEER = null, LEER_VOCES_PROMESA = null;
+
+function leerDisponible(){ return typeof window.speechSynthesis !== "undefined"; }
+
+function leerContenedorActivo(){
+  var dia = $("#diapositivas");
+  return (DIA && dia && !dia.hidden) ? $("#diaCuerpo") : elDoc;
+}
+
+/* un codigo corto entre backticks SI se lee (es una palabra como cualquier
+   otra: ".md", "CLAUDE.md"...) aunque marcarIdioma lo marque translate="no"
+   -- esa marca es para el traductor, no sirve aqui. Lo que se salta es el
+   adorno que no es contenido: el "#" de anclaje de un titulo, un boton
+   ".no-print" colado en linea, o un bloque opaco que no deberia estar
+   suelto dentro de un parrafo para empezar (pre/figure/math). */
+function leerEsOpaco(el){
+  var t = el.tagName;
+  if(t === "PRE" || t === "FIGURE" || t === "MATH" || t === "SCRIPT" || t === "STYLE") return true;
+  if(el.classList && (el.classList.contains("formula-caja") || el.classList.contains("no-print"))) return true;
+  return false;
+}
+
+/* texto propio de un bloque atomico (parrafo, titulo, item de lista...):
+   toma sus nodos de texto y los de sus hijos en linea (negrita, enlaces,
+   codigo corto...), pero no el de un hijo opaco ni el de un hijo de bloque
+   (una lista dentro de un item, por ejemplo, la recorre aparte leerRecolectar
+   -- si se sumara aqui, se leeria dos veces). */
+function leerTextoPropio(el){
+  var t = "", i, c;
+  for(i = 0; i < el.childNodes.length; i++){
+    c = el.childNodes[i];
+    if(c.nodeType === 3) t += c.nodeValue;
+    else if(c.nodeType === 1 && !leerEsOpaco(c)) t += c.textContent;
+  }
+  return t.replace(/\s+/g, " ").trim();
+}
+
+var LEER_ATOMICOS = {H1:1, H2:1, H3:1, H4:1, H5:1, H6:1, P:1, LI:1, DT:1, DD:1, FIGCAPTION:1};
+
+/* recorre el arbol renderizado y junta un bloque por titulo/parrafo/item de
+   lista/fila de tabla, saltando todo lo marcado translate="no". Cada bloque
+   queda con su elemento del DOM para poder resaltarlo mientras se lee. */
+function leerRecolectar(raiz){
+  var out = [];
+  function fila(tr){
+    var celdas = Array.prototype.filter.call(tr.children, function(c){ return c.tagName === "TD" || c.tagName === "TH"; });
+    var t = celdas.map(function(c){ return c.textContent.replace(/\s+/g, " ").trim(); }).filter(Boolean).join(", ");
+    if(t) out.push({ el: tr, texto: t });
+  }
+  function recorrer(n){
+    if(n.nodeType !== 1) return;
+    if(n.getAttribute && n.getAttribute("translate") === "no") return;
+    var t = n.tagName;
+    if(t === "SCRIPT" || t === "STYLE") return;
+    if(t === "TR"){ fila(n); return; }
+    if(LEER_ATOMICOS[t]){
+      var texto = leerTextoPropio(n);
+      if(texto) out.push({ el: n, texto: texto });
+    }
+    var i;
+    for(i = 0; i < n.children.length; i++) recorrer(n.children[i]);
+  }
+  Array.prototype.forEach.call(raiz.children, recorrer);
+  return out;
+}
+
+function leerIdioma(){
+  return (elDoc && elDoc.getAttribute("lang")) || document.documentElement.lang || "es";
+}
+
+/* getVoices() esta vacio en la primera llamada en varios navegadores hasta
+   que dispara "voiceschanged" -- se memoiza la promesa (no cada llamado
+   dispara un listener nuevo) con un salvavidas por si ese evento nunca llega. */
+function leerVoces(){
+  if(LEER_VOCES_PROMESA) return LEER_VOCES_PROMESA;
+  LEER_VOCES_PROMESA = new Promise(function(resolve){
+    var v = speechSynthesis.getVoices();
+    if(v && v.length){ resolve(v); return; }
+    var listo = false;
+    function manejador(){
+      if(listo) return;
+      listo = true;
+      speechSynthesis.removeEventListener("voiceschanged", manejador);
+      resolve(speechSynthesis.getVoices());
+    }
+    speechSynthesis.addEventListener("voiceschanged", manejador);
+    setTimeout(manejador, 1000);
+  });
+  return LEER_VOCES_PROMESA;
+}
+
+/* prefiere una voz local (localService) sobre una que el navegador resuelva
+   por internet: la app entera promete funcionar sin conexion, y una voz de
+   nube rompe esa promesa aunque el resultado suene mejor. */
+function leerElegirVoz(idioma){
+  return leerVoces().then(function(voces){
+    if(!voces || !voces.length) return null;
+    var base = idioma.split(/[-_]/)[0].toLowerCase();
+    var candidatas = voces.filter(function(v){ return v.lang && v.lang.toLowerCase().indexOf(base) === 0; });
+    if(!candidatas.length) return null;
+    var locales = candidatas.filter(function(v){ return v.localService; });
+    return locales[0] || candidatas[0];
+  });
+}
+
+function leerActualizarBotones(){
+  var activo = !!LEER;
+  var estado = $("#estadoLeer");
+  if(estado){
+    estado.classList.toggle("activo", activo);
+    estado.setAttribute("aria-pressed", String(activo));
+    var etq = $("#estadoLeerEtq"), ico = $("#estadoLeerIco");
+    if(etq) etq.textContent = activo ? "Detener" : "Leer";
+    if(ico) ico.innerHTML = activo ? "&#9209;" : "&#128266;";
+    estado.title = activo ? "Detener la lectura en voz alta" : "Leer el documento en voz alta";
+  }
+  var dia = $("#diaLeer");
+  if(dia){
+    dia.classList.toggle("activo", activo);
+    dia.setAttribute("aria-pressed", String(activo));
+    dia.innerHTML = activo ? "&#9209; Detener" : "&#128266; Leer";
+    dia.title = activo ? "Detener la lectura (V)" : "Leer esta diapositiva en voz alta (V)";
+  }
+}
+
+function leerDetener(){
+  if(leerDisponible()) speechSynthesis.cancel();
+  if(LEER && LEER.actual) LEER.actual.el.classList.remove("leyendo-actual");
+  LEER = null;
+  leerActualizarBotones();
+}
+
+function leerSiguiente(){
+  if(!LEER) return;
+  if(LEER.actual) LEER.actual.el.classList.remove("leyendo-actual");
+  LEER.i++;
+  if(LEER.i >= LEER.bloques.length){ leerDetener(); return; }
+  var b = LEER.bloques[LEER.i];
+  LEER.actual = b;
+  b.el.classList.add("leyendo-actual");
+  if(b.el.scrollIntoView) b.el.scrollIntoView({ block: "center", behavior: "smooth" });
+  var u = new SpeechSynthesisUtterance(b.texto);
+  u.lang = LEER.idioma;
+  if(LEER.voz) u.voice = LEER.voz;
+  u.onend = leerSiguiente;
+  u.onerror = leerSiguiente; /* un bloque que falle no debe trabar toda la cola */
+  speechSynthesis.speak(u);
+}
+
+function alternarLeerVoz(){
+  if(!leerDisponible()){ aviso("Este navegador no permite leer en voz alta."); return; }
+  if(LEER){ leerDetener(); return; }
+  var contenedor = leerContenedorActivo();
+  var bloques = contenedor ? leerRecolectar(contenedor) : [];
+  if(!bloques.length){ aviso("No hay texto para leer aquí."); return; }
+  var idioma = leerIdioma();
+  leerElegirVoz(idioma).then(function(voz){
+    LEER = { bloques: bloques, i: -1, voz: voz, idioma: idioma, actual: null };
+    leerActualizarBotones();
+    leerSiguiente();
+  });
+}
+document.addEventListener("visibilitychange", function(){ if(document.hidden && LEER) leerDetener(); });
+
 function prepararDiagramas(){
   Array.prototype.forEach.call(elDoc.querySelectorAll("figure.diagrama"), function(fig){
     var boton = fig.querySelector(".ver-codigo"), fuente = fig.querySelector(".diagrama-fuente");
@@ -12515,6 +12907,7 @@ function pizarraActivarFigura(fig){
   var enCurso = null;   // {pointerId, puntos, path, svg} del trazo que se esta dibujando ahora mismo
   var sel = { idxs: [], arrastre: null };   // seleccion (multiple, Ctrl agrega) de la herramienta "Seleccionar"
   var capasAbiertas = false;
+  var textoDown = null;   // {pointerId, pt, clientX, clientY} -- tap pendiente de la herramienta "texto"
   function limpiarSeleccion(){
     sel.idxs = [];
     sel.arrastre = null;
@@ -12524,10 +12917,25 @@ function pizarraActivarFigura(fig){
   }
   function actualizarBotonAgrupar(){
     var b = fig.querySelector(".pizarra-boton-agrupar");
-    if(!b) return;
-    var st = pizarraAgruparEstado(payload.datos, sel);
-    b.disabled = !st;
-    b.textContent = st === "desagrupar" ? "Desagrupar" : "Agrupar";
+    if(b){
+      var st = pizarraAgruparEstado(payload.datos, sel);
+      b.disabled = !st;
+      b.textContent = st === "desagrupar" ? "Desagrupar" : "Agrupar";
+    }
+    var bc = fig.querySelector(".pizarra-boton-copiar");
+    if(bc) bc.disabled = !(sel.idxs && sel.idxs.length);
+  }
+  function colocarTexto(pt){
+    var fs = estado.grosor || 24;
+    var texto = window.prompt("Escribe el texto:", "");
+    if(texto === null) return;
+    texto = texto.trim().slice(0, PIZARRA_TEXTO_MAX);
+    if(!texto) return;
+    if(payload.datos.trazos.length >= PIZARRA_TRAZOS_MAX){ aviso("Esta pizarra ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos."); return; }
+    var w = pizarraMedirAncho(texto, fs), lineas = texto.split("\n").length;
+    var x1 = Math.round((pt.x + w) * 10) / 10, y1 = Math.round((pt.y + fs * 1.2 * lineas) * 10) / 10;
+    payload.datos.trazos.push({ color: estado.color, grosor: fs, d: "M" + pt.x + " " + pt.y + " L" + x1 + " " + y1, capa: estado.capaActiva, grupo: null, tipo: "texto", texto: texto });
+    redibujarTrazos();
   }
   function refrescarCapas(){
     var panel = fig.querySelector(".pizarra-capas");
@@ -12539,13 +12947,16 @@ function pizarraActivarFigura(fig){
   }
   function barraHTML(){
     var ocupa = payload.datos.ocupa || 100;
+    var grosorMin = estado.herramienta === "texto" ? 8 : 1, grosorMax = estado.herramienta === "texto" ? 120 : 24;
+    var grosorVal = Math.max(grosorMin, Math.min(grosorMax, estado.grosor));
     return '<div class="pizarra-barra no-print">' +
       '<input type="color" class="pizarra-color" value="' + escUI(estado.color) + '" title="Color del trazo">' +
-      '<input type="range" class="pizarra-grosor" min="1" max="24" value="' + estado.grosor + '" title="Grosor del trazo">' +
+      '<input type="range" class="pizarra-grosor" min="' + grosorMin + '" max="' + grosorMax + '" value="' + grosorVal + '" title="Grosor del trazo">' +
       '<select class="pizarra-herramienta" title="Herramienta de dibujo">' + pizarraHerramientasOpciones(estado.herramienta) + "</select>" +
       '<button type="button" class="pizarra-boton-fondo" title="Cambiar el fondo (liso, líneas o cuadrícula) -- solo se ve mientras se dibuja">' + (PIZARRON_FONDO_ETIQUETA[estado.fondo] || PIZARRON_FONDO_ETIQUETA.liso) + '</button>' +
       '<button type="button" class="pizarra-boton-capas" aria-pressed="' + capasAbiertas + '">Capas</button>' +
       '<button type="button" class="pizarra-boton-agrupar" disabled>Agrupar</button>' +
+      '<button type="button" class="pizarra-boton-copiar" disabled>Copiar</button>' +
       '<select class="pizarra-orientacion" title="Orientación del lienzo">' +
         '<option value="h"' + (payload.datos.ancho >= payload.datos.alto ? " selected" : "") + '>⬌ Horizontal</option>' +
         '<option value="v"' + (payload.datos.ancho < payload.datos.alto ? " selected" : "") + '>⬍ Vertical</option>' +
@@ -12637,6 +13048,16 @@ function pizarraActivarFigura(fig){
       redibujarSinPerderSeleccion();
       return;
     }
+    el = t.closest ? t.closest(".pizarra-boton-copiar") : null;
+    if(el && !el.disabled){
+      var nuevosIdx = pizarraDuplicar(payload.datos, sel);
+      redibujarTrazos();
+      sel.idxs = nuevosIdx;
+      var svgSelC = fig.querySelector(".pizarra-svg");
+      if(svgSelC) pizarraSeleccionPintar(svgSelC, payload.datos, sel);
+      actualizarBotonAgrupar();
+      return;
+    }
     var capaAccionEl = t.closest ? t.closest("[data-capa-accion]") : null;
     if(capaAccionEl){
       var accion = capaAccionEl.getAttribute("data-capa-accion");
@@ -12716,11 +13137,26 @@ function pizarraActivarFigura(fig){
   fig.addEventListener("input", function(e){
     var t = e.target;
     if(!t.classList) return;
-    if(t.classList.contains("pizarra-color")) estado.color = t.value;
+    if(t.classList.contains("pizarra-color")){
+      estado.color = t.value;
+      /* con algo seleccionado, el selector de color recolorea la seleccion
+         en vivo en vez de (solo) fijar el color del proximo trazo -- para
+         poder "cambiarle color" a un texto u otro trazo ya dibujado. */
+      if(sel.idxs && sel.idxs.length){
+        for(var ci = 0; ci < sel.idxs.length; ci++){ var tt = payload.datos.trazos[sel.idxs[ci]]; if(tt) tt.color = estado.color; }
+        redibujarSinPerderSeleccion();
+      }
+    }
     else if(t.classList.contains("pizarra-grosor")) estado.grosor = Number(t.value) || 3;
     else if(t.classList.contains("pizarra-herramienta")){
       estado.herramienta = t.value;
       if(t.value !== "seleccionar") limpiarSeleccion();
+      var grosorEl = fig.querySelector(".pizarra-grosor");
+      if(grosorEl){
+        if(t.value === "texto"){ grosorEl.min = 8; grosorEl.max = 120; if(Number(grosorEl.value) < 8) grosorEl.value = 24; }
+        else{ grosorEl.min = 1; grosorEl.max = 24; if(Number(grosorEl.value) > 24) grosorEl.value = 3; }
+        estado.grosor = Number(grosorEl.value);
+      }
     }
     else if(t.classList.contains("pizarra-ocupa")){
       payload.datos.ocupa = t.value === "completa" ? "completa" : (t.value ? parseInt(t.value, 10) : 100);
@@ -12729,6 +13165,25 @@ function pizarraActivarFigura(fig){
       pizarraOrientar(payload.datos, t.value === "h");
       redibujarTrazos();
     }
+  });
+  fig.addEventListener("dblclick", function(e){
+    if(!fig.classList.contains("pizarra-dibujando") || estado.herramienta !== "seleccionar") return;
+    var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
+    if(!trazoEl) return;
+    var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
+    var t = payload.datos.trazos[idx];
+    if(!t || t.tipo !== "texto") return;
+    var nuevo = window.prompt("Editar texto:", t.texto);
+    if(nuevo === null) return;
+    nuevo = nuevo.trim().slice(0, PIZARRA_TEXTO_MAX);
+    if(!nuevo){ payload.datos.trazos.splice(idx, 1); }
+    else{
+      var c = pizarraTextoCaja(t.d);
+      var w = pizarraMedirAncho(nuevo, t.grosor), lineas = nuevo.split("\n").length;
+      t.texto = nuevo;
+      t.d = "M" + c.x0 + " " + c.y0 + " L" + (Math.round((c.x0 + w) * 10) / 10) + " " + (Math.round((c.y0 + t.grosor * 1.2 * lineas) * 10) / 10);
+    }
+    redibujarTrazos();
   });
 
   fig.addEventListener("pointerdown", function(e){
@@ -12757,6 +13212,13 @@ function pizarraActivarFigura(fig){
     }
     var rect = svgEl.getBoundingClientRect();
     if(!rect.width || !rect.height) return;
+    if(estado.herramienta === "texto"){
+      /* sin arrastre: un tap coloca el texto ahi mismo (soltarPuntero decide
+         si fue un tap de verdad o un arrastre, con umbral de distancia). */
+      try{ svgEl.setPointerCapture(e.pointerId); }catch(errT){}
+      textoDown = { pointerId: e.pointerId, pt: pizarraPuntoDesde(e, rect, payload.datos), clientX: e.clientX, clientY: e.clientY };
+      return;
+    }
     try{ svgEl.setPointerCapture(e.pointerId); }catch(err){}
     var pt = pizarraPuntoDesde(e, rect, payload.datos);
     var herramienta = estado.herramienta || "lapiz";
@@ -12777,9 +13239,13 @@ function pizarraActivarFigura(fig){
       d = pizarraTrazoApendice(enCurso.d, enCurso.puntos);
       if(d.length > PIZARRA_D_MAX){ enCurso.puntos.pop(); enCurso.tope = true; return; }
     }else{
-      /* Shift ancla "／ Línea" a 0/45/90... (seccion 12.11): (x0,y0) nunca
-         cambia, solo el extremo movil se proyecta al angulo mas cercano. */
-      var destino = (enCurso.herramienta === "linea" && e.shiftKey) ? pizarraSnapAngulo(enCurso.x0, enCurso.y0, pt.x, pt.y) : pt;
+      /* Shift ancla "／ Línea" a 0/45/90... (seccion 12.11); en un sello de
+         figura, Shift fuerza en cambio caja 1:1 (mismo espiritu, otra forma:
+         seccion 12.15). (x0,y0) nunca cambia en ninguno de los dos casos. */
+      var destino = pt;
+      if(e.shiftKey){
+        destino = enCurso.herramienta === "linea" ? pizarraSnapAngulo(enCurso.x0, enCurso.y0, pt.x, pt.y) : pizarraSnapCuadrado(enCurso.x0, enCurso.y0, pt.x, pt.y);
+      }
       d = pizarraFormaAPath(enCurso.herramienta, enCurso.x0, enCurso.y0, destino.x, destino.y);
       if(d.length > PIZARRA_D_MAX) return;
     }
@@ -12788,6 +13254,14 @@ function pizarraActivarFigura(fig){
   });
   function soltarPuntero(e){
     if(pizarraSeleccionSoltar(e, sel)) return;
+    if(textoDown && e.pointerId === textoDown.pointerId){
+      var dxT = e.clientX - textoDown.clientX, dyT = e.clientY - textoDown.clientY;
+      var ptT = textoDown.pt;
+      textoDown = null;
+      if(dxT * dxT + dyT * dyT > 100) return;   // arrastre real, no un tap: no se coloca texto
+      colocarTexto(ptT);
+      return;
+    }
     if(!enCurso || e.pointerId !== enCurso.pointerId) return;
     if(payload.datos.trazos.length >= PIZARRA_TRAZOS_MAX){
       if(enCurso.path && enCurso.path.parentNode) enCurso.path.parentNode.removeChild(enCurso.path);
@@ -12898,6 +13372,7 @@ function copiarViejo(txt){
 
 function pintar(md){
   var r;
+  if(LEER) leerDetener(); /* los nodos que estaba leyendo van a quedar huerfanos */
   try{ r = mdAHtml(md); }
   catch(e){
     elDoc.innerHTML = '<div class="alerta precaucion"><p class="alerta-titulo">Error al convertir el texto</p><p>' +
@@ -14957,6 +15432,7 @@ function diaFondoCss(valor){
   return "linear-gradient(" + angulo + ", " + a + ", " + b + ")";
 }
 function pintarDiapositiva(){
+  if(LEER) leerDetener(); /* #diaCuerpo se reescribe entero: los nodos que se leian quedarian huerfanos */
   var cuerpo = $("#diaCuerpo"), g = DIA.grupos[DIA.i], caja = document.createElement("div"), i, n, c;
   var fondoColor = "", fondoSvg = null;
   for(i = 0; i < g.length; i++){
@@ -15013,6 +15489,7 @@ function moverDia(paso){
 }
 function cerrarPresentacion(){
   if(!DIA) return;
+  if(LEER) leerDetener();
   DIA = null;
   $("#diapositivas").hidden = true;
   $("#diapositivas").classList.remove("dia-lapiz-activo", "dia-lapiz-borrador");
@@ -15051,12 +15528,13 @@ function teclaDia(e){
   if(diaMiniaturasAbiertas() || diaIndiceAbierto()) return;   // en la grilla o el indice solo Escape hace algo
   if(e.key === "ArrowRight" || e.key === " " || e.key === "ArrowDown" || e.key === "PageDown"){ e.preventDefault(); moverDia(1); return; }
   if(e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp"){ e.preventDefault(); moverDia(-1); return; }
-  if(diaEscribiendo()) return;   // no robarle "l"/"b"/"c"/"o" a un campo de texto en foco
+  if(diaEscribiendo()) return;   // no robarle "l"/"b"/"c"/"o"/"v" a un campo de texto en foco
   if(e.ctrlKey || e.metaKey || e.altKey) return;   // Ctrl/Cmd+C es copiar, no Limpiar
   if(e.key === "l" || e.key === "L"){ diaLapizPoner(!DIA.lapiz); return; }
   if(e.key === "b" || e.key === "B"){ diaBorradorAlternar(); return; }
   if(e.key === "c" || e.key === "C"){ diaLapizLimpiar(); return; }
   if(e.key === "o" || e.key === "O"){ diaAbrirEsquema(); return; }
+  if(e.key === "v" || e.key === "V"){ alternarLeerVoz(); return; }
 }
 function abrirPresentacion(){
   var grupos = trocearDiapositivas();
@@ -15454,6 +15932,235 @@ function diaGuardarAnotaciones(){
   pintarCuenta();
   aviso("Anotación guardada en el documento.");
 }
+
+/* ==========================================================================
+   ANOTAR MIENTRAS SE LEE (mdx-bloques-spec-v2.md seccion 12.16): version de
+   "lapiz sobre la diapositiva" (arriba) para la vista de documento normal,
+   no solo Presentar. Mismo motor de trazos (pizarraPuntoDesde/pizarraTrazoA
+   Path/pizarraSerializar) y misma idea de "el fondo es el documento visto
+   de otra forma", pero:
+   - la capa cubre el VIEWPORT actual (no una diapositiva completa: aqui no
+     hay diapositivas), transparente para seguir viendo el texto debajo;
+   - el ancla no es "el ultimo nodo de este grupo" (no existen grupos fuera
+     de Presentar) sino "el bloque de nivel superior que esta arriba de
+     todo ahora mismo en la pantalla", calculado con el mismo anclasDoc()/
+     topEnDoc() que ya usa el scroll sincronizado editor<->documento;
+   - al guardar, ademas del bloque ```pizarra se antepone un titulo propio
+     ("### ✎ Nota"): asi entra gratis al Esquema (titulosDoc() ya busca
+     h1..h6) y a "editar solo esta seccion", sin tocar ese codigo para nada
+     -- el mismo truco que ya usa pizarronInsertar() con "## Pizarrón hoja N".
+   No incluye lineas/figuras/capas/grupos/seleccionar (si en el bloque
+   ```pizarra) por ser una anotacion de lectura, no un dibujo tecnico. */
+var NOTA = null;
+function notaAnclaElemento(){
+  var anc = anclasDoc();
+  if(!anc.length) return null;
+  var c = contenedorDoc(), y = desplazamientoDe(c), elegido = anc[0], i;
+  for(i = 0; i < anc.length; i++){
+    if(topEnDoc(anc[i].el) <= y + 40) elegido = anc[i]; else break;
+  }
+  return elegido.el;
+}
+/* mismo criterio que diaLimiteFuente(), pero el "grupo" es un solo elemento
+   (el ancla) en vez de todos los hijos de una diapositiva. */
+function notaLimiteFuente(elAncla){
+  if(!elAncla) return null;
+  var hijos = Array.prototype.slice.call(elDoc.children);
+  var pos = hijos.indexOf(elAncla);
+  if(pos < 0) return null;
+  var siguiente = hijos[pos + 1];
+  var n = siguiente && siguiente.getAttribute ? siguiente.getAttribute("data-linea") : null;
+  if(n === null || n === undefined) return null;
+  return parseInt(n, 10);
+}
+function notaRedibujar(){
+  var svg = $("#notaSvg");
+  if(svg) svg.innerHTML = pizarraTrazosHTML(NOTA.datos);
+  notaActualizarBarra();
+}
+function notaActualizarBarra(){
+  if(!NOTA) return;
+  var hay = NOTA.datos.trazos.length > 0;
+  $("#notaDeshacer").disabled = !hay;
+  $("#notaLimpiar").disabled = !hay;
+  $("#notaGuardar").disabled = !hay;
+}
+function notaFondoAplicar(f){
+  $("#nota").setAttribute("data-fondo", f);
+  $("#notaFondo").textContent = PIZARRON_FONDO_ETIQUETA[f] || PIZARRON_FONDO_ETIQUETA.liso;
+}
+function notaFondoAlternar(){
+  if(!NOTA) return;
+  var i = PIZARRON_FONDOS.indexOf(NOTA.estado.fondo);
+  NOTA.estado.fondo = PIZARRON_FONDOS[(i + 1) % PIZARRON_FONDOS.length];
+  notaFondoAplicar(NOTA.estado.fondo);
+  escribir(CLAVE_PIZARRON_FONDO, NOTA.estado.fondo);   // misma preferencia que Pizarrón y el bloque ```pizarra
+}
+function notaBorradorAlternar(){
+  if(!NOTA) return;
+  NOTA.estado.borrador = !NOTA.estado.borrador;
+  $("#notaBorrador").classList.toggle("activo", NOTA.estado.borrador);
+  $("#notaBorrador").setAttribute("aria-pressed", String(NOTA.estado.borrador));
+  $("#nota").classList.toggle("nota-borrador", NOTA.estado.borrador);
+}
+function notaDeshacer(){
+  if(!NOTA || !NOTA.datos.trazos.length) return;
+  NOTA.datos.trazos.pop();
+  notaRedibujar();
+}
+function notaLimpiar(){
+  if(!NOTA || !NOTA.datos.trazos.length) return;
+  aviso("¿Borrar todo lo escrito en esta nota?", "Borrar", function(){
+    if(!NOTA) return;
+    NOTA.datos.trazos = [];
+    notaRedibujar();
+  });
+}
+function colocarTextoNota(pt){
+  var fs = Math.max(8, Math.min(120, NOTA.estado.grosor || 24));
+  var texto = window.prompt("Escribe la nota:", "");
+  if(texto === null) return;
+  texto = texto.trim().slice(0, PIZARRA_TEXTO_MAX);
+  if(!texto) return;
+  if(NOTA.datos.trazos.length >= PIZARRA_TRAZOS_MAX){ aviso("Esta nota ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos."); return; }
+  var w = pizarraMedirAncho(texto, fs), lineas = texto.split("\n").length;
+  var x1 = Math.round((pt.x + w) * 10) / 10, y1 = Math.round((pt.y + fs * 1.2 * lineas) * 10) / 10;
+  NOTA.datos.trazos.push({ color: NOTA.estado.color, grosor: fs, d: "M" + pt.x + " " + pt.y + " L" + x1 + " " + y1, capa: 0, grupo: null, tipo: "texto", texto: texto });
+  notaRedibujar();
+}
+function notaPunteroAbajo(e){
+  if(!NOTA || !e.isPrimary) return;
+  var svg = $("#notaSvg"), rect = svg.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  var pt = pizarraPuntoDesde(e, rect, NOTA.datos);
+  if(NOTA.estado.herramienta === "texto"){ colocarTextoNota(pt); return; }
+  if(NOTA.estado.borrador){
+    var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
+    if(trazoEl){
+      var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
+      if(isFinite(idx) && NOTA.datos.trazos[idx]){
+        NOTA.datos.trazos.splice(idx, 1);
+        notaRedibujar();
+      }
+    }
+    return;
+  }
+  try{ svg.setPointerCapture(e.pointerId); }catch(err){}
+  var d0 = pizarraTrazoAPath([pt]);
+  svg.insertAdjacentHTML("beforeend", '<path class="pizarra-trazo-actual" d="' + escUI(d0) + '" stroke="' + escUI(NOTA.estado.color) + '" stroke-width="' + NOTA.estado.grosor + '"></path>');
+  NOTA.enCurso = { pointerId: e.pointerId, puntos: [pt], d: d0, tope: false, path: svg.lastElementChild };
+}
+function notaPunteroMueve(e){
+  var en = NOTA && NOTA.enCurso;
+  if(!en || e.pointerId !== en.pointerId || en.tope) return;
+  var svg = $("#notaSvg"), rect = svg.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  var pt = pizarraPuntoDesde(e, rect, NOTA.datos);
+  if(en.puntos.length < 5000) en.puntos.push(pt); else return;
+  var d = pizarraTrazoApendice(en.d, en.puntos);
+  if(d.length > PIZARRA_D_MAX){ en.puntos.pop(); en.tope = true; return; }
+  en.d = d;
+  en.path.setAttribute("d", d);
+}
+function notaPunteroSoltar(e){
+  var en = NOTA && NOTA.enCurso;
+  if(!en || e.pointerId !== en.pointerId) return;
+  if(NOTA.datos.trazos.length >= PIZARRA_TRAZOS_MAX){
+    if(en.path && en.path.parentNode) en.path.parentNode.removeChild(en.path);
+    NOTA.enCurso = null;
+    aviso("Esta nota ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos.");
+    return;
+  }
+  var trazo = { color: NOTA.estado.color, grosor: NOTA.estado.grosor, d: en.path.getAttribute("d") };
+  NOTA.datos.trazos.push(trazo);
+  en.path.setAttribute("class", "pizarra-trazo");
+  en.path.setAttribute("data-i", String(NOTA.datos.trazos.length - 1));
+  NOTA.enCurso = null;
+  notaActualizarBarra();
+}
+function teclaNota(e){
+  if(e.key === "Escape"){ e.preventDefault(); cancelarNota(); }
+}
+function cerrarNota(){
+  if(!NOTA) return;
+  NOTA = null;
+  $("#nota").hidden = true;
+  $("#nota").removeAttribute("data-fondo");
+  $("#nota").classList.remove("nota-borrador");
+  document.removeEventListener("keydown", teclaNota);
+}
+function cancelarNota(){
+  if(!NOTA) return;
+  if(!NOTA.datos.trazos.length){ cerrarNota(); return; }
+  aviso("¿Descartar esta nota sin guardar?", "Descartar", function(){ cerrarNota(); });
+}
+function guardarNota(){
+  if(!NOTA || !NOTA.datos.trazos.length){ aviso("No hay nada escrito en esta nota."); return; }
+  var lim = notaLimiteFuente(NOTA.ancla);
+  if(lim === null && fuenteTerminaEnFenceAbierto(fuenteActual)){
+    aviso("No pude guardar: hay un bloque de código sin cerrar al final del documento.");
+    return;
+  }
+  var bloque = "### ✎ Nota\n\n```pizarra\n" + pizarraSerializar(NOTA.datos) + "\n```\n";
+  var pos = (lim === null) ? fuenteActual.length : posicionDeLinea(fuenteActual, lim);
+  var antes = fuenteActual.slice(0, pos), despues = fuenteActual.slice(pos);
+  if(antes.length && !/\n$/.test(antes)) antes += "\n";
+  if(antes.length && !/\n\n$/.test(antes)) antes += "\n";
+  if(despues.length && !/^\n/.test(despues)) bloque += "\n";
+  fuenteActual = antes + bloque + despues;
+  topesLinea = null;
+  sincronizarEditor();
+  pintar(fuenteActual);
+  guardarDoc();
+  pintarCuenta();
+  aviso("Nota guardada: aparece en el Esquema.");
+  cerrarNota();
+}
+function abrirNota(){
+  if(NOTA || DIA || PIZARRON) return;
+  var ancla = notaAnclaElemento();
+  NOTA = {
+    ancla: ancla, datos: { ancho: 0, alto: 0, trazos: [] },
+    estado: { color: $("#notaColor").value || PIZARRA_COLOR_DEF, grosor: Number($("#notaGrosor").value) || 4, herramienta: "lapiz", borrador: false, fondo: pizarronFondoInicial() },
+    enCurso: null
+  };
+  $("#nota").hidden = false;
+  var rect = $("#notaLienzo").getBoundingClientRect();
+  NOTA.datos.ancho = Math.max(200, Math.round(rect.width) || PIZARRA_ANCHO_DEF);
+  NOTA.datos.alto = Math.max(200, Math.round(rect.height) || PIZARRA_ALTO_DEF);
+  $("#notaHerramienta").value = "lapiz";
+  $("#notaBorrador").classList.remove("activo");
+  $("#notaBorrador").setAttribute("aria-pressed", "false");
+  notaFondoAplicar(NOTA.estado.fondo);
+  notaRedibujar();
+  document.addEventListener("keydown", teclaNota);
+}
+function prepararNota(){
+  $("#btnAnotar").addEventListener("click", abrirNota);
+  var svg = $("#notaSvg");
+  svg.addEventListener("pointerdown", notaPunteroAbajo);
+  svg.addEventListener("pointermove", notaPunteroMueve);
+  svg.addEventListener("pointerup", notaPunteroSoltar);
+  svg.addEventListener("pointercancel", notaPunteroSoltar);
+  $("#notaColor").addEventListener("input", function(){ if(NOTA) NOTA.estado.color = this.value; });
+  $("#notaGrosor").addEventListener("input", function(){ if(NOTA) NOTA.estado.grosor = Number(this.value) || 4; });
+  $("#notaHerramienta").addEventListener("change", function(){
+    if(!NOTA) return;
+    NOTA.estado.herramienta = this.value;
+    var esTexto = NOTA.estado.herramienta === "texto", g = $("#notaGrosor");
+    g.min = esTexto ? 8 : 1;
+    g.max = esTexto ? 120 : 24;
+    g.value = Math.max(Number(g.min), Math.min(Number(g.max), NOTA.estado.grosor));
+    NOTA.estado.grosor = Number(g.value);
+  });
+  $("#notaFondo").addEventListener("click", notaFondoAlternar);
+  $("#notaBorrador").addEventListener("click", notaBorradorAlternar);
+  $("#notaDeshacer").addEventListener("click", notaDeshacer);
+  $("#notaLimpiar").addEventListener("click", notaLimpiar);
+  $("#notaCancelar").addEventListener("click", cancelarNota);
+  $("#notaGuardar").addEventListener("click", guardarNota);
+}
+
 /* abre el pizarron global SIN cerrar Presentar: oculta #diapositivas (DIA
    sigue vivo) y lo restaura cuando cerrarPizarron() termine, en vez de caer
    a la vista de documento normal -- ver el campo volverAPresentar alli. */
@@ -15480,6 +16187,7 @@ function prepararPresentacion(){
   $("#diaSalir").addEventListener("click", cerrarPresentacion);
   $("#diaMiniaturas").addEventListener("click", diaAbrirMiniaturas);
   $("#diaEsquema").addEventListener("click", diaAbrirEsquema);
+  $("#diaLeer").addEventListener("click", alternarLeerVoz);
   $("#diaPizarron").addEventListener("click", diaAbrirPizarron);
   $("#diaLapiz").addEventListener("click", function(){ diaLapizPoner(!DIA.lapiz); });
   Array.prototype.forEach.call(document.querySelectorAll("#diaLapizColores .dia-color"), function(b){
@@ -15532,11 +16240,25 @@ function pizarronFondoAplicar(f){
   if(b) b.textContent = PIZARRON_FONDO_ETIQUETA[f] || PIZARRON_FONDO_ETIQUETA.liso;
 }
 function pizarronRedibujar(){
-  if(PIZARRON.sel){ PIZARRON.sel.idx = -1; PIZARRON.sel.arrastre = null; }
+  if(PIZARRON.sel){ PIZARRON.sel.idxs = []; PIZARRON.sel.arrastre = null; }
   /* OJO: previoGesto NO se limpia aqui (Deshacer redibuja tras restaurar);
      se limpia donde los indices realmente se corren (borrar/limpiar/hoja). */
   var lienzo = $("#pizarronLienzo");
   if(lienzo) lienzo.innerHTML = pizarraSvgHTML(pizarronHoja(PIZARRON.i));
+  pizarronActualizarBarra();
+}
+/* como redibujarSinPerderSeleccion() del bloque embebido: para acciones que
+   no corren indices (Agrupar/Desagrupar, recolorear la seleccion) no hace
+   falta perder que trazos estaban marcados. */
+function pizarronRedibujarSinPerderSeleccion(){
+  var idxsPrevios = PIZARRON.sel ? PIZARRON.sel.idxs : [];
+  var lienzo = $("#pizarronLienzo");
+  if(lienzo) lienzo.innerHTML = pizarraSvgHTML(pizarronHoja(PIZARRON.i));
+  if(PIZARRON.sel){
+    PIZARRON.sel.idxs = idxsPrevios;
+    var svgSel = $("#pizarronLienzo .pizarra-svg");
+    if(svgSel) pizarraSeleccionPintar(svgSel, pizarronHoja(PIZARRON.i), PIZARRON.sel);
+  }
   pizarronActualizarBarra();
 }
 function pizarronActualizarBarra(){
@@ -15545,6 +16267,17 @@ function pizarronActualizarBarra(){
   var ant = $("#pizarronHojaAnterior"), sig = $("#pizarronHojaSiguiente");
   if(ant) ant.disabled = PIZARRON.i === 0;
   if(sig) sig.disabled = PIZARRON.i === PIZARRON.hojas.length - 1;
+  var hoja = pizarronHoja(PIZARRON.i);
+  var ba = $("#pizarronAgrupar");
+  if(ba){
+    var st = pizarraAgruparEstado(hoja, PIZARRON.sel);
+    ba.disabled = !st;
+    ba.textContent = st === "desagrupar" ? "Desagrupar" : "Agrupar";
+  }
+  var bc = $("#pizarronCopiar");
+  if(bc) bc.disabled = !(PIZARRON.sel && PIZARRON.sel.idxs && PIZARRON.sel.idxs.length);
+  var panel = $("#pizarron .pizarra-capas");
+  if(panel) panel.outerHTML = pizarraCapasHTML(hoja, PIZARRON.estado.capaActiva);
 }
 /* una hoja por indice, igual que diaCapa(): si todavia no existe (nunca se
    dibujo ahi, o llego un indice de otra pestaña por delante de lo que esta
@@ -15622,7 +16355,9 @@ function emitirPizarronHoja(){
 function irAHojaPizarron(i){
   PIZARRON.i = i;
   PIZARRON.enCurso = null;
+  PIZARRON.textoDown = null;
   if(PIZARRON.sel) PIZARRON.sel.previoGesto = null;   // el gesto pertenece a la hoja anterior
+  PIZARRON.estado.capaActiva = pizarraCapaActivaValida(pizarronHoja(i), PIZARRON.estado.capaActiva);
   pizarronRedibujar();
   emitirPizarronHoja();
 }
@@ -15810,9 +16545,9 @@ function abrirPizarron(){
   var alto = Math.max(200, Math.round(rect.height) || PIZARRA_ALTO_DEF);
   var sesion = {
     hojas: [{ ancho: ancho, alto: alto, trazos: [] }], i: 0,
-    estado: { color: $("#pizarronColor").value || PIZARRA_COLOR_DEF, grosor: Number($("#pizarronGrosor").value) || 3, borrador: false, herramienta: $("#pizarronHerramienta").value || "lapiz" },
+    estado: { color: $("#pizarronColor").value || PIZARRA_COLOR_DEF, grosor: Number($("#pizarronGrosor").value) || 3, borrador: false, herramienta: $("#pizarronHerramienta").value || "lapiz", capaActiva: 0 },
     fondo: pizarronFondoInicial(),
-    previo: null, enCurso: null, sel: { idx: -1, arrastre: null }, enPantallaCompleta: false
+    previo: null, enCurso: null, textoDown: null, sel: { idxs: [], arrastre: null }, capasAbiertas: false, enPantallaCompleta: false
   };
   PIZARRON = sesion;
   pizarronFondoAplicar(sesion.fondo);
@@ -15873,10 +16608,16 @@ function pizarronPointerDown(e){
   if(PIZARRON.estado.herramienta === "seleccionar"){
     try{ svgEl.setPointerCapture(e.pointerId); }catch(err2){}
     pizarraSeleccionBajar(e, svgEl, hoja, PIZARRON.sel);
+    pizarronActualizarBarra();
     return;
   }
   var rect = svgEl.getBoundingClientRect();
   if(!rect.width || !rect.height) return;
+  if(PIZARRON.estado.herramienta === "texto"){
+    try{ svgEl.setPointerCapture(e.pointerId); }catch(errT){}
+    PIZARRON.textoDown = { pointerId: e.pointerId, pt: pizarraPuntoDesde(e, rect, hoja), clientX: e.clientX, clientY: e.clientY };
+    return;
+  }
   try{ svgEl.setPointerCapture(e.pointerId); }catch(err){}
   var pt = pizarraPuntoDesde(e, rect, hoja);
   var herramienta = PIZARRON.estado.herramienta || "lapiz";
@@ -15901,22 +16642,55 @@ function pizarronPointerMove(e){
     d = pizarraTrazoApendice(PIZARRON.enCurso.d, PIZARRON.enCurso.puntos);
     if(d.length > PIZARRA_D_MAX){ PIZARRON.enCurso.puntos.pop(); PIZARRON.enCurso.tope = true; return; }
   }else{
-    d = pizarraFormaAPath(PIZARRON.enCurso.herramienta, PIZARRON.enCurso.x0, PIZARRON.enCurso.y0, pt.x, pt.y);
+    /* Shift: angulo fijo en Línea, caja 1:1 en un sello de figura (misma
+       regla que el bloque embebido, seccion 12.11/12.15). */
+    var destino = pt;
+    if(e.shiftKey){
+      destino = PIZARRON.enCurso.herramienta === "linea" ? pizarraSnapAngulo(PIZARRON.enCurso.x0, PIZARRON.enCurso.y0, pt.x, pt.y) : pizarraSnapCuadrado(PIZARRON.enCurso.x0, PIZARRON.enCurso.y0, pt.x, pt.y);
+    }
+    d = pizarraFormaAPath(PIZARRON.enCurso.herramienta, PIZARRON.enCurso.x0, PIZARRON.enCurso.y0, destino.x, destino.y);
     if(d.length > PIZARRA_D_MAX) return;
   }
   PIZARRON.enCurso.d = d;
   PIZARRON.enCurso.path.setAttribute("d", d);
   emitirPizarronTrazoVivo(PIZARRON.enCurso);
 }
+function pizarronColocarTexto(pt){
+  var fs = PIZARRON.estado.grosor || 24;
+  var texto = window.prompt("Escribe el texto:", "");
+  if(texto === null) return;
+  texto = texto.trim().slice(0, PIZARRA_TEXTO_MAX);
+  if(!texto) return;
+  var hoja = pizarronHoja(PIZARRON.i);
+  if(hoja.trazos.length >= PIZARRA_TRAZOS_MAX){ aviso("Este pizarrón ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos."); return; }
+  var w = pizarraMedirAncho(texto, fs), lineas = texto.split("\n").length;
+  var x1 = Math.round((pt.x + w) * 10) / 10, y1 = Math.round((pt.y + fs * 1.2 * lineas) * 10) / 10;
+  var i = hoja.trazos.length;
+  var trazo = { color: PIZARRON.estado.color, grosor: fs, d: "M" + pt.x + " " + pt.y + " L" + x1 + " " + y1, capa: PIZARRON.estado.capaActiva, grupo: null, tipo: "texto", texto: texto };
+  hoja.trazos.push(trazo);
+  pizarronRedibujar();
+  emitirPizarronTrazoFinal(trazo);
+}
 function pizarronSoltarPuntero(e){
   if(!PIZARRON) return;
   if(PIZARRON.sel && PIZARRON.sel.arrastre && e.pointerId === PIZARRON.sel.arrastre.pointerId){
-    var idxSel = PIZARRON.sel.idx, hojaSel = pizarronHoja(PIZARRON.i);
+    var idxsSel = PIZARRON.sel.idxs.slice(), hojaSel = pizarronHoja(PIZARRON.i);
     var huboCambio = PIZARRON.sel.arrastre.cambio;
     PIZARRON.sel.arrastre = null;
     /* solo si de verdad cambio algo: un tap sin mover no debe mandar nada
        (en la otra pestaña el mensaje redibuja y le mata la seleccion). */
-    if(huboCambio && idxSel >= 0 && hojaSel.trazos[idxSel]) emitirPizarronTrazoCambiar(idxSel, hojaSel.trazos[idxSel]);
+    if(huboCambio){
+      for(var si = 0; si < idxsSel.length; si++){ if(hojaSel.trazos[idxsSel[si]]) emitirPizarronTrazoCambiar(idxsSel[si], hojaSel.trazos[idxsSel[si]]); }
+    }
+    pizarronActualizarBarra();
+    return;
+  }
+  if(PIZARRON.textoDown && e.pointerId === PIZARRON.textoDown.pointerId){
+    var dxT = e.clientX - PIZARRON.textoDown.clientX, dyT = e.clientY - PIZARRON.textoDown.clientY;
+    var ptT = PIZARRON.textoDown.pt;
+    PIZARRON.textoDown = null;
+    if(dxT * dxT + dyT * dyT > 100) return;   // arrastre real, no un tap: no se coloca texto
+    pizarronColocarTexto(ptT);
     return;
   }
   if(!PIZARRON.enCurso || e.pointerId !== PIZARRON.enCurso.pointerId) return;
@@ -15929,30 +16703,52 @@ function pizarronSoltarPuntero(e){
     return;
   }
   var i = hoja.trazos.length;
-  var trazo = { color: PIZARRON.estado.color, grosor: PIZARRON.estado.grosor, d: PIZARRON.enCurso.path.getAttribute("d") };
+  var trazo = { color: PIZARRON.estado.color, grosor: PIZARRON.estado.grosor, d: PIZARRON.enCurso.path.getAttribute("d"), capa: PIZARRON.estado.capaActiva, grupo: null };
   hoja.trazos.push(trazo);
   PIZARRON.enCurso.path.setAttribute("class", "pizarra-trazo");
   PIZARRON.enCurso.path.setAttribute("data-i", String(i));
   PIZARRON.enCurso = null;
   emitirPizarronTrazoVivoFin();
   emitirPizarronTrazoFinal(trazo);
+  /* igual que el bloque embebido: un trazo nuevo en una capa que no es la de
+     arriba del todo puede quedar mal apilado si solo se lo agrega al final
+     del DOM -- se redibuja agrupado por capa para que el orden visual sea
+     el correcto. */
+  if(PIZARRON.estado.capaActiva !== (hoja.capas ? hoja.capas.length - 1 : 0)) pizarronRedibujar();
 }
 function prepararPizarron(){
   $("#btnPizarron").addEventListener("click", abrirPizarron);
   $("#pizarronSalir").addEventListener("click", intentarSalirPizarron);
-  $("#pizarronColor").addEventListener("input", function(e){ if(PIZARRON) PIZARRON.estado.color = e.target.value; });
+  $("#pizarronColor").addEventListener("input", function(e){
+    if(!PIZARRON) return;
+    PIZARRON.estado.color = e.target.value;
+    /* con algo seleccionado, recolorea la seleccion en vivo (igual que el
+       bloque embebido) en vez de solo fijar el color del proximo trazo. */
+    if(PIZARRON.sel && PIZARRON.sel.idxs && PIZARRON.sel.idxs.length){
+      var hoja = pizarronHoja(PIZARRON.i), ci;
+      for(ci = 0; ci < PIZARRON.sel.idxs.length; ci++){ var tt = hoja.trazos[PIZARRON.sel.idxs[ci]]; if(tt) tt.color = PIZARRON.estado.color; }
+      pizarronRedibujarSinPerderSeleccion();
+      for(ci = 0; ci < PIZARRON.sel.idxs.length; ci++) emitirPizarronTrazoCambiar(PIZARRON.sel.idxs[ci], hoja.trazos[PIZARRON.sel.idxs[ci]]);
+    }
+  });
   $("#pizarronGrosor").addEventListener("input", function(e){ if(PIZARRON) PIZARRON.estado.grosor = Number(e.target.value) || 3; });
   $("#pizarronHerramienta").addEventListener("change", function(e){
     if(!PIZARRON) return;
     PIZARRON.estado.herramienta = e.target.value;
-    if(PIZARRON.sel && PIZARRON.sel.idx >= 0 && e.target.value !== "seleccionar") pizarronRedibujar();
+    if(PIZARRON.sel && PIZARRON.sel.idxs.length && e.target.value !== "seleccionar") pizarronRedibujar();
+    var grosorEl = $("#pizarronGrosor");
+    if(grosorEl){
+      if(e.target.value === "texto"){ grosorEl.min = 8; grosorEl.max = 120; if(Number(grosorEl.value) < 8) grosorEl.value = 24; }
+      else{ grosorEl.min = 1; grosorEl.max = 24; if(Number(grosorEl.value) > 24) grosorEl.value = 3; }
+      PIZARRON.estado.grosor = Number(grosorEl.value);
+    }
   });
   $("#pizarronBorrador").addEventListener("click", function(e){
     if(!PIZARRON) return;
     PIZARRON.estado.borrador = !PIZARRON.estado.borrador;
     e.target.setAttribute("aria-pressed", String(PIZARRON.estado.borrador));
     e.target.classList.toggle("activo", PIZARRON.estado.borrador);
-    if(PIZARRON.estado.borrador && PIZARRON.sel && PIZARRON.sel.idx >= 0) pizarronRedibujar();
+    if(PIZARRON.estado.borrador && PIZARRON.sel && PIZARRON.sel.idxs.length) pizarronRedibujar();
   });
   $("#pizarronFondo").addEventListener("click", function(){
     if(!PIZARRON) return;
@@ -15966,12 +16762,13 @@ function prepararPizarron(){
     if(!PIZARRON) return;
     var hoja = pizarronHoja(PIZARRON.i);
     var pg = PIZARRON.sel && PIZARRON.sel.previoGesto;
-    if(pg && hoja.trazos[pg.idx]){
-      hoja.trazos[pg.idx] = pg.trazo;
+    if(pg && pg.items && pg.items.length){
+      var pi;
+      for(pi = 0; pi < pg.items.length; pi++){ if(hoja.trazos[pg.items[pi].idx]) hoja.trazos[pg.items[pi].idx] = pg.items[pi].trazo; }
       PIZARRON.sel.previoGesto = null;
       PIZARRON.enCurso = null;
       pizarronRedibujar();
-      emitirPizarronTrazoCambiar(pg.idx, pg.trazo);
+      for(pi = 0; pi < pg.items.length; pi++) emitirPizarronTrazoCambiar(pg.items[pi].idx, hoja.trazos[pg.items[pi].idx]);
       return;
     }
     if(hoja.trazos.length){
@@ -15981,6 +16778,81 @@ function prepararPizarron(){
       pizarronRedibujar();
       emitirPizarronTrazoDeshacer();
     }
+  });
+  $("#pizarronCapasBoton").addEventListener("click", function(e){
+    if(!PIZARRON) return;
+    PIZARRON.capasAbiertas = !PIZARRON.capasAbiertas;
+    e.target.setAttribute("aria-pressed", String(PIZARRON.capasAbiertas));
+    var panelExistente = $("#pizarron .pizarra-capas");
+    var hoja = pizarronHoja(PIZARRON.i);
+    if(PIZARRON.capasAbiertas && !panelExistente) e.target.insertAdjacentHTML("afterend", pizarraCapasHTML(hoja, PIZARRON.estado.capaActiva));
+    else if(!PIZARRON.capasAbiertas && panelExistente) panelExistente.parentNode.removeChild(panelExistente);
+  });
+  $("#pizarron").addEventListener("click", function(e){
+    var capaAccionEl = e.target.closest ? e.target.closest("[data-capa-accion]") : null;
+    if(!capaAccionEl || !PIZARRON) return;
+    var hoja = pizarronHoja(PIZARRON.i);
+    var accion = capaAccionEl.getAttribute("data-capa-accion");
+    var iCapa = parseInt(capaAccionEl.getAttribute("data-capa-i"), 10);
+    if(accion === "agregar"){ PIZARRON.estado.capaActiva = pizarraCapaAgregar(hoja); }
+    else if(accion === "activar"){ PIZARRON.estado.capaActiva = pizarraCapaActivaValida(hoja, iCapa); }
+    else if(accion === "visible"){ hoja.capas[iCapa].visible = hoja.capas[iCapa].visible === false; pizarronRedibujar(); }
+    else if(accion === "renombrar"){
+      var nuevo = window.prompt("Nombre de la capa:", hoja.capas[iCapa].nombre || "");
+      if(nuevo !== null) hoja.capas[iCapa].nombre = nuevo.trim().slice(0, 40) || hoja.capas[iCapa].nombre;
+    }
+    else if(accion === "subir"){ pizarraCapaMover(hoja, iCapa, 1); pizarronRedibujar(); }
+    else if(accion === "bajar"){ pizarraCapaMover(hoja, iCapa, -1); pizarronRedibujar(); }
+    else if(accion === "eliminar"){
+      pizarraCapaEliminar(hoja, iCapa);
+      PIZARRON.estado.capaActiva = pizarraCapaActivaValida(hoja, PIZARRON.estado.capaActiva);
+      pizarronRedibujar();
+    }
+    var panel = $("#pizarron .pizarra-capas");
+    if(panel) panel.outerHTML = pizarraCapasHTML(hoja, PIZARRON.estado.capaActiva);
+  });
+  $("#pizarronAgrupar").addEventListener("click", function(e){
+    if(!PIZARRON || e.target.disabled) return;
+    var hoja = pizarronHoja(PIZARRON.i);
+    var st = pizarraAgruparEstado(hoja, PIZARRON.sel);
+    if(st === "agrupar") pizarraAgrupar(hoja, PIZARRON.sel);
+    else if(st === "desagrupar") pizarraDesagrupar(hoja, PIZARRON.sel);
+    pizarronRedibujarSinPerderSeleccion();
+  });
+  $("#pizarronCopiar").addEventListener("click", function(e){
+    if(!PIZARRON || e.target.disabled) return;
+    var hoja = pizarronHoja(PIZARRON.i);
+    var nuevos = pizarraDuplicar(hoja, PIZARRON.sel);
+    pizarronRedibujar();
+    PIZARRON.sel.idxs = nuevos;
+    var svgSel = $("#pizarronLienzo .pizarra-svg");
+    if(svgSel) pizarraSeleccionPintar(svgSel, hoja, PIZARRON.sel);
+    pizarronActualizarBarra();
+    for(var ni = 0; ni < nuevos.length; ni++) emitirPizarronTrazoCambiar(nuevos[ni], hoja.trazos[nuevos[ni]]);
+  });
+  $("#pizarron").addEventListener("dblclick", function(e){
+    if(!PIZARRON || PIZARRON.estado.herramienta !== "seleccionar") return;
+    var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
+    if(!trazoEl) return;
+    var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
+    var hoja = pizarronHoja(PIZARRON.i), t = hoja.trazos[idx];
+    if(!t || t.tipo !== "texto") return;
+    var nuevo = window.prompt("Editar texto:", t.texto);
+    if(nuevo === null) return;
+    nuevo = nuevo.trim().slice(0, PIZARRA_TEXTO_MAX);
+    if(!nuevo){
+      hoja.trazos.splice(idx, 1);   // vaciar el texto lo borra, como el borrador -- el splice corre los indices
+      if(PIZARRON.sel) PIZARRON.sel.previoGesto = null;
+      pizarronRedibujar();
+      emitirPizarronTrazoBorrar(idx);
+      return;
+    }
+    var c = pizarraTextoCaja(t.d);
+    var w = pizarraMedirAncho(nuevo, t.grosor), lineas = nuevo.split("\n").length;
+    t.texto = nuevo;
+    t.d = "M" + c.x0 + " " + c.y0 + " L" + (Math.round((c.x0 + w) * 10) / 10) + " " + (Math.round((c.y0 + t.grosor * 1.2 * lineas) * 10) / 10);
+    pizarronRedibujar();
+    emitirPizarronTrazoCambiar(idx, t);
   });
   $("#pizarronLimpiar").addEventListener("click", function(){
     if(!PIZARRON) return;
@@ -17030,6 +17902,7 @@ $("#velo").addEventListener("click", function(e){ if(e.target === this) cerrarGa
 $("#estadoTexto").addEventListener("click", verRecientes);
 $("#estadoRecientes").addEventListener("click", verRecientes);
 $("#estadoPresentar").addEventListener("click", abrirPresentacion);
+$("#estadoLeer").addEventListener("click", alternarLeerVoz);
 $("#estadoEditar").addEventListener("click", alternarEditor);
 $("#estadoImprimir").addEventListener("click", imprimirDocumento);
 $("#estadoGuardarPlantilla").addEventListener("click", guardarComoMiPlantilla);
@@ -17793,6 +18666,7 @@ if(HAY_ALMACEN){
 
 prepararFormularios();
 prepararPresentacion();
+prepararNota();
 prepararPizarron();
 barraQueSeAparta();
 medirAltoBarra();
