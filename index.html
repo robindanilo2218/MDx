@@ -1520,9 +1520,6 @@ g.pizarra-trazo[data-tipo="texto"] text{stroke:none; font-family:inherit; white-
 .pizarra-capa-fila button:disabled{opacity:.4; cursor:default}
 .pizarra-capa-nombre{flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .pizarra-capa-agregar{align-self:flex-start; padding:.3rem .7rem; border:1px dashed var(--borde); border-radius:.3rem; background:none; color:var(--texto); font-size:.82em; cursor:pointer}
-.pizarra-borrador-aviso{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-top:.6rem; padding:.5rem .7rem; border:1px solid var(--acento); border-radius:.4rem; background:color-mix(in srgb, var(--acento) 12%, transparent); font-size:.85em}
-.pizarra-borrador-aviso button{padding:.35rem .7rem; border:1px solid var(--borde); border-radius:.3rem; background:var(--papel); color:var(--texto); font-size:.9em; cursor:pointer}
-.pizarra-borrador-aviso .pizarra-boton-borrador-continuar{border-color:var(--acento); color:var(--acento); font-weight:600}
 
 /* bloque ```svg -- el saneamiento real lo hace desinfectarFragmento() sobre
    todo el documento, aqui solo hay marco visual */
@@ -8005,11 +8002,8 @@ function pizarraSeleccionBajar(e, svgEl, datos, sel){
        deselecciona. Sin esto una caja grande secuestraba todos los clics
        de su interior. */
     var pila = document.elementsFromPoint(e.clientX, e.clientY), k;
-    /* closest(), no classList directo: en un texto la clase "pizarra-trazo"
-       vive en el <g> envolvente, no en el <rect>/<text> hoja que devuelve
-       elementsFromPoint -- un chequeo plano nunca lo encontraba. */
     for(k = 0; k < pila.length && !trazoEl; k++){
-      trazoEl = pila[k].closest ? pila[k].closest(".pizarra-trazo") : null;
+      if(pila[k].classList && pila[k].classList.contains("pizarra-trazo")) trazoEl = pila[k];
     }
   }
   if(trazoEl){
@@ -12909,50 +12903,11 @@ function pizarraActivarFigura(fig){
   if(!payload.datos) return;
   var indice = parseInt(fig.dataset.pizarraIndice, 10) || 0;
   var estado = { color: PIZARRA_COLOR_DEF, grosor: 3, borrador: false, herramienta: "lapiz", capaActiva: 0, fondo: "liso" };
-  var previo = null;    // copia COMPLETA de datos al entrar a dibujar, para "Cancelar"
+  var previo = null;    // copia de datos.trazos al entrar a dibujar, para "Cancelar"
   var enCurso = null;   // {pointerId, puntos, path, svg} del trazo que se esta dibujando ahora mismo
   var sel = { idxs: [], arrastre: null };   // seleccion (multiple, Ctrl agrega) de la herramienta "Seleccionar"
   var capasAbiertas = false;
   var textoDown = null;   // {pointerId, pt, clientX, clientY} -- tap pendiente de la herramienta "texto"
-  var claveBorrador = null;   // clave localStorage del borrador de ESTA sesion de dibujo (ver entrarDibujo)
-  var borradorTimer = null;
-  function guardarBorrador(){
-    if(!claveBorrador) return;
-    if(borradorTimer) clearTimeout(borradorTimer);
-    borradorTimer = setTimeout(function(){
-      borradorTimer = null;
-      escribir(claveBorrador, JSON.stringify(payload.datos));
-    }, 400);
-  }
-  function leerBorrador(){
-    /* mismo criterio que un trazo llegado de OTRA pestaña (pizarraTrazoValido):
-       un borrador viejo de otra version del formato, o tocado a mano en
-       localStorage, no debe poder inyectar un trazo fuera de rango ni un
-       ancho/alto disparatado que rompa el viewBox del SVG. */
-    if(!claveBorrador) return null;
-    var txt = leer(claveBorrador);
-    if(!txt) return null;
-    try{
-      var datos = JSON.parse(txt);
-      if(!datos || typeof datos !== "object" || !Array.isArray(datos.trazos)) return null;
-      var ancho = (typeof datos.ancho === "number" && datos.ancho > 0 && datos.ancho <= 4000) ? datos.ancho : PIZARRA_ANCHO_DEF;
-      var alto = (typeof datos.alto === "number" && datos.alto > 0 && datos.alto <= 4000) ? datos.alto : PIZARRA_ALTO_DEF;
-      var capas = Array.isArray(datos.capas) ? datos.capas.slice(0, PIZARRA_CAPAS_MAX).filter(function(c){ return c && typeof c === "object"; }).map(function(c){
-        return { nombre: String(c.nombre || "").slice(0, 40), visible: c.visible !== false };
-      }) : undefined;
-      var ocupa = (datos.ocupa === "completa" || datos.ocupa === 25 || datos.ocupa === 50 || datos.ocupa === 75) ? datos.ocupa : 100;
-      return { ancho: ancho, alto: alto, capas: capas, ocupa: ocupa, trazos: datos.trazos.filter(pizarraTrazoValido).slice(0, PIZARRA_TRAZOS_MAX) };
-    }catch(e){ return null; }
-  }
-  function borrarBorrador(){
-    if(borradorTimer){ clearTimeout(borradorTimer); borradorTimer = null; }
-    if(claveBorrador) borrar(claveBorrador);
-  }
-  function bannerBorradorHTML(){
-    return '<div class="pizarra-borrador-aviso no-print">Tienes cambios sin guardar de una sesión anterior en esta pizarra. ' +
-      '<button type="button" class="pizarra-boton-borrador-continuar">Continuar donde quedaste</button>' +
-      '<button type="button" class="pizarra-boton-borrador-descartar">Empezar en blanco</button></div>';
-  }
   function limpiarSeleccion(){
     sel.idxs = [];
     sel.arrastre = null;
@@ -13027,34 +12982,24 @@ function pizarraActivarFigura(fig){
     var lienzo = fig.querySelector(".pizarra-lienzo");
     if(lienzo) lienzo.innerHTML = pizarraSvgHTML(payload.datos);
     actualizarBotonAgrupar();
-    guardarBorrador();
   }
   function entrarDibujo(){
-    /* copia COMPLETA (no solo trazos): "Continuar" (borrador) puede injertar
-       un payload.datos entero con otro ancho/alto/capas/ocupa -- si Cancelar
-       solo revirtiera .trazos, quedaria una mezcla de trazos viejos con
-       dimensiones/capas del borrador, corrupcion silenciosa que "Listo"
-       terminaria guardando de verdad. */
-    previo = JSON.parse(JSON.stringify(payload.datos));
+    previo = payload.datos.trazos.slice();
     estado.fondo = pizarronFondoInicial();
     estado.capaActiva = pizarraCapaActivaValida(payload.datos, estado.capaActiva);
     fig.classList.add("pizarra-dibujando");
     fig.setAttribute("data-fondo", estado.fondo);
-    claveBorrador = "mdcrgm.pizarraBorrador." + (docActual ? docActual.id : "sd") + "." + indice + "." + payload.firma;
-    var hayBorrador = !!leerBorrador();
-    fig.innerHTML = (hayBorrador ? bannerBorradorHTML() : "") + pizarraLienzoHTML(payload.datos) + barraHTML();
+    fig.innerHTML = pizarraLienzoHTML(payload.datos) + barraHTML();
   }
   function salirDibujo(guardado){
     enCurso = null;
     sel.idxs = [];
     sel.arrastre = null;
     sel.previoGesto = null;
-    sel.ultimaCopia = null;
     estado.borrador = false;
     capasAbiertas = false;
     fig.classList.remove("pizarra-dibujando", "pizarra-borrador");
     fig.removeAttribute("data-fondo");
-    borrarBorrador();
     fig.innerHTML = vistaHTML();
     if(guardado){
       fig.dataset.pizarra = JSON.stringify(payload);
@@ -13108,7 +13053,6 @@ function pizarraActivarFigura(fig){
       var nuevosIdx = pizarraDuplicar(payload.datos, sel);
       redibujarTrazos();
       sel.idxs = nuevosIdx;
-      sel.ultimaCopia = nuevosIdx.length ? nuevosIdx.slice() : null;
       var svgSelC = fig.querySelector(".pizarra-svg");
       if(svgSelC) pizarraSeleccionPintar(svgSelC, payload.datos, sel);
       actualizarBotonAgrupar();
@@ -13118,7 +13062,7 @@ function pizarraActivarFigura(fig){
     if(capaAccionEl){
       var accion = capaAccionEl.getAttribute("data-capa-accion");
       var iCapa = parseInt(capaAccionEl.getAttribute("data-capa-i"), 10);
-      if(accion === "agregar"){ estado.capaActiva = pizarraCapaAgregar(payload.datos); guardarBorrador(); }
+      if(accion === "agregar"){ estado.capaActiva = pizarraCapaAgregar(payload.datos); }
       else if(accion === "activar"){ estado.capaActiva = pizarraCapaActivaValida(payload.datos, iCapa); }
       else if(accion === "visible"){
         payload.datos.capas[iCapa].visible = payload.datos.capas[iCapa].visible === false;
@@ -13126,10 +13070,7 @@ function pizarraActivarFigura(fig){
       }
       else if(accion === "renombrar"){
         var nuevo = window.prompt("Nombre de la capa:", payload.datos.capas[iCapa].nombre || "");
-        if(nuevo !== null){
-          payload.datos.capas[iCapa].nombre = nuevo.trim().slice(0, 40) || payload.datos.capas[iCapa].nombre;
-          guardarBorrador();
-        }
+        if(nuevo !== null) payload.datos.capas[iCapa].nombre = nuevo.trim().slice(0, 40) || payload.datos.capas[iCapa].nombre;
       }
       else if(accion === "subir"){ pizarraCapaMover(payload.datos, iCapa, 1); redibujarTrazos(); }
       else if(accion === "bajar"){ pizarraCapaMover(payload.datos, iCapa, -1); redibujarTrazos(); }
@@ -13143,15 +13084,6 @@ function pizarraActivarFigura(fig){
     }
     el = t.closest ? t.closest(".pizarra-boton-deshacer") : null;
     if(el){
-      if(sel.ultimaCopia && sel.ultimaCopia.length){
-        var idxsCopia = sel.ultimaCopia.slice().sort(function(a, b){ return b - a; });
-        for(var ci = 0; ci < idxsCopia.length; ci++) payload.datos.trazos.splice(idxsCopia[ci], 1);
-        sel.ultimaCopia = null;
-        sel.previoGesto = null;   // el splice corre los indices: el gesto guardado ya no aplica
-        enCurso = null;
-        redibujarTrazos();
-        return;
-      }
       if(sel.previoGesto && sel.previoGesto.items && sel.previoGesto.items.length){
         for(var pi = 0; pi < sel.previoGesto.items.length; pi++){
           var pg = sel.previoGesto.items[pi];
@@ -13171,14 +13103,13 @@ function pizarraActivarFigura(fig){
       aviso("¿Borrar todos los trazos de esta pizarra?", "Borrar", function(){
         payload.datos.trazos = [];
         sel.previoGesto = null;
-        sel.ultimaCopia = null;
         enCurso = null;
         redibujarTrazos();
       });
       return;
     }
     el = t.closest ? t.closest(".pizarra-boton-cancelar") : null;
-    if(el){ if(previo) payload.datos = previo; salirDibujo(false); return; }
+    if(el){ payload.datos.trazos = previo || []; salirDibujo(false); return; }
     el = t.closest ? t.closest(".pizarra-boton-listo") : null;
     if(el){
       if(pizarraEscribir(indice, payload.firma, payload.datos)){
@@ -13187,22 +13118,6 @@ function pizarraActivarFigura(fig){
       }else{
         aviso("No pude guardar los trazos: el texto cambió mientras dibujabas. Vuelve a intentarlo.");
       }
-      return;
-    }
-    el = t.closest ? t.closest(".pizarra-boton-borrador-continuar") : null;
-    if(el){
-      var datosBorrador = leerBorrador();
-      if(datosBorrador) payload.datos = datosBorrador;
-      var bannerC = fig.querySelector(".pizarra-borrador-aviso");
-      if(bannerC) bannerC.parentNode.removeChild(bannerC);
-      redibujarTrazos();
-      return;
-    }
-    el = t.closest ? t.closest(".pizarra-boton-borrador-descartar") : null;
-    if(el){
-      borrarBorrador();
-      var bannerD = fig.querySelector(".pizarra-borrador-aviso");
-      if(bannerD) bannerD.parentNode.removeChild(bannerD);
       return;
     }
   });
@@ -13217,7 +13132,6 @@ function pizarraActivarFigura(fig){
     var svgSel = fig.querySelector(".pizarra-svg");
     if(svgSel) pizarraSeleccionPintar(svgSel, payload.datos, sel);
     actualizarBotonAgrupar();
-    guardarBorrador();
   }
 
   fig.addEventListener("input", function(e){
@@ -13255,15 +13169,6 @@ function pizarraActivarFigura(fig){
   fig.addEventListener("dblclick", function(e){
     if(!fig.classList.contains("pizarra-dibujando") || estado.herramienta !== "seleccionar") return;
     var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
-    if(!trazoEl && e.target.closest && e.target.closest(".pizarra-seleccion-caja") && document.elementsFromPoint){
-      /* la caja de seleccion es transparente y tapa lo de abajo -- mismo
-         truco que pizarraSeleccionBajar() para no perder el doble-toque
-         sobre un texto que quedo agrupado/seleccionado. */
-      var pila = document.elementsFromPoint(e.clientX, e.clientY), k;
-      for(k = 0; k < pila.length && !trazoEl; k++){
-        trazoEl = pila[k].closest ? pila[k].closest(".pizarra-trazo") : null;
-      }
-    }
     if(!trazoEl) return;
     var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
     var t = payload.datos.trazos[idx];
@@ -13271,7 +13176,7 @@ function pizarraActivarFigura(fig){
     var nuevo = window.prompt("Editar texto:", t.texto);
     if(nuevo === null) return;
     nuevo = nuevo.trim().slice(0, PIZARRA_TEXTO_MAX);
-    if(!nuevo){ payload.datos.trazos.splice(idx, 1); sel.previoGesto = null; sel.ultimaCopia = null; }
+    if(!nuevo){ payload.datos.trazos.splice(idx, 1); }
     else{
       var c = pizarraTextoCaja(t.d);
       var w = pizarraMedirAncho(nuevo, t.grosor), lineas = nuevo.split("\n").length;
@@ -13293,7 +13198,6 @@ function pizarraActivarFigura(fig){
         if(isFinite(idx) && payload.datos.trazos[idx]){
           payload.datos.trazos.splice(idx, 1);
           sel.previoGesto = null;   // el splice corre los indices: el deshacer de gesto ya no aplica
-          sel.ultimaCopia = null;
           enCurso = null;
           redibujarTrazos();
         }
@@ -13308,8 +13212,6 @@ function pizarraActivarFigura(fig){
     }
     var rect = svgEl.getBoundingClientRect();
     if(!rect.width || !rect.height) return;
-    sel.previoGesto = null;   // se va a agregar un trazo nuevo: un gesto o copia viejos ya no aplican
-    sel.ultimaCopia = null;
     if(estado.herramienta === "texto"){
       /* sin arrastre: un tap coloca el texto ahi mismo (soltarPuntero decide
          si fue un tap de verdad o un arrastre, con umbral de distancia). */
@@ -13351,7 +13253,7 @@ function pizarraActivarFigura(fig){
     enCurso.path.setAttribute("d", d);
   });
   function soltarPuntero(e){
-    if(pizarraSeleccionSoltar(e, sel)){ guardarBorrador(); return; }
+    if(pizarraSeleccionSoltar(e, sel)) return;
     if(textoDown && e.pointerId === textoDown.pointerId){
       var dxT = e.clientX - textoDown.clientX, dyT = e.clientY - textoDown.clientY;
       var ptT = textoDown.pt;
@@ -13376,7 +13278,6 @@ function pizarraActivarFigura(fig){
        si esta pintado por encima de otras capas segun el orden real, el DOM
        recien insertado (siempre al final) puede quedar mal apilado. */
     if(estado.capaActiva !== (payload.datos.capas ? payload.datos.capas.length - 1 : 0)) redibujarTrazos();
-    else guardarBorrador();
   }
   fig.addEventListener("pointerup", soltarPuntero);
   fig.addEventListener("pointercancel", soltarPuntero);
@@ -13387,34 +13288,6 @@ function prepararPizarra(){
     fig.dataset.pizarraListo = "1";
     pizarraActivarFigura(fig);
   });
-  limpiarBorradoresHuerfanos();
-}
-/* "indice" (mdx-bloques-spec-v2.md seccion 12.17) es un ordinal de parseo,
-   no un id estable: cualquier edicion que agregue/quite un bloque ```pizarra
-   antes de este corre su indice en el siguiente render, y un borrador recien
-   escrito bajo la clave vieja queda huerfano para siempre (nadie vuelve a
-   pedir esa clave). Se barre en cada render: cualquier
-   "mdcrgm.pizarraBorrador.<doc>.*" que no corresponda a NINGUN bloque
-   ```pizarra actualmente en el documento (mismo indice Y mismo firma que
-   tiene AHORA fig.dataset.pizarra) se borra. Un borrador de una sesion de
-   dibujo en curso sigue vivo: firma solo cambia al guardar de verdad
-   (salirDibujo(true)), asi que coincide con la clave de esa sesion hasta
-   que termine. Acotado al documento actual -- el borrador de otro
-   documento no abierto ahora no se toca. */
-function limpiarBorradoresHuerfanos(){
-  var prefijo = "mdcrgm.pizarraBorrador." + (docActual ? docActual.id : "sd") + ".";
-  var claves, i;
-  try{ claves = Object.keys(localStorage); }catch(e){ return; }
-  var propias = [];
-  for(i = 0; i < claves.length; i++){ if(claves[i].indexOf(prefijo) === 0) propias.push(claves[i]); }
-  if(!propias.length) return;
-  var vivas = {};
-  Array.prototype.forEach.call(elDoc.querySelectorAll(".pizarra-viewer"), function(fig){
-    var indice = fig.dataset.pizarraIndice || "0", payload;
-    try{ payload = JSON.parse(fig.dataset.pizarra || "{}"); }catch(e2){ return; }
-    if(payload && payload.firma) vivas[prefijo + indice + "." + payload.firma] = true;
-  });
-  for(i = 0; i < propias.length; i++){ if(!vivas[propias[i]]) borrar(propias[i]); }
 }
 
 /* cuanto ocupa la barra flotante: el documento deja ese hueco arriba para que
@@ -13543,17 +13416,6 @@ function pintar(md){
       if(DIA.i >= DIA.grupos.length) DIA.i = DIA.grupos.length - 1;
       pintarDiapositiva();
     }
-  }
-  /* mismo problema que arriba con DIA.grupos: NOTA.ancla es un nodo de
-     elDoc.children de ANTES de este repintado, asi que un cambio remoto
-     sincronizado mientras el panel de Anotar esta abierto lo deja apuntando
-     a un nodo desconectado. notaLimiteFuente() no truena con eso (cae al
-     final del documento), pero guardaria la nota en un lugar que ya no
-     tiene nada que ver con lo que se veia al escribirla -- mejor cerrar y
-     avisar que perder la ubicacion en silencio. */
-  if(NOTA){
-    aviso("El documento cambió mientras escribías la nota; se cerró sin guardar.");
-    cerrarNota();
   }
 }
 
@@ -16247,22 +16109,19 @@ function guardarNota(){
   if(despues.length && !/^\n/.test(despues)) bloque += "\n";
   fuenteActual = antes + bloque + despues;
   topesLinea = null;
-  cerrarNota(); /* antes de pintar(): si no, pintar() la ve todavia abierta y cree que el cambio vino de otro lado */
   sincronizarEditor();
   pintar(fuenteActual);
   guardarDoc();
   pintarCuenta();
   aviso("Nota guardada: aparece en el Esquema.");
+  cerrarNota();
 }
 function abrirNota(){
   if(NOTA || DIA || PIZARRON) return;
   var ancla = notaAnclaElemento();
-  var g = $("#notaGrosor");
-  g.min = 1; g.max = 24; /* por si la sesion anterior quedo en "texto" (8..120) */
-  g.value = Math.max(1, Math.min(24, Number(g.value) || 4));
   NOTA = {
     ancla: ancla, datos: { ancho: 0, alto: 0, trazos: [] },
-    estado: { color: $("#notaColor").value || PIZARRA_COLOR_DEF, grosor: Number(g.value) || 4, herramienta: "lapiz", borrador: false, fondo: pizarronFondoInicial() },
+    estado: { color: $("#notaColor").value || PIZARRA_COLOR_DEF, grosor: Number($("#notaGrosor").value) || 4, herramienta: "lapiz", borrador: false, fondo: pizarronFondoInicial() },
     enCurso: null
   };
   $("#nota").hidden = false;
@@ -16497,7 +16356,7 @@ function irAHojaPizarron(i){
   PIZARRON.i = i;
   PIZARRON.enCurso = null;
   PIZARRON.textoDown = null;
-  if(PIZARRON.sel){ PIZARRON.sel.previoGesto = null; PIZARRON.sel.ultimaCopia = null; }   // pertenecen a la hoja anterior
+  if(PIZARRON.sel) PIZARRON.sel.previoGesto = null;   // el gesto pertenece a la hoja anterior
   PIZARRON.estado.capaActiva = pizarraCapaActivaValida(pizarronHoja(i), PIZARRON.estado.capaActiva);
   pizarronRedibujar();
   emitirPizarronHoja();
@@ -16688,7 +16547,7 @@ function abrirPizarron(){
     hojas: [{ ancho: ancho, alto: alto, trazos: [] }], i: 0,
     estado: { color: $("#pizarronColor").value || PIZARRA_COLOR_DEF, grosor: Number($("#pizarronGrosor").value) || 3, borrador: false, herramienta: $("#pizarronHerramienta").value || "lapiz", capaActiva: 0 },
     fondo: pizarronFondoInicial(),
-    previo: null, enCurso: null, textoDown: null, sel: { idxs: [], arrastre: null }, capasAbiertas: false, enPantallaCompleta: false, enDialogoNativo: false
+    previo: null, enCurso: null, textoDown: null, sel: { idxs: [], arrastre: null }, capasAbiertas: false, enPantallaCompleta: false
   };
   PIZARRON = sesion;
   pizarronFondoAplicar(sesion.fondo);
@@ -16738,7 +16597,7 @@ function pizarronPointerDown(e){
       var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
       if(isFinite(idx) && hoja.trazos[idx]){
         hoja.trazos.splice(idx, 1);
-        if(PIZARRON.sel){ PIZARRON.sel.previoGesto = null; PIZARRON.sel.ultimaCopia = null; }
+        if(PIZARRON.sel) PIZARRON.sel.previoGesto = null;
         PIZARRON.enCurso = null;
         pizarronRedibujar();
         emitirPizarronTrazoBorrar(idx);
@@ -16754,7 +16613,6 @@ function pizarronPointerDown(e){
   }
   var rect = svgEl.getBoundingClientRect();
   if(!rect.width || !rect.height) return;
-  if(PIZARRON.sel){ PIZARRON.sel.previoGesto = null; PIZARRON.sel.ultimaCopia = null; }   // se va a agregar un trazo nuevo
   if(PIZARRON.estado.herramienta === "texto"){
     try{ svgEl.setPointerCapture(e.pointerId); }catch(errT){}
     PIZARRON.textoDown = { pointerId: e.pointerId, pt: pizarraPuntoDesde(e, rect, hoja), clientX: e.clientX, clientY: e.clientY };
@@ -16797,24 +16655,9 @@ function pizarronPointerMove(e){
   PIZARRON.enCurso.path.setAttribute("d", d);
   emitirPizarronTrazoVivo(PIZARRON.enCurso);
 }
-function pizarronPrompt(mensaje, valorInicial){
-  /* mostrar un window.prompt() nativo saca al navegador de pantalla completa
-     de verdad (Chrome no deja dialogos nativos sobre fullscreen) -- eso
-     dispara "fullscreenchange", y el listener de abajo lo lee como que el
-     usuario se quiso ir, ofreciendole salir del pizarron a mitad de un texto.
-     Esta bandera avisa que la salida de fullscreen fue POR el prompt, no un
-     Esc/boton real. Se apaga con un retraso (no en la linea siguiente, ni en
-     un setTimeout de 0): "fullscreenchange" no llega atado al retorno de
-     prompt() -- lo dispara el proceso del navegador por su cuenta, y puede
-     tardar mas que un timeout de 0ms en avisarle a esta pestaña. */
-  if(PIZARRON) PIZARRON.enDialogoNativo = true;
-  var r = window.prompt(mensaje, valorInicial);
-  if(PIZARRON) setTimeout(function(){ if(PIZARRON) PIZARRON.enDialogoNativo = false; }, 500);
-  return r;
-}
 function pizarronColocarTexto(pt){
   var fs = PIZARRON.estado.grosor || 24;
-  var texto = pizarronPrompt("Escribe el texto:", "");
+  var texto = window.prompt("Escribe el texto:", "");
   if(texto === null) return;
   texto = texto.trim().slice(0, PIZARRA_TEXTO_MAX);
   if(!texto) return;
@@ -16918,17 +16761,6 @@ function prepararPizarron(){
   $("#pizarronDeshacer").addEventListener("click", function(){
     if(!PIZARRON) return;
     var hoja = pizarronHoja(PIZARRON.i);
-    var uc = PIZARRON.sel && PIZARRON.sel.ultimaCopia;
-    if(uc && uc.length){
-      var idxsCopia = uc.slice().sort(function(a, b){ return b - a; });
-      for(var ci = 0; ci < idxsCopia.length; ci++) hoja.trazos.splice(idxsCopia[ci], 1);
-      PIZARRON.sel.ultimaCopia = null;
-      PIZARRON.sel.previoGesto = null;   // el splice corre los indices: el gesto guardado ya no aplica
-      PIZARRON.enCurso = null;
-      pizarronRedibujar();
-      for(var bi = 0; bi < idxsCopia.length; bi++) emitirPizarronTrazoBorrar(idxsCopia[bi]);
-      return;
-    }
     var pg = PIZARRON.sel && PIZARRON.sel.previoGesto;
     if(pg && pg.items && pg.items.length){
       var pi;
@@ -16966,7 +16798,7 @@ function prepararPizarron(){
     else if(accion === "activar"){ PIZARRON.estado.capaActiva = pizarraCapaActivaValida(hoja, iCapa); }
     else if(accion === "visible"){ hoja.capas[iCapa].visible = hoja.capas[iCapa].visible === false; pizarronRedibujar(); }
     else if(accion === "renombrar"){
-      var nuevo = pizarronPrompt("Nombre de la capa:", hoja.capas[iCapa].nombre || "");
+      var nuevo = window.prompt("Nombre de la capa:", hoja.capas[iCapa].nombre || "");
       if(nuevo !== null) hoja.capas[iCapa].nombre = nuevo.trim().slice(0, 40) || hoja.capas[iCapa].nombre;
     }
     else if(accion === "subir"){ pizarraCapaMover(hoja, iCapa, 1); pizarronRedibujar(); }
@@ -16993,7 +16825,6 @@ function prepararPizarron(){
     var nuevos = pizarraDuplicar(hoja, PIZARRON.sel);
     pizarronRedibujar();
     PIZARRON.sel.idxs = nuevos;
-    PIZARRON.sel.ultimaCopia = nuevos.length ? nuevos.slice() : null;
     var svgSel = $("#pizarronLienzo .pizarra-svg");
     if(svgSel) pizarraSeleccionPintar(svgSel, hoja, PIZARRON.sel);
     pizarronActualizarBarra();
@@ -17002,25 +16833,16 @@ function prepararPizarron(){
   $("#pizarron").addEventListener("dblclick", function(e){
     if(!PIZARRON || PIZARRON.estado.herramienta !== "seleccionar") return;
     var trazoEl = e.target.closest ? e.target.closest(".pizarra-trazo") : null;
-    if(!trazoEl && e.target.closest && e.target.closest(".pizarra-seleccion-caja") && document.elementsFromPoint){
-      /* la caja de seleccion es transparente y tapa lo de abajo -- mismo
-         truco que pizarraSeleccionBajar() para no perder el doble-toque
-         sobre un texto que quedo agrupado/seleccionado. */
-      var pila = document.elementsFromPoint(e.clientX, e.clientY), k;
-      for(k = 0; k < pila.length && !trazoEl; k++){
-        trazoEl = pila[k].closest ? pila[k].closest(".pizarra-trazo") : null;
-      }
-    }
     if(!trazoEl) return;
     var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
     var hoja = pizarronHoja(PIZARRON.i), t = hoja.trazos[idx];
     if(!t || t.tipo !== "texto") return;
-    var nuevo = pizarronPrompt("Editar texto:", t.texto);
+    var nuevo = window.prompt("Editar texto:", t.texto);
     if(nuevo === null) return;
     nuevo = nuevo.trim().slice(0, PIZARRA_TEXTO_MAX);
     if(!nuevo){
       hoja.trazos.splice(idx, 1);   // vaciar el texto lo borra, como el borrador -- el splice corre los indices
-      if(PIZARRON.sel){ PIZARRON.sel.previoGesto = null; PIZARRON.sel.ultimaCopia = null; }
+      if(PIZARRON.sel) PIZARRON.sel.previoGesto = null;
       pizarronRedibujar();
       emitirPizarronTrazoBorrar(idx);
       return;
@@ -17042,7 +16864,6 @@ function prepararPizarron(){
          diaLapizLimpiar() con las capas de Presentar. */
       if(!PIZARRON || pizarronHoja(PIZARRON.i) !== hoja) return;
       hoja.trazos = [];
-      if(PIZARRON.sel){ PIZARRON.sel.previoGesto = null; PIZARRON.sel.ultimaCopia = null; }
       PIZARRON.enCurso = null;
       pizarronRedibujar();
       emitirPizarronTrazoLimpiar();
@@ -17056,7 +16877,7 @@ function prepararPizarron(){
   $("#pizarron").addEventListener("pointerup", pizarronSoltarPuntero);
   $("#pizarron").addEventListener("pointercancel", pizarronSoltarPuntero);
   document.addEventListener("fullscreenchange", function(){
-    if(!document.fullscreenElement && PIZARRON && PIZARRON.enPantallaCompleta && !PIZARRON.enDialogoNativo) intentarSalirPizarron();
+    if(!document.fullscreenElement && PIZARRON && PIZARRON.enPantallaCompleta) intentarSalirPizarron();
   });
 }
 
