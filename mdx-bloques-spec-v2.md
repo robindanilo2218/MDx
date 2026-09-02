@@ -2018,7 +2018,363 @@ alcanzable; receptor rechaza `__proto__`/índices fuera de rango y aplica
 los válidos. 22 casos unitarios del tokenizador en Node. Regresión general
 en verde. SW v65→v66 (herramienta), v66→v67 (correcciones de la revisión).
 
+### 12.9 Selección múltiple, grupos y "Copiar" — hecho 2-sep-2026
+
+Con la herramienta ⬚ Seleccionar, Ctrl+clic AGREGA o QUITA del `sel.idxs`
+(antes un `sel.idx` único, reemplazado siempre) en vez de sustituir la
+selección — así se arma un conjunto de varios trazos a la vez, base de
+todo lo demás de esta sección.
+
+Un "grupo" no tiene tabla aparte: es solo un id compartido (`t.grupo`,
+`pizarraGrupoNuevoId()` = `"g" + random`) entre los trazos que lo forman.
+Tocar CUALQUIER miembro con Seleccionar selecciona el grupo entero
+(`pizarraSeleccionObjetivo`). El botón **Agrupar/Desagrupar** decide su
+propio estado con `pizarraAgruparEstado`: sin selección o con 1 solo trazo
+suelto queda deshabilitado; con 2+ trazos sin grupo común ofrece Agrupar;
+si la selección ES exactamente un grupo completo ofrece Desagrupar.
+
+**Copiar** (`pizarraDuplicar`) clona cada trazo seleccionado con un
+desvío fijo de +16/+16 en ambos ejes (vía `pizarraTransformarD`, mismo
+motor que mover/escalar) y dejando la copia seleccionada en su lugar. Si
+varios de los trazos copiados COMPARTEN un grupo, las copias reciben un
+grupo NUEVO compartido *entre sí* — para que la copia se mueva en bloque
+igual que el original, sin mezclarse con el grupo viejo.
+
+Bug real encontrado y corregido: como "Copiar" puede agregar VARIOS
+trazos en una sola acción, el Deshacer clásico (`pop()` del último trazo)
+solo revertía 1 de N copias, dejando un estado a medias confuso. Se
+agregó `sel.ultimaCopia` (los índices recién creados por el último
+Copiar); el Deshacer la revisa PRIMERO y, si existe, hace `splice` de
+todos esos índices a la vez en orden DESCENDENTE (para no correr los
+índices restantes a mitad de la operación) antes de caer al
+`previoGesto` (mover/escalar) o al `pop()` clásico. `ultimaCopia` se
+limpia en cualquier punto donde los índices se corren por otra vía
+(borrador, Limpiar, inicio de un trazo nuevo, cambio de hoja en el
+Pizarrón) — el mismo patrón de invalidación que ya usaba `previoGesto`.
+En el Pizarrón global el Deshacer de una copia también emite
+`pizarron-trazo-borrar` por cada índice a las demás pestañas, en el mismo
+orden descendente que el splice local.
+
+Verificado con Playwright en las dos superficies (bloque y Pizarrón
+global): 2 seleccionados → Agrupar → Desagrupar habilitado; Copiar con 2
+seleccionados duplica exactamente 2; un solo Deshacer después de Copiar
+quita los 2 de una vez, no 1.
+
+### 12.10 Capas — hecho 2-sep-2026
+
+`datos.capas` es un arreglo ORDENADO de `{nombre, visible}` — el orden ES
+el orden de pintado real (índice 0 pinta primero, abajo del todo), no el
+orden de `datos.trazos`. Cada trazo lleva `capa` = índice en ese arreglo
+(0 si no lo tiene, la única capa que existe por defecto). Tope
+`PIZARRA_CAPAS_MAX = 20`.
+
+`pizarraCapaEliminar` y `pizarraCapaMover` REMAPEAN el campo `capa` de
+todos los trazos afectados al tocar el arreglo — eliminar reasigna los
+trazos de la capa borrada a `max(0, i-1)` y corre los índices mayores un
+lugar hacia abajo; mover intercambia dos capas adyacentes y remapea los
+trazos de ambas. Un trazo nunca queda apuntando a un índice de capa que
+ya no existe.
+
+El panel (`pizarraCapasHTML`, compartido bit a bit entre el bloque
+```pizarra y el Pizarrón global) lista las capas de ARRIBA (la que
+pinta encima) hacia ABAJO — convención habitual de cualquier editor con
+capas — aunque el arreglo interno vaya al revés (índice 0 = fondo). Cada
+fila tiene mostrar/ocultar, activar (dónde caen los trazos nuevos),
+renombrar (`pizarronPrompt`/`window.prompt`), subir, bajar y eliminar (el
+botón eliminar se deshabilita solo si queda 1 capa: no se puede vaciar el
+arreglo del todo).
+
+`pizarraTrazosHTML` pinta agrupado POR CAPA en vez de por orden de
+`datos.trazos`: una capa oculta (`visible === false`) no se pinta NI se
+puede tocar. `data-i` en el DOM sigue siendo el índice ORIGINAL en
+`datos.trazos` — todo el resto del motor (seleccionar, borrar, mover)
+indexa por ahí, nunca por la posición en el DOM.
+
+### 12.11 Shift ancla la herramienta "／ Línea" a 0°/45°/90°… — hecho 2-sep-2026
+
+Con Shift apretado durante el arrastre, `pizarraSnapAngulo` redondea el
+ángulo real (`Math.atan2`) al múltiplo de 45° más cercano de los 8
+usuales (0/45/90/135/180/225/270/315), preservando la distancia real
+recorrida desde `(x0,y0)` — que nunca se toca, solo cambia el extremo
+móvil. Sin Shift la línea sigue el puntero libremente, igual que antes.
+Mismo motor compartido entre el bloque ```pizarra y el Pizarrón
+global (el lápiz de Presentar NO lo usa: no comparte el selector de
+herramientas ni tiene la herramienta "／ Línea").
+
+### 12.12 Presets de orientación y "cuánto ocupa la hoja" — hecho 2-sep-2026
+
+Dos controles nuevos en la barra de ambos editores, encima del tamaño
+libre en píxeles que ya existía:
+
+- **Orientación** (`pizarraOrientar`): dos opciones, Horizontal/Vertical.
+  Reusa `pizarraReescalarDatos` (el mismo motor ya probado con el giro de
+  pantalla del Pizarrón) para pasar el lienzo a la forma pedida sin
+  deformar ni perder lo ya dibujado — nunca escribe una relación de
+  aspecto "a mano". Un lienzo cuadrado (sin forma previa que orientar) se
+  resuelve a una razón cómoda ~16:10.
+- **"Cuánto ocupa en la hoja"** (`datos.ocupa`): Normal (100, default),
+  un cuarto, media, tres cuartos, o "Hoja completa" (aparte al imprimir).
+  Es un atributo de PRESENTACIÓN, no de dato del dibujo — solo afecta
+  cómo se ve/imprime el bloque ya guardado, se serializa aparte en el
+  ```pizarra y no participa en el `firma`/hash de contenido de
+  trazos.
+
+### 12.13 El bloque incrustado gana todas las opciones del Pizarrón global — hecho 2-sep-2026
+
+Antes de esta ronda, el bloque ```pizarra (permanente, dentro del
+documento) solo tenía color/grosor/herramienta básica/borrador/deshacer/
+limpiar. Ahora comparte con el Pizarrón global (fullscreen) el mismo
+motor y la misma barra: fondo liso/líneas/cuadrícula (`pizarronFondoInicial`,
+solo visible mientras se dibuja — no se imprime), Capas, Agrupar/Copiar
+(12.9), y todas las herramientas de figura y Shift (12.6/12.11/12.15).
+Nada de esto quedó exclusivo de una sola superficie: cualquier función
+nueva construida sobre el motor compartido (`pizarraParsear`,
+`pizarraSerializar`, `pizarraSnapAngulo`, `pizarraAgrupar`, etc.) queda
+"gratis" en ambas con solo la UI de despacho propia de cada una.
+
+### 12.14 Herramienta "Texto": escribir, mover y recolorear como cualquier trazo — hecho 2-sep-2026
+
+Un tap con la herramienta "Texto" (sin arrastre real — umbral de 10
+unidades de distancia, igual que un tap tembloroso no dibuja nada) abre
+`window.prompt`/`pizarronPrompt` para escribir el contenido (hasta
+`PIZARRA_TEXTO_MAX = 400` caracteres, admite varias líneas). El texto se
+guarda con el MISMO formato `d` que cualquier otro trazo —
+`"M x0 y0 L x1 y1"`, la esquina donde se escribió y el borde opuesto
+estimado por ancho real de letra (`pizarraMedirAncho`, mide con un
+`<canvas>` oculto) y alto de línea. Al reusar el formato `d` de siempre,
+TODO el motor de mover/escalar/seleccionar/duplicar/agrupar funciona
+sobre un texto sin ningún caso especial — son dos puntos como cualquier
+trazo; el tamaño de letra se relee siempre de la caja (`y1-y0`), nunca de
+un campo aparte, así que escalar un texto junto con el resto de una
+selección lo agranda o encoge sin cálculo extra.
+
+En el SVG, un texto es un `<g class="pizarra-trazo" data-tipo="texto">`
+que envuelve un `<rect fill="transparent">` (hit-test de toda la caja,
+NO solo de los glyphs — un tap entre letras también selecciona) y el
+`<text>` real. Doble clic sobre un texto (ya sea el propio o agrupado con
+otros elementos) lo reabre para editar con el mismo prompt.
+
+Dos bugs reales encontrados y corregidos al construir esto (no eran
+evidentes hasta que existió un tipo de trazo cuya clase vive en un
+ancestro, no en el elemento pintado):
+
+- **`elementsFromPoint` y el `<g>` envolvente**: la caja de selección
+  transparente (`.pizarra-seleccion-caja`) está siempre encima de todo,
+  así que el hit-test "mirar qué hay debajo" ya usaba
+  `document.elementsFromPoint`. Pero el chequeo `classList.contains(
+  "pizarra-trazo")` sobre cada elemento del stack nunca encontraba un
+  texto, porque esa clase vive en el `<g>` ANCESTRO, no en el `<rect>`/
+  `<text>`/`<tspan>` hijo que `elementsFromPoint` realmente devuelve
+  (solo entrega elementos HOJA pintados, nunca sus envolventes). Corregido
+  cambiando el chequeo a `el.closest(".pizarra-trazo")` en las tres
+  ocurrencias del patrón (la de Seleccionar y las dos nuevas de doble
+  clic, bloque y Pizarrón).
+- **Doble clic sin el mismo respaldo que Seleccionar**: el handler de
+  doble clic para editar texto no tenía el respaldo de
+  `elementsFromPoint` que sí tenía `pizarraSeleccionBajar` — así que
+  editar un texto agrupado/seleccionado (cubierto por la caja) fallaba en
+  silencio. Se le agregó el mismo respaldo (con el `.closest()` ya
+  corregido) en ambas superficies.
+- **Diálogo nativo + Fullscreen real (solo Pizarrón global)**: mostrar un
+  `window.prompt()` estando en Fullscreen API de verdad fuerza al
+  navegador a salir de pantalla completa ANTES de mostrar el diálogo, lo
+  que dispara `fullscreenchange`. El listener ya existente de esa
+  sesión leía esa salida forzada como intención real del usuario de
+  irse, y abría el modal de "¿Salir del pizarrón?" a mitad de escribir o
+  editar un texto (o de renombrar una capa). Corregido con una bandera
+  `PIZARRON.enDialogoNativo` (`pizarronPrompt()` la prende antes del
+  prompt y la apaga con un `setTimeout` de 500ms después — un
+  `setTimeout` de 0ms resultó insuficiente: `fullscreenchange` no llega
+  atado al retorno de `prompt()`, lo dispara el proceso del navegador por
+  su cuenta y puede tardar más que un timeout de 0ms) que el listener de
+  `fullscreenchange` revisa antes de intentar salir.
+
+Verificado con Playwright en ambas superficies (colocar texto, editar por
+doble clic con dispatch manual de `MouseEvent('dblclick', ...)` —
+Playwright's `.dblclick()`/`page.mouse.dblclick()` resultaron poco
+confiables en headless sobre SVG con `setPointerCapture`, confirmado como
+limitación del arnés de pruebas y no de la app).
+
+### 12.15 Shift ancla los sellos de figura a una caja 1:1 — hecho 2-sep-2026
+
+Con Shift apretado, un sello de figura (círculo/cuadrado/triángulo/
+pentágono/rombo) queda con caja 1:1 en vez de libre — `pizarraSnapCuadrado`
+usa el lado más largo de los dos (ancho o alto arrastrado) para ambos
+ejes, conservando el signo de cada eje (hacia dónde se arrastró) para que
+la figura no "salte" al lado contrario. `(x0,y0)` nunca cambia, mismo
+espíritu que el ancla de ángulo de 12.11 pero para forma en vez de
+dirección. Mismo motor y misma tecla en el bloque ```pizarra y el
+Pizarrón global.
+
+### 12.16 Anotar mientras se lee (modo lectura) — hecho 1-sep-2026
+
+Pedido del usuario: poder escribir/dibujar a mano (o con teclado) mientras
+se lee un documento normal, no solo en Presentar. Reutiliza el motor de
+pizarra ya existente (mismo formato de trazo, mismo serializador
+`pizarraSerializar`) en vez de inventar uno nuevo.
+
+- Botón **Anotar** (`#btnAnotar`) junto a Pizarrón en la barra/menú ⋮. Abre
+  un panel `#nota` a pantalla completa sobre la vista de lectura (no sobre
+  el editor ni sobre Presentar/Pizarrón — `abrirNota()` no hace nada si ya
+  hay `DIA` o `PIZARRON` activo).
+- Herramientas deliberadamente reducidas frente a una pizarra completa:
+  solo lápiz y texto, un color, un grosor, fondo liso/líneas/cuadrícula
+  (mismo patrón visual que el Pizarrón), borrador, deshacer, limpiar. Sin
+  capas, formas, selección ni orientación — es una anotación rápida, no un
+  documento de dibujo; pedir eso es sobre-construir para lo que el usuario
+  pidió.
+- **Guardar o no guardar es opcional**: "Cancelar" (o Esc) cierra el panel
+  sin tocar el `.md`. Solo "Guardar nota" escribe algo.
+- **Ancla al punto de lectura**: `notaAnclaElemento()` reutiliza `anclasDoc()`
+  /`contenedorDoc()`/`topEnDoc()` — la misma infraestructura del scroll-sync
+  editor↔documento — para encontrar el último bloque de nivel superior que
+  el usuario ya pasó al desplazarse. `notaLimiteFuente(elAncla)` mira el
+  `data-linea` del siguiente hermano en `#doc` (mismo truco que
+  `diaLimiteFuente` en Presentar) para ubicar el punto exacto de inserción
+  en `fuenteActual`.
+- **Se guarda como nota real en el Markdown**: al guardar se inserta
+  `### ✎ Nota` seguido de un bloque ` ```pizarra ` con el trazo serializado,
+  justo después del bloque donde estaba anclada la lectura. El `###`
+  (nivel 3) es intencional: aparece anidado bajo la sección donde se
+  escribió, no como un título de primer nivel suelto.
+- **Aparece en el Esquema sin tocar el código del Esquema**: `titulosDoc()`
+  ya recorre cualquier `h1`-`h6` dentro de `#doc`, así que el nuevo `### ✎
+  Nota` aparece automáticamente en la lista y hereda la navegación de
+  `irATitulo(i)` — el mismo truco que usa `pizarronInsertar()` con "##
+  Pizarrón hoja N" para aparecer en el Esquema. Clic en esa fila del
+  Esquema lleva de vuelta al lugar exacto donde se escribió la nota.
+- Si no hay ancla (se anotó antes de scrollear, o el documento está vacío)
+  la nota se agrega al final del documento; si el documento termina con un
+  bloque de código sin cerrar, se avisa y no se guarda (mismo caso límite
+  ya cubierto por `fuenteTerminaEnFenceAbierto`).
+
+Verificado con Puppeteer: trazo a mano alzada + texto colocado con
+`prompt` simulado, "Guardar nota" deshabilitado hasta que hay algo
+dibujado, el `.md` resultante queda exactamente entre "## Sección A" y
+"## Sección B" (donde se hizo scroll antes de anotar), el Esquema lista
+"✎ Nota" en su posición correcta, y el clic en esa fila desplaza la
+página hasta dejar el título arriba de la pantalla. SW v82→v83.
+
+**Revisión adversarial (2 hallazgos reales, ambos corregidos; un tercero
+descartado tras revisarlo)**: `pintar()` reconstruye `elDoc.children`
+enteros en cada repintado; un cambio remoto sincronizado (otra pestaña,
+sondeo colaborativo) mientras Anotar seguía abierto dejaba `NOTA.ancla`
+apuntando a un nodo desconectado y colaba la nota en un documento ya
+distinto sin avisar — corregido reconciliando `NOTA` igual que ya se hacía
+con `DIA` (cierra y avisa "El documento cambió mientras escribías la
+nota"; `guardarNota()` tuvo que cerrar el panel *antes* de su propio
+`pintar()`, si no el guardado normal se auto-cancelaba). `abrirNota()`
+forzaba la herramienta a "lápiz" sin resetear los límites de `#notaGrosor`
+(8-120 en texto, 1-24 en lápiz) — corregido. Se descartó el tercer
+hallazgo (`notaAnclaElemento()` nunca devuelve `null` en un documento no
+vacío): revisado, el comportamiento real es preferible — ancla al bloque
+visible más cercano en vez de mandar la nota al final de un documento
+largo.
+
 ---
+
+### 12.17 Bloque incrustado: borrador automático recuperable — hecho 2-sep-2026
+
+El bloque ```pizarra (a diferencia del Pizarrón global, que es un
+lienzo efímero sin contenido previo que proteger) representa contenido
+YA GUARDADO del documento — cerrar la pestaña o navegar fuera a mitad de
+dibujar, sin tocar "Listo" ni "Cancelar", perdía todo lo dibujado en esa
+sesión. Ahora se autoguarda un borrador en `localStorage` mientras se
+dibuja, recuperable al reabrir el mismo bloque.
+
+Clave del borrador: `"mdcrgm.pizarraBorrador." + docActual.id + "." +
+indice + "." + payload.firma` — combina el documento (por si hay más de
+uno abierto/guardado), la posición del bloque dentro del documento
+(`indice`, por si dos bloques con el MISMO contenido de partida —p. ej.
+dos ```pizarra recién insertados y vacíos— coinciden en `firma`) y
+el `firma` del contenido tal como estaba al entrar a dibujar. Usar
+`firma` como parte de la clave hace que el borrador se auto-invalide solo
+si el contenido del bloque cambia por otra vía antes de que el usuario
+vuelva (la clave vieja simplemente deja de coincidir con nada).
+
+Guardado con debounce de 400ms (`guardarBorrador`), llamado desde los
+puntos donde el dibujo realmente cambia contenido — no todos pasan por el
+mismo redibujado, así que hicieron falta varios por separado:
+`redibujarTrazos()`/`redibujarSinPerderSeleccion()` (deshacer, borrador,
+Copiar, Agrupar/Desagrupar, capas, texto) cubren la mayoría, pero el
+final de un trazo dibujado a mano alzada (`soltarPuntero`) actualiza el
+DOM directamente sin pasar por ahí (optimización deliberada, para no
+re-renderizar el lienzo entero en cada trazo), y mover/escalar con
+Seleccionar (`pizarraSeleccionMover`, mutación en vivo durante el
+arrastre) tampoco — cada uno necesitó su propio llamado a
+`guardarBorrador()`. Una prueba de humo que solo dibuja con la
+herramienta de línea NO hubiera detectado el hueco de los otros dos
+caminos: se confirmó con Playwright interceptando `localStorage.setItem`
+antes de cargar la página, viendo en vivo qué ruta escribe y cuál no.
+
+Al reabrir un bloque con un borrador pendiente, se ve un aviso no
+intrusivo arriba del lienzo (NO un modal bloqueante — el contenido
+guardado real se sigue viendo tal cual detrás) con dos botones:
+**"Continuar donde quedaste"** reemplaza `payload.datos` por el borrador y
+redibuja; **"Empezar en blanco"** solo borra la clave y descarta el
+borrador, sin tocar el contenido ya guardado. El borrador se limpia
+también al pulsar **Listo** (guardado real exitoso) y al pulsar
+**Cancelar** (intención explícita de descartar) — en ambos casos ya no
+hace falta protegerlo.
+
+Verificado con Playwright: dibujar sin guardar → recargar la página de
+verdad (sin re-sembrar `#ed`, dejando que la app restaure su propio
+`mdcrgm.doc`) → aviso visible → Continuar restaura el trazo → Listo borra
+la clave de `localStorage` → reabrir no muestra aviso; dibujar de nuevo →
+Cancelar también borra la clave; dibujar un tercer trazo sin guardar →
+recargar → Empezar en blanco descarta el borrador y el contenido guardado
+se mantiene intacto (sin el tercer trazo).
+
+**Revisión adversarial (agente independiente, 4 hallazgos, todos
+corregidos):**
+
+- **Grave — "Continuar" + "Cancelar" podía corromper el bloque de verdad**:
+  `entrarDibujo()` guardaba `previo` como solo `datos.trazos.slice()`, no
+  el `datos` completo. "Continuar" reemplaza `payload.datos` ENTERO por el
+  del borrador (incluye ancho/alto/capas/ocupa, no solo trazos) — si el
+  borrador venía de una sesión que había cambiado la orientación, un
+  "Cancelar" posterior solo revertía `.trazos`, dejando ancho/alto/capas
+  del borrador mezclados con trazos de otra escala. Sin corromper nada
+  todavía en el documento (Cancelar no escribe `fig.dataset.pizarra`),
+  pero si esa mezcla se reabría y esta vez sí se pulsaba "Listo", quedaba
+  guardada. Corregido: `previo` ahora es una copia completa de `datos`
+  (`JSON.parse(JSON.stringify(...))`) y Cancelar reemplaza `payload.datos`
+  entero, no solo `.trazos`.
+- **Moderado — bloque huérfano en `localStorage`**: `indice` es un
+  ordinal de parseo, no un id estable — agregar o quitar un bloque
+  ```pizarra ANTES de este en el documento corre su `indice` en el
+  siguiente render, y un borrador recién escrito bajo la clave vieja
+  quedaba huérfano para siempre (nada volvía a pedir esa clave). Corregido
+  con `limpiarBorradoresHuerfanos()`, llamada al final de cada
+  `prepararPizarra()`: borra cualquier `mdcrgm.pizarraBorrador.<doc>.*`
+  que no corresponda a NINGÚN bloque ```pizarra actualmente en el
+  documento (mismo `indice` y mismo `firma` que tiene ahora
+  `fig.dataset.pizarra` — un borrador de una sesión en curso sigue vivo,
+  porque `firma` solo cambia al guardar de verdad). Acotado al documento
+  actual, no toca borradores de otro documento no abierto.
+- **Leve — agregar una capa nueva no se autoguardaba**: de las acciones
+  del panel de Capas, todas menos `"agregar"` llamaban a
+  `redibujarTrazos()` o `guardarBorrador()`; una sesión que terminaba
+  justo después de agregar una capa (antes de dibujar en ella) perdía esa
+  capa del borrador. Corregido con un `guardarBorrador()` explícito en esa
+  rama.
+- **Leve — `leerBorrador()` no validaba tan estricto como el resto del
+  motor**: solo comprobaba `Array.isArray(datos.trazos)`, mientras que
+  datos que llegan de OTRA pestaña ya pasan por `pizarraTrazoValido`/
+  `pizarraIndiceValido` (con su propio historial de bug real,
+  `__proto__`). Un borrador viejo de otra versión del formato — o tocado
+  a mano en `localStorage` — podía inyectar un trazo fuera de rango o un
+  ancho/alto disparatado vía "Continuar". Corregido: `leerBorrador()`
+  ahora filtra `trazos` con `pizarraTrazoValido`, acota `ancho`/`alto` al
+  mismo rango que usa `pizarraParsear` (`0 < x ≤ 4000`, si no cae al
+  default) y sanea `capas`/`ocupa`.
+
+Verificado de nuevo con Playwright tras los 4 arreglos: Continuar (con
+otra orientación) + Cancelar deja el `viewBox` y los trazos EXACTAMENTE
+como estaban antes de tocar el borrador; agregar una capa sola sí aparece
+en el borrador; una clave huérfana sembrada a mano desaparece en el
+siguiente render sin tocar las claves de otros documentos. Regresión
+completa (bloque y Pizarrón global) en verde. SW v84.
 
 ## 13. Presupuesto y orden de implementación
 
