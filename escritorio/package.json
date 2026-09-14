@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "description": "MDx como app de escritorio (Windows portable / Linux AppImage)",
+  "author": "Robin Gregorio",
   "main": "main.js",
   "scripts": {
     "prebuild": "rm -rf app && mkdir -p app && cp -r ../index.html ../manifest.webmanifest ../favicon.ico ../iconos ../plantillas app/",
-    "build:win": "npm run prebuild && electron-builder --win portable",
+    "build:win": "npm run prebuild && electron-builder --win nsis portable",
     "build:linux": "npm run prebuild && electron-builder --linux AppImage",
-    "build": "npm run prebuild && electron-builder --win portable --linux AppImage"
+    "build": "npm run prebuild && electron-builder --win nsis portable --linux AppImage",
+    "release": "npm run build -- --publish always"
   },
   "build": {
     "appId": "app.crgm.md.escritorio",
@@ -20,23 +22,48 @@
       "main.js",
       "preload.js",
       "app/**/*",
-      "package.json"
+      "package.json",
+      "node_modules/**/*"
     ],
     "icon": "../iconos/icono-512.png",
+    "publish": {
+      "provider": "github",
+      "owner": "robindanilo2218",
+      "repo": "visor_editor_md"
+    },
     "win": {
       "target": [
+        "nsis",
         "portable"
       ]
+    },
+    "nsis": {
+      "artifactName": "MDx-Instalador-Windows.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "MDx-Portable-Windows.${ext}"
     },
     "linux": {
       "target": [
         "AppImage"
       ],
-      "category": "Office"
+      "category": "Office",
+      "artifactName": "MDx-Linux.${ext}",
+      "desktopName": "mdx.desktop",
+      "synopsis": "Editor de Markdown de una sola página"
     }
   },
   "devDependencies": {
     "electron": "^41.7.1",
     "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

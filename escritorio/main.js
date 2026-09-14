@@ -5,6 +5,7 @@ const os = require("os");
 const { execFile } = require("child_process");
 const util = require("util");
 const execFileP = util.promisify(execFile);
+const { autoUpdater } = require("electron-updater");
 
 const EXTENSIONES = [".md", ".markdown", ".mdown", ".mkd", ".txt"];
 const NOMBRE_APP = "MDx";
@@ -149,12 +150,86 @@ async function usarComoPredeterminado(){
   }
 }
 
+/* ---------- actualizaciones automáticas ----------
+ * Solo tiene sentido para el instalador NSIS de Windows (deja el .exe
+ * viejo instalado en un sitio fijo que electron-updater puede reemplazar)
+ * y para el AppImage de Linux (electron-updater sabe sustituirlo entero).
+ * El portable de Windows queda fuera a propósito: no tiene una ubicación
+ * fija donde electron-updater pueda dejar el archivo nuevo, así que cada
+ * .exe portable sigue siendo la versión con la que se descargó. */
+let comprobandoActualizacionesAMano = false;
+
+function actualizacionesSoportadas(){
+  if(!app.isPackaged) return false;
+  if(process.platform === "win32") return !process.env.PORTABLE_EXECUTABLE_FILE;
+  if(process.platform === "linux") return true;
+  return false;
+}
+
+function configurarActualizaciones(){
+  if(!actualizacionesSoportadas()) return;
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("update-not-available", function(){
+    if(comprobandoActualizacionesAMano){
+      dialog.showMessageBox(ventanaActiva(), {
+        type: "info", title: NOMBRE_APP,
+        message: "Ya tienes la última versión de " + NOMBRE_APP + "."
+      });
+    }
+    comprobandoActualizacionesAMano = false;
+  });
+
+  autoUpdater.on("update-downloaded", function(info){
+    dialog.showMessageBox(ventanaActiva(), {
+      type: "info", title: NOMBRE_APP,
+      message: "Hay una versión nueva de " + NOMBRE_APP + " (" + info.version + ") ya descargada y verificada.",
+      detail: "Se instala sola la próxima vez que cierres " + NOMBRE_APP + ". También puedes reiniciar ahora para tenerla ya.",
+      buttons: ["Reiniciar ahora", "Más tarde"],
+      defaultId: 1, cancelId: 1
+    }).then(function(resultado){
+      if(resultado.response === 0) autoUpdater.quitAndInstall();
+    });
+    comprobandoActualizacionesAMano = false;
+  });
+
+  autoUpdater.on("error", function(err){
+    console.error("Actualizaciones:", err);
+    if(comprobandoActualizacionesAMano){
+      dialog.showMessageBox(ventanaActiva(), {
+        type: "error", title: NOMBRE_APP,
+        message: "No se pudo comprobar si hay una versión nueva (" + (err && err.message ? err.message : err) + ")."
+      });
+    }
+    comprobandoActualizacionesAMano = false;
+  });
+
+  autoUpdater.checkForUpdates().catch(function(){});
+}
+
+function buscarActualizaciones(){
+  if(!actualizacionesSoportadas()){
+    dialog.showMessageBox(ventanaActiva(), {
+      type: "info", title: NOMBRE_APP,
+      message: process.platform === "win32"
+        ? "La versión portable no se actualiza sola: cada .exe portable se queda tal como se descargó. Instala la versión «Instalador de Windows» desde md.crgm.app para tener actualizaciones automáticas."
+        : "Esta versión de " + NOMBRE_APP + " no admite comprobar actualizaciones automáticamente."
+    });
+    return;
+  }
+  comprobandoActualizacionesAMano = true;
+  autoUpdater.checkForUpdates().catch(function(){});
+}
+
 function construirMenu(){
   var plantilla = [
     {
       label: NOMBRE_APP,
       submenu: [
         { label: "Usar " + NOMBRE_APP + " para abrir archivos .md", click: usarComoPredeterminado },
+        { label: "Buscar actualizaciones…", click: buscarActualizaciones },
         { type: "separator" },
         { role: "quit", label: "Salir" }
       ]
@@ -250,6 +325,7 @@ if(!bloqueoUnico){
     construirMenu();
     var ruta = archivoDesdeArgv(process.argv.slice(app.isPackaged ? 1 : 2));
     crearVentana(ruta);
+    setTimeout(configurarActualizaciones, 3000);
   });
 
   app.on("window-all-closed", function(){

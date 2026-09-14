@@ -160,11 +160,20 @@ y `?plantilla=<id>` carga una plantilla concreta (por ejemplo
 
 ## Escritorio (Windows / Linux)
 
-Además de la PWA, `escritorio/` empaqueta MDx con Electron en un `.exe`
-portable para Windows y un `.AppImage` para Linux. Ambos llevan la aplicación
-entera dentro (HTML, motor, plantillas): al abrirlos no descargan nada de
-`mdx.crgm.app` ni de ningún otro sitio, así que funcionan sin conexión desde
-el primer arranque.
+Además de la PWA, `escritorio/` empaqueta MDx con Electron en tres formatos:
+un **instalador** de Windows (`.exe`, NSIS), un **portable** de Windows
+(`.exe` suelto, sin instalar) y un **AppImage** de Linux. Los tres llevan la
+aplicación entera dentro (HTML, motor, plantillas): al abrirlos no descargan
+nada de `md.crgm.app` ni de ningún otro sitio, así que funcionan sin conexión
+desde el primer arranque.
+
+El instalador y el AppImage se actualizan **solos** (electron-updater
+contra los Releases de este repositorio): al abrir MDx, si hay una versión
+nueva se descarga en segundo plano y se instala sola al cerrar la app (o al
+pulsar "Reiniciar ahora" en el aviso). El portable **no** se actualiza solo
+— es un único `.exe` sin una ubicación fija donde dejar la versión nueva —,
+así que cada copia se queda tal como se descargó; para tener actualizaciones
+automáticas hay que usar el instalador.
 
 👉 **[Guía rápida](docs/GUIA-RAPIDA.md)** — cómo abrir cada uno, qué hacer si
 Windows avisa "protegió tu PC" o si el `.AppImage` no hace nada en Debian, y
@@ -174,10 +183,37 @@ Se generan con:
 
 ```bash
 cd escritorio
-npm run build         # los dos a la vez
-npm run build:win      # solo Windows
-npm run build:linux    # solo Linux
+npm install             # una vez, para traer electron/electron-builder/electron-updater
+npm run build            # los tres a la vez (sin publicar)
+npm run build:win         # solo Windows (instalador + portable)
+npm run build:linux       # solo Linux (AppImage)
 ```
+
+### Publicar una versión nueva
+
+Compilar a mano en un solo ordenador es lo que hacía que el `.exe` portable
+tardara tanto en abrir en otros equipos — Windows Defender y SmartScreen
+solo "confían" rápido en un archivo en la máquina donde ya lo vieron antes,
+y el portable siempre se re-extrae entero en una carpeta temporal cada vez
+que se abre. Por eso ahora la compilación de verdad ocurre en
+[`.github/workflows/build-desktop.yml`](.github/workflows/build-desktop.yml):
+máquinas limpias de GitHub (una Windows, una Linux) compilan ambos sistemas
+y publican los archivos directamente como *Release* del repositorio — nadie
+depende de que "este ordenador" siga existiendo.
+
+```bash
+# subir la versión en escritorio/package.json, luego:
+git tag escritorio-v1.0.1
+git push origin escritorio-v1.0.1
+```
+
+Eso dispara el workflow, que compila y sube el instalador, el portable y el
+AppImage al Release `escritorio-v1.0.1`, junto con `latest.yml` /
+`latest-linux.yml` (los manifiestos que usa electron-updater para saber que
+hay algo nuevo). No hace falta ninguna clave propia: usa el `GITHUB_TOKEN`
+que las Actions traen incluido. También se puede lanzar a mano desde la
+pestaña *Actions* del repositorio, sin publicar, solo para comprobar que
+compila.
 
 ## Qué hay en el repositorio
 
@@ -280,7 +316,7 @@ y repartirlo — las plantillas están pensadas justo para eso. Si modifica y
 reparte su versión (incluidos los portables de Electron o el `.apk`), tiene que
 publicarla también bajo la GPL v3 y dar acceso al código.
 
-**Código fuente:** <https://github.com/robindanilo2218/MDx>
+**Código fuente:** <https://github.com/robindanilo2218/visor_editor_md>
 
 El empaquetado de escritorio (`escritorio/`) usa Electron como motor de
 ventana — es MIT, y no entra en conflicto con la GPL v3 del propio MDx: es el

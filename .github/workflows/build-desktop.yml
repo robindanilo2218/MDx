@@ -1,0 +1,77 @@
+name: Compilar y publicar MDx (escritorio)
+
+# Compila el instalador de Windows (NSIS), el portable de Windows y el
+# AppImage de Linux en máquinas limpias de GitHub, y los sube como versión
+# (Release) del repositorio. Ese Release es lo que MDx usa para
+# actualizarse solo (latest.yml / latest-linux.yml) y lo que enlaza
+# crgm.app para ofrecer la descarga.
+#
+# Cómo publicar una versión nueva:
+#   1. Sube la versión en escritorio/package.json ("version").
+#   2. git tag escritorio-v1.1.0 && git push origin escritorio-v1.1.0
+#   3. Este workflow compila Windows y Linux y crea el Release solo.
+#
+# También se puede lanzar a mano desde la pestaña Actions → "Run workflow"
+# para probar que compila sin publicar nada (deja "publicar" sin marcar).
+
+on:
+  push:
+    tags:
+      - "escritorio-v*"
+  workflow_dispatch:
+    inputs:
+      publicar:
+        description: "Publicar en GitHub Releases (si no, solo compila para probar)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: build:win
+          - os: ubuntu-latest
+            script: build:linux
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: escritorio
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: escritorio/package-lock.json
+
+      - run: npm ci
+
+      - name: Compilar (y publicar si corresponde)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ inputs.publicar }}" = "true" ]; then
+            npm run ${{ matrix.script }} -- --publish always
+          else
+            npm run ${{ matrix.script }} -- --publish never
+          fi
+
+      - name: Guardar lo compilado (solo cuando no se publica)
+        if: ${{ github.event_name != 'push' && inputs.publicar != true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mdx-${{ matrix.os }}
+          path: |
+            escritorio/dist/MDx-Instalador-Windows.exe
+            escritorio/dist/MDx-Portable-Windows.exe
+            escritorio/dist/MDx-Linux.AppImage
+          if-no-files-found: ignore
+          retention-days: 7
