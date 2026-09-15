@@ -526,6 +526,10 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 #diapositivas .dia-cuerpo p, #diapositivas .dia-cuerpo li{ font-size:clamp(1rem,2.6vw,1.85rem); line-height:1.5 }
 #diapositivas .dia-cuerpo table{ font-size:clamp(.9rem,2.2vw,1.55rem) }
 #diapositivas .dia-cuerpo a{ color:var(--dia-enlace) }
+/* blockquote/h5/h6 heredaban el color de fuera de #diapositivas (var(--tenue)
+   global): no seguian ni el toggle Neon/Adecuado ni el contraste automatico
+   por diapositiva -- se re-anclan aqui igual que "a" arriba. */
+#diapositivas .dia-cuerpo blockquote, #diapositivas .dia-cuerpo h5, #diapositivas .dia-cuerpo h6{ color:var(--dia-tenue) }
 #diapositivas .dia-cuerpo :first-child{ margin-top:0 }
 #diapositivas .dia-cuerpo input, #diapositivas .dia-cuerpo select{ color:inherit }
 #diapositivas .dia-marco{ position:relative; flex:1; display:flex; min-height:0 }
@@ -1553,6 +1557,10 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
   font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em;
   color:var(--tenue);
 }
+/* pizarronInsertar() SI antepone su propio titulo real ("## Pizarrón hoja N",
+   arriba) -- ahi la etiqueta de ::before duplicaria el mismo texto pegado
+   encima del que ya trae el Markdown. */
+h2 + .pizarra-viewer::before{ display:none }
 .pizarra-lienzo{position:relative; line-height:0}
 .pizarra-svg{width:100%; height:auto; display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:pan-y}
 .pizarra-trazo, .pizarra-trazo-actual{fill:none; stroke-linecap:round; stroke-linejoin:round}
@@ -1709,7 +1717,7 @@ math mo{font-family:inherit}
   .gpx-previa-img{display:none}
   .gpx-captura-controles, .gpx-boton-calibrar, .gpx-boton-cancelar-calibracion{display:none}
   .pizarra-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
-  .pizarra-boton-editar, .pizarra-barra{display:none}
+  .pizarra-boton-editar, .pizarra-barra, .pizarra-viewer::before{display:none}
   figure.svg-viewer, .plano-viewer, .iso-viewer, .tresd-viewer, .verdad-viewer, .ladder-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
   .tresd-svg{height:320px}
   .formula-caja{break-inside:avoid; page-break-inside:avoid}
@@ -15484,24 +15492,33 @@ function diaColorRgb(valor){
   diaColorSonda.style.color = "";       // limpia antes: un valor invalido deja el color VIEJO puesto, no lo vacia
   diaColorSonda.style.color = valor;
   if(!diaColorSonda.style.color) return null;   // sigue vacio => valor invalido
-  var m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/.exec(getComputedStyle(diaColorSonda).color);
-  return m ? [parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])] : null;
+  /* el 4to grupo (alfa) es opcional -- rgb() sin alfa siempre es 1. Sin leerlo,
+     "transparent" (que el navegador resuelve a "rgba(0, 0, 0, 0)") se contaba
+     como negro SOLIDO: un "!fondo:transparent" quedaba clasificado "oscuro" y
+     forzaba texto claro, aunque lo que en verdad se ve detras (el fondo del
+     propio tema) pudiera ser blanco -- texto claro sobre blanco, al reves de
+     lo que esta funcion existe para evitar. */
+  var m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s\/]+([\d.]+))?/.exec(getComputedStyle(diaColorSonda).color);
+  if(!m) return null;
+  return [parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]), m[4] === undefined ? 1 : parseFloat(m[4])];
 }
 function diaLuminancia(rgb){
   var c = rgb.map(function(v){ v = v / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
   return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
 }
 /* true = fondo claro (hace falta texto oscuro encima), false = fondo oscuro
-   (texto claro), null = no se pudo calcular (color invalido: se deja el tema
-   activo tal cual). "degradado(a,b[,angulo])" promedia el brillo de sus dos
-   paradas -- mismo formato que ya reconoce diaFondoCss() de arriba. */
+   (texto claro), null = no se pudo calcular (color invalido, o muy
+   transparente para saber que se ve detras: se deja el tema activo tal cual).
+   "degradado(a,b[,angulo])" promedia el brillo de sus dos paradas -- mismo
+   formato que ya reconoce diaFondoCss() de arriba. */
 function diaFondoEsClaro(valor){
   var m = /^degradado\(([^)]*)\)$/i.exec(valor.trim());
   var muestras = m ? m[1].split(",").slice(0, 2) : [valor];
   var total = 0, n = 0, i, rgb;
   for(i = 0; i < muestras.length; i++){
     rgb = diaColorRgb(muestras[i].trim());
-    if(rgb){ total += diaLuminancia(rgb); n++; }
+    // alfa < .5: mayormente transparente, no hay forma de saber que color se ve detras -- no contar esta muestra
+    if(rgb && rgb[3] >= 0.5){ total += diaLuminancia(rgb); n++; }
   }
   return n ? (total / n) > 0.5 : null;
 }
