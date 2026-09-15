@@ -457,7 +457,18 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
    hace falta tocar las dos reglas por separado. */
 #diapositivas{
   position:fixed; inset:0; z-index:9999; display:none; flex-direction:column;
-  background:#0b0d12; color:#f4f6fb; font-family:var(--sans);
+  /* tema de Presentar (boton #diaTema, listener en prepararPresentacion()):
+     por defecto "adecuado" -- atado a la paleta clara/oscura que ya usa el
+     resto de la app (var(--papel)/var(--texto)/...), asi el contraste ya esta
+     probado en todo el documento en vez de inventar una paleta nueva. El
+     atributo data-dia-tema="neon" (mas abajo) pisa estas variables con la
+     paleta oscura/azul fija que Presentar tenia antes de este cambio, para
+     quien la prefiera -- ninguna otra regla de aqui en adelante vuelve a
+     escribir un color a mano, todas pasan por var(--dia-*). */
+  --dia-bg:var(--papel); --dia-texto:var(--texto); --dia-tenue:var(--tenue);
+  --dia-enlace:var(--acento); --dia-borde:var(--borde); --dia-borde-fuerte:var(--borde-fuerte);
+  --dia-hover-bg:var(--acento-suave); --dia-acento:var(--acento); --dia-acento-texto:#fff;
+  background:var(--dia-bg); color:var(--dia-texto); font-family:var(--sans);
   /* inset:0 ya estira el alto, pero en movil el alto de "verdad" cambia
      cuando la barra del navegador se oculta o aparece -- 100dvh (con 100vh
      como respaldo en navegadores que no lo entienden) es el mismo arreglo que
@@ -465,11 +476,25 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
   height:100vh; height:100dvh;
   --dia-pad-v:7vh; --dia-pad-h:8vw;
 }
+#diapositivas[data-dia-tema="neon"]{
+  --dia-bg:#0b0d12; --dia-texto:#f4f6fb; --dia-tenue:#aeb6c4;
+  --dia-enlace:#8ecbff; --dia-borde:#3a4150; --dia-borde-fuerte:#5a6478;
+  --dia-hover-bg:#1b2029; --dia-acento:#1a73e8; --dia-acento-texto:#fff;
+}
 #diapositivas:not([hidden]){ display:flex }
 #diapositivas .dia-cuerpo{
   position:relative; flex:1; display:flex; align-items:center; justify-content:center;
   padding:var(--dia-pad-v) var(--dia-pad-h); overflow:auto; text-align:left;
+  color:var(--dia-texto);
 }
+/* !fondo: (mas abajo, diaFondoEsClaro()) pone un color/degradado arbitrario
+   detras de la diapositiva -- el texto del tema activo puede quedar invisible
+   si justo comparte tono con ese fondo puntual (p.ej. texto claro del tema
+   Neon sobre "!fondo:#ffffff"). Estas dos clases, que pintarDiapositiva()
+   prende segun el brillo calculado del fondo de ESA diapositiva, fuerzan un
+   texto que si contrasta, sin tocar el tema (ni el fondo) de las demas. */
+#diapositivas .dia-cuerpo.dia-fondo-detectado-claro{ --dia-texto:#14161c; --dia-enlace:#0b5fd7; --dia-tenue:#4b5162; }
+#diapositivas .dia-cuerpo.dia-fondo-detectado-oscuro{ --dia-texto:#f4f6fb; --dia-enlace:#8ecbff; --dia-tenue:#aeb6c4; }
 /* fondo de diapositiva via bloque ```svg fondo (spec 15.4): capa a sangre
    completa detras de .dia-cuerpo > div (que pintarDiapositiva() sube con
    position:relative; z-index:1 para no quedar tapado). */
@@ -500,7 +525,7 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 #diapositivas .dia-cuerpo h3{ font-size:clamp(1.15rem,3.4vw,2.2rem) }
 #diapositivas .dia-cuerpo p, #diapositivas .dia-cuerpo li{ font-size:clamp(1rem,2.6vw,1.85rem); line-height:1.5 }
 #diapositivas .dia-cuerpo table{ font-size:clamp(.9rem,2.2vw,1.55rem) }
-#diapositivas .dia-cuerpo a{ color:#8ecbff }
+#diapositivas .dia-cuerpo a{ color:var(--dia-enlace) }
 #diapositivas .dia-cuerpo :first-child{ margin-top:0 }
 #diapositivas .dia-cuerpo input, #diapositivas .dia-cuerpo select{ color:inherit }
 #diapositivas .dia-marco{ position:relative; flex:1; display:flex; min-height:0 }
@@ -518,17 +543,17 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 #diapositivas.dia-lapiz-activo.dia-lapiz-borrador .dia-lapiz-svg .pizarra-trazo{ cursor:pointer }
 #diapositivas .dia-pie{
   display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; padding:.75rem 1.25rem;
-  font-size:.85rem; color:#aeb6c4;
+  font-size:.85rem; color:var(--dia-tenue);
 }
 #diapositivas .dia-pie button{
   font:inherit; color:inherit; background:transparent; cursor:pointer;
-  border:1px solid #3a4150; border-radius:.5rem; padding:.3em .7em; line-height:1;
+  border:1px solid var(--dia-borde); border-radius:.5rem; padding:.3em .7em; line-height:1;
 }
 #diapositivas .dia-pie button b{ font-weight:400; font-style:normal }
 #diapositivas .dia-pie button span{ margin-left:.4em }
-#diapositivas .dia-pie button:hover:not(:disabled){ background:#1b2029; border-color:#5a6478 }
+#diapositivas .dia-pie button:hover:not(:disabled){ background:var(--dia-hover-bg); border-color:var(--dia-borde-fuerte) }
 #diapositivas .dia-pie button:disabled{ opacity:.35; cursor:default }
-#diapositivas .dia-pie button.activo{ background:#1a73e8; border-color:#1a73e8; color:#fff }
+#diapositivas .dia-pie button.activo{ background:var(--dia-acento); border-color:var(--dia-acento); color:var(--dia-acento-texto) }
 #diapositivas .dia-pie #diaContador{ font-variant-numeric:tabular-nums }
 #diapositivas .dia-pie .dia-solo-lapiz{ display:none }
 #diapositivas.dia-lapiz-activo .dia-pie .dia-solo-lapiz{ display:inline-flex }
@@ -537,7 +562,7 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 #diapositivas .dia-pie .dia-color{
   width:1.4rem; height:1.4rem; padding:0; border-radius:50%; border:2px solid transparent;
 }
-#diapositivas .dia-pie .dia-color.activo{ border-color:#f4f6fb }
+#diapositivas .dia-pie .dia-color.activo{ border-color:var(--dia-texto) }
 
 /* vista de miniaturas dentro de Presentar (reemplaza #diaCuerpo mientras esta abierta).
    align-self:flex-start la ancla arriba en vez de heredar el centrado vertical
@@ -556,14 +581,18 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
   padding:0; cursor:pointer; color:inherit; font:inherit; text-align:left;
 }
 .dia-mini-marco{
-  position:relative; overflow:hidden; border-radius:.5rem; background:#0b0d12;
-  border:2px solid #3a4150; aspect-ratio:var(--dia-mini-ar, 16/9);
+  position:relative; overflow:hidden; border-radius:.5rem; background:var(--dia-bg);
+  /* box-shadow (misma var(--sombra) que usa el resto de la app para tarjetas):
+     en el tema "adecuado" la tarjeta comparte color con el fondo de la
+     pagina -- solo el borde de 2px (bastante tenue de por si) no bastaba
+     para distinguirla, se veia practicamente plana. */
+  border:2px solid var(--dia-borde); box-shadow:var(--sombra); aspect-ratio:var(--dia-mini-ar, 16/9);
 }
-.dia-mini:hover .dia-mini-marco, .dia-mini:focus-visible .dia-mini-marco{ border-color:#1a73e8 }
+.dia-mini:hover .dia-mini-marco, .dia-mini:focus-visible .dia-mini-marco{ border-color:var(--dia-acento) }
 /* misma clase que #diaCuerpo (.dia-cuerpo): hereda su padding/centrado/tipografia
    tal cual, para que la miniatura no se desincronice si esas reglas cambian */
 .dia-mini-escala{ position:absolute; top:0; left:0; transform-origin:top left; pointer-events:none }
-.dia-mini-n{ font-size:.8rem; color:#aeb6c4 }
+.dia-mini-n{ font-size:.8rem; color:var(--dia-tenue) }
 
 /* indice dentro de Presentar (reemplaza #diaCuerpo igual que las miniaturas).
    Sin override de max-width/width: una lista de titulos angosta (la misma
@@ -574,7 +603,7 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
   display:block; width:100%; text-align:left; background:none; border:none;
   border-radius:.4rem; color:inherit; font:inherit; cursor:pointer; padding:.5rem .7rem;
 }
-.dia-indice-fila:hover, .dia-indice-fila:focus-visible{ background:#1a2130 }
+.dia-indice-fila:hover, .dia-indice-fila:focus-visible{ background:var(--dia-hover-bg) }
 /* una anotacion ya guardada (seccion 12.3, "Guardar anotaciones") se ve como
    una figura normal en el documento, pero aqui dentro se superpone a la
    diapositiva en vez de ocupar su propio espacio en el flujo */
@@ -583,6 +612,7 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 }
 #diapositivas .dia-cuerpo .pizarra-viewer .pizarra-svg{ background:transparent }
 #diapositivas .dia-cuerpo .pizarra-viewer .pizarra-boton-editar{ display:none }
+#diapositivas .dia-cuerpo .pizarra-viewer::before{ display:none }
 @media (prefers-reduced-motion:no-preference){
   #diapositivas .dia-cuerpo > div{ animation:dia-entra .25s ease-out }
 }
@@ -1507,6 +1537,22 @@ figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
 
 /* bloques pizarra */
 .pizarra-viewer{margin:1.5rem 0; padding:1rem; border:1px solid var(--borde); border-radius:.6rem; background:var(--papel)}
+/* etiqueta que identifica el bloque como un dibujo de Pizarron (mismo motor
+   que "MODO PIZARRON GLOBAL" en el JS): un bloque guardado desde el lapiz de
+   Presentar (diaGuardarAnotaciones()) no antepone ningun titulo like
+   pizarronInsertar() si lo hace ("## Pizarrón hoja N") -- en el documento
+   normal se veia como un cuadro generico sin pista de que es, aunque el
+   componente (dibujarPizarra()/el boton "Editar") ya sea identico venga de
+   donde venga. Va en ::before (no en el Markdown insertado) a proposito: una
+   etiqueta real en la fuente seria un nodo mas del grupo de esa diapositiva y
+   quedaria visible flotando en la propia diapositiva la proxima vez que se
+   presente -- justo lo que evita la regla de mas abajo (superponer, no
+   ocupar espacio). Se oculta dentro de Presentar igual que el boton Editar. */
+.pizarra-viewer::before{
+  content:"Pizarrón"; display:block; margin-bottom:.5rem;
+  font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em;
+  color:var(--tenue);
+}
 .pizarra-lienzo{position:relative; line-height:0}
 .pizarra-svg{width:100%; height:auto; display:block; background:var(--codigo-fondo); border-radius:.4rem; touch-action:pan-y}
 .pizarra-trazo, .pizarra-trazo-actual{fill:none; stroke-linecap:round; stroke-linejoin:round}
@@ -1896,6 +1942,7 @@ math mo{font-family:inherit}
     <button type="button" id="diaMiniaturas" title="Ver todas las diapositivas"><b>&#8862;</b><span>Miniaturas</span></button>
     <button type="button" id="diaEsquema" title="Índice: saltar a un título (O)"><b>&#9776;</b><span>Índice</span></button>
     <button type="button" id="diaLeer" aria-pressed="false" title="Leer esta diapositiva en voz alta (V)"><b>&#128266;</b><span>Leer</span></button>
+    <button type="button" id="diaTema" title="Tema de Presentar: alternar entre Adecuado y Neón"><b>&#9686;</b><span>Tema</span></button>
     <button type="button" id="diaLapiz" aria-pressed="false" title="Lápiz (L)"><b>&#9998;</b><span>Lápiz</span></button>
     <button type="button" id="diaPizarron" title="Abrir un pizarrón en blanco sin salir de Presentar"><b>&#9633;</b><span>Pizarrón</span></button>
     <span class="dia-lapiz-colores dia-solo-lapiz" id="diaLapizColores">
@@ -15423,6 +15470,41 @@ function diaFondoCss(valor){
   if(!a || !b) return valor;
   return "linear-gradient(" + angulo + ", " + a + ", " + b + ")";
 }
+/* contraste automatico para !fondo: (ver las clases dia-fondo-detectado-* en
+   el CSS): un <span> desechable es la forma mas simple de dejar que el propio
+   navegador resuelva CUALQUIER sintaxis de color valida (hex, rgb(), nombre)
+   sin reescribir un parser -- getComputedStyle() siempre devuelve rgb(a). */
+var diaColorSonda = null;
+function diaColorRgb(valor){
+  if(!diaColorSonda){
+    diaColorSonda = document.createElement("span");
+    diaColorSonda.style.display = "none";
+    document.body.appendChild(diaColorSonda);
+  }
+  diaColorSonda.style.color = "";       // limpia antes: un valor invalido deja el color VIEJO puesto, no lo vacia
+  diaColorSonda.style.color = valor;
+  if(!diaColorSonda.style.color) return null;   // sigue vacio => valor invalido
+  var m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/.exec(getComputedStyle(diaColorSonda).color);
+  return m ? [parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])] : null;
+}
+function diaLuminancia(rgb){
+  var c = rgb.map(function(v){ v = v / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+/* true = fondo claro (hace falta texto oscuro encima), false = fondo oscuro
+   (texto claro), null = no se pudo calcular (color invalido: se deja el tema
+   activo tal cual). "degradado(a,b[,angulo])" promedia el brillo de sus dos
+   paradas -- mismo formato que ya reconoce diaFondoCss() de arriba. */
+function diaFondoEsClaro(valor){
+  var m = /^degradado\(([^)]*)\)$/i.exec(valor.trim());
+  var muestras = m ? m[1].split(",").slice(0, 2) : [valor];
+  var total = 0, n = 0, i, rgb;
+  for(i = 0; i < muestras.length; i++){
+    rgb = diaColorRgb(muestras[i].trim());
+    if(rgb){ total += diaLuminancia(rgb); n++; }
+  }
+  return n ? (total / n) > 0.5 : null;
+}
 function pintarDiapositiva(){
   if(LEER) leerDetener(); /* #diaCuerpo se reescribe entero: los nodos que se leian quedarian huerfanos */
   var cuerpo = $("#diaCuerpo"), g = DIA.grupos[DIA.i], caja = document.createElement("div"), i, n, c;
@@ -15437,6 +15519,13 @@ function pintarDiapositiva(){
   }
   cuerpo.innerHTML = "";
   cuerpo.style.background = fondoColor ? diaFondoCss(fondoColor) : "";
+  if(fondoColor){
+    var fondoClaro = diaFondoEsClaro(fondoColor);
+    cuerpo.classList.toggle("dia-fondo-detectado-claro", fondoClaro === true);
+    cuerpo.classList.toggle("dia-fondo-detectado-oscuro", fondoClaro === false);
+  } else {
+    cuerpo.classList.remove("dia-fondo-detectado-claro", "dia-fondo-detectado-oscuro");
+  }
   if(fondoSvg){
     var capaFondo = document.createElement("div");
     capaFondo.className = "dia-fondo-capa";
@@ -15943,6 +16032,22 @@ function fuenteTerminaEnFenceAbierto(src){
   }
   return !!abierta;
 }
+/* tema de Presentar (boton #diaTema): "adecuado" (por defecto, sin atributo)
+   ata los colores a la paleta clara/oscura de siempre; "neon" fuerza la
+   paleta oscura/azul que Presentar tenia antes de este cambio (ver las
+   variables --dia-* en el CSS). Mismo patron de persistencia que
+   ponerTema()/alternarTema() (tema del documento), pero en su propia clave:
+   son preferencias independientes, cambiar una no debe tocar la otra. */
+var CLAVE_DIA_TEMA = "mdcrgm.diaTema";
+function diaPonerTema(t){
+  if(t === "neon") $("#diapositivas").setAttribute("data-dia-tema", "neon");
+  else $("#diapositivas").removeAttribute("data-dia-tema");
+}
+function diaAlternarTema(){
+  var nuevo = $("#diapositivas").getAttribute("data-dia-tema") === "neon" ? "adecuado" : "neon";
+  diaPonerTema(nuevo);
+  escribir(CLAVE_DIA_TEMA, nuevo);
+}
 function diaGuardarAnotaciones(){
   if(!DIA) return;
   var capa = DIA.capas[DIA.i];
@@ -15988,6 +16093,8 @@ function diaAbrirPizarron(){
   if(PIZARRON) PIZARRON.volverAPresentar = true;
 }
 function prepararPresentacion(){
+  diaPonerTema(leer(CLAVE_DIA_TEMA));
+  $("#diaTema").addEventListener("click", diaAlternarTema);
   $("#btnPresentar").addEventListener("click", abrirPresentacion);
   $("#diaAnterior").addEventListener("click", function(){ moverDia(-1); });
   $("#diaSiguiente").addEventListener("click", function(){ moverDia(1); });
