@@ -448,15 +448,27 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 .barra-form[hidden]{display:none}
 @media (max-width:600px){ .barra-form{ bottom:3.4rem } }
 
-/* presentar en pantalla completa, diapositiva a diapositiva */
+/* presentar en pantalla completa, diapositiva a diapositiva.
+   --dia-pad-v/--dia-pad-h son la unica fuente de verdad para el padding de
+   .dia-cuerpo: .pizarra-viewer (mas abajo) tiene que calzar con ese mismo
+   padding para que una anotacion guardada quede alineada con el contenido, y
+   antes eran dos "7vh 8vw" escritos a mano en dos reglas distintas. Los
+   breakpoints de mas abajo redefinen estas dos variables nada mas -- nunca
+   hace falta tocar las dos reglas por separado. */
 #diapositivas{
   position:fixed; inset:0; z-index:9999; display:none; flex-direction:column;
   background:#0b0d12; color:#f4f6fb; font-family:var(--sans);
+  /* inset:0 ya estira el alto, pero en movil el alto de "verdad" cambia
+     cuando la barra del navegador se oculta o aparece -- 100dvh (con 100vh
+     como respaldo en navegadores que no lo entienden) es el mismo arreglo que
+     ya usan .gpx-viewer:fullscreen y body.editando #panel en este archivo. */
+  height:100vh; height:100dvh;
+  --dia-pad-v:7vh; --dia-pad-h:8vw;
 }
 #diapositivas:not([hidden]){ display:flex }
 #diapositivas .dia-cuerpo{
   position:relative; flex:1; display:flex; align-items:center; justify-content:center;
-  padding:7vh 8vw; overflow:auto; text-align:left;
+  padding:var(--dia-pad-v) var(--dia-pad-h); overflow:auto; text-align:left;
 }
 /* fondo de diapositiva via bloque ```svg fondo (spec 15.4): capa a sangre
    completa detras de .dia-cuerpo > div (que pintarDiapositiva() sube con
@@ -468,19 +480,33 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
   margin:0; padding:0; border:0; background:none; width:100%; height:100%;
 }
 #diapositivas .dia-fondo-capa svg{ width:100%; height:100%; max-width:none; }
-#diapositivas .dia-cuerpo > div{ max-width:56rem; width:100%; }
-#diapositivas .dia-cuerpo h1{ font-size:min(6.5vw,3.4rem); text-wrap:balance; margin:0 0 .5em }
-#diapositivas .dia-cuerpo h2{ font-size:min(4.6vw,2.3rem); text-wrap:balance }
-#diapositivas .dia-cuerpo h3{ font-size:min(3.4vw,1.6rem) }
-#diapositivas .dia-cuerpo p, #diapositivas .dia-cuerpo li{ font-size:min(2.6vw,1.35rem); line-height:1.5 }
-#diapositivas .dia-cuerpo table{ font-size:min(2.2vw,1.15rem) }
+/* 56rem (el mismo tope que .documento en la vista normal) dejaba metros de
+   pantalla sin usar en cualquier monitor ancho: con --dia-pad-h de sobra a
+   cada lado, ese tope ya era el limite real desde ~1066px de viewport en
+   adelante. 82rem sigue frenando el largo de linea en un monitor ultra-wide,
+   pero deja crecer el contenido bastante mas en 1080p/1440p/4K. Sin el min()
+   con un termino en vw: con --dia-pad-h angosto (los breakpoints de mas abajo
+   lo bajan a 4vw/3vw) un tope en vw competia con el padding en vez de sumarse
+   a el, y terminaba dejando MAS margen muerto justo en las pantallas angostas
+   donde el padding angosto queria ganar espacio. */
+#diapositivas .dia-cuerpo > div{ max-width:82rem; width:100%; }
+/* clamp(piso, vw, techo): antes era min(vw,techo) sin piso, y el techo se
+   alcanzaba a partir de un viewport bastante angosto (836px para el h1) y se
+   quedaba ahi clavado sin importar si la pantalla era un monitor 1080p o un
+   proyector 4K -- "aproveche al maximo cualquier pantalla" pedia justamente
+   subir ese techo. El piso evita que un telefono muy angosto se quede corto. */
+#diapositivas .dia-cuerpo h1{ font-size:clamp(1.6rem,6.5vw,4.6rem); text-wrap:balance; margin:0 0 .5em }
+#diapositivas .dia-cuerpo h2{ font-size:clamp(1.3rem,4.6vw,3.1rem); text-wrap:balance }
+#diapositivas .dia-cuerpo h3{ font-size:clamp(1.15rem,3.4vw,2.2rem) }
+#diapositivas .dia-cuerpo p, #diapositivas .dia-cuerpo li{ font-size:clamp(1rem,2.6vw,1.85rem); line-height:1.5 }
+#diapositivas .dia-cuerpo table{ font-size:clamp(.9rem,2.2vw,1.55rem) }
 #diapositivas .dia-cuerpo a{ color:#8ecbff }
 #diapositivas .dia-cuerpo :first-child{ margin-top:0 }
 #diapositivas .dia-cuerpo input, #diapositivas .dia-cuerpo select{ color:inherit }
 #diapositivas .dia-marco{ position:relative; flex:1; display:flex; min-height:0 }
 #diapositivas .dia-lapiz-svg{
   /* z-index:2 (por encima del z-index:1 que pintarDiapositiva() le pone al
-     contenido de la diapositiva, ver linea ~11229): sin esto el propio texto
+     contenido de la diapositiva, ver linea ~15390): sin esto el propio texto
      de la diapositiva tapaba el lienzo del lapiz y se comia sus clics -- el
      lapiz quedaba "activo" (pointer-events:auto) pero nunca recibia el
      puntero porque el contenido, no el svg, era lo que estaba encima. */
@@ -498,6 +524,8 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
   font:inherit; color:inherit; background:transparent; cursor:pointer;
   border:1px solid #3a4150; border-radius:.5rem; padding:.3em .7em; line-height:1;
 }
+#diapositivas .dia-pie button b{ font-weight:400; font-style:normal }
+#diapositivas .dia-pie button span{ margin-left:.4em }
 #diapositivas .dia-pie button:hover:not(:disabled){ background:#1b2029; border-color:#5a6478 }
 #diapositivas .dia-pie button:disabled{ opacity:.35; cursor:default }
 #diapositivas .dia-pie button.activo{ background:#1a73e8; border-color:#1a73e8; color:#fff }
@@ -516,8 +544,8 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
    de .dia-cuerpo (pensado para una sola diapositiva) -- con muchas miniaturas,
    centrar + overflow:auto puede esconder las primeras filas por encima del viewport.
    max-width/width van con el selector completo (no solo ".dia-miniaturas") porque
-   "#diapositivas .dia-cuerpo > div{max-width:56rem}" ya existe y por especificidad
-   (id+clase+tipo) le gana a una regla de una sola clase. */
+   "#diapositivas .dia-cuerpo > div{max-width:82rem}" ya existe y por
+   especificidad (id+clase+tipo) le gana a una regla de una sola clase. */
 .dia-miniaturas{
   display:grid; grid-template-columns:repeat(auto-fill, minmax(11rem, 1fr));
   gap:1rem; align-content:start; align-self:flex-start;
@@ -538,8 +566,8 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 .dia-mini-n{ font-size:.8rem; color:#aeb6c4 }
 
 /* indice dentro de Presentar (reemplaza #diaCuerpo igual que las miniaturas).
-   Sin override de max-width/width: una lista de titulos angosta (56rem, la
-   misma regla que ya limita una diapositiva normal) se lee mejor que una que
+   Sin override de max-width/width: una lista de titulos angosta (la misma
+   regla que ya limita una diapositiva normal) se lee mejor que una que
    ocupa todo el ancho. */
 .dia-indice{ display:flex; flex-direction:column; gap:.15rem; width:100%; text-align:left }
 .dia-indice-fila{
@@ -551,7 +579,7 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
    una figura normal en el documento, pero aqui dentro se superpone a la
    diapositiva en vez de ocupar su propio espacio en el flujo */
 #diapositivas .dia-cuerpo .pizarra-viewer{
-  position:absolute; inset:7vh 8vw; margin:0; border:none; background:none; pointer-events:none;
+  position:absolute; inset:var(--dia-pad-v) var(--dia-pad-h); margin:0; border:none; background:none; pointer-events:none;
 }
 #diapositivas .dia-cuerpo .pizarra-viewer .pizarra-svg{ background:transparent }
 #diapositivas .dia-cuerpo .pizarra-viewer .pizarra-boton-editar{ display:none }
@@ -559,6 +587,37 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
   #diapositivas .dia-cuerpo > div{ animation:dia-entra .25s ease-out }
 }
 @keyframes dia-entra{ from{ opacity:0; transform:translateY(.6em) } to{ opacity:1; transform:none } }
+
+/* Presentar en pantalla angosta (mismo tope de 820px que .barra/.barra-editor
+   usan en todo el resto del archivo): el pie con 13 controles desbordaba en
+   varias filas porque cada boton llevaba su etiqueta de texto entera. Aqui se
+   reduce a solo el icono (misma tecnica que .barra button span{display:none})
+   y se angosta el padding lateral de la diapositiva, para que el contenido
+   tenga mas ancho de sobra en vez de menos. */
+@media (max-width:820px){
+  #diapositivas{ --dia-pad-h:4vw }
+  #diapositivas .dia-pie{ padding:.6rem .8rem; gap:.4rem }
+  #diapositivas .dia-pie button span{ display:none }
+  #diapositivas .dia-pie button{ padding:.55em .6em; font-size:15px; min-height:40px }
+}
+@media (max-width:420px){
+  #diapositivas{ --dia-pad-h:3vw }
+  #diapositivas .dia-pie{ gap:.25rem; padding:.5rem .6rem }
+}
+/* movil tumbado (o cualquier ventana baja, angosta o no): el pie ya no cabe
+   en 7vh de alto sin comerse la diapositiva -- se achica el padding vertical
+   y el propio pie, mismo espiritu que la regla equivalente para #pizarron
+   .pizarron-barra. Solo toca el eje vertical (padding-block, no el shorthand
+   "padding") y no toca gap: si ademas el ancho es angosto (@media max-width
+   de arriba, misma especificidad y declaradas antes en cascada), el padding
+   horizontal y el gap que esas ya angostaron no deben aflojarse de vuelta por
+   venir esta regla despues -- eso paso con "padding"/"gap" como shorthand. */
+@media (max-height:480px){
+  #diapositivas{ --dia-pad-v:2.5vh }
+  #diapositivas .dia-pie{ padding-block:.4rem; font-size:.78rem }
+  #diapositivas .dia-pie button{ padding:.3em .55em; min-height:0 }
+  #diapositivas .dia-pie button span{ display:none }
+}
 
 /* pizarron global: lienzo en blanco a pantalla completa, misma familia visual
    que #diapositivas (mismo modo "pantalla oscura" sea cual sea el tema) */
@@ -1834,21 +1893,21 @@ math mo{font-family:inherit}
     <button type="button" id="diaAnterior" title="Diapositiva anterior (&larr;)">&#8592;</button>
     <span id="diaContador"></span>
     <button type="button" id="diaSiguiente" title="Siguiente diapositiva (&rarr;)">&#8594;</button>
-    <button type="button" id="diaMiniaturas" title="Ver todas las diapositivas">&#8862; Miniaturas</button>
-    <button type="button" id="diaEsquema" title="Índice: saltar a un título (O)">&#9776; Índice</button>
-    <button type="button" id="diaLeer" aria-pressed="false" title="Leer esta diapositiva en voz alta (V)">&#128266; Leer</button>
-    <button type="button" id="diaLapiz" aria-pressed="false" title="Lápiz (L)">&#9998; Lápiz</button>
-    <button type="button" id="diaPizarron" title="Abrir un pizarrón en blanco sin salir de Presentar">&#9998; Pizarrón</button>
+    <button type="button" id="diaMiniaturas" title="Ver todas las diapositivas"><b>&#8862;</b><span>Miniaturas</span></button>
+    <button type="button" id="diaEsquema" title="Índice: saltar a un título (O)"><b>&#9776;</b><span>Índice</span></button>
+    <button type="button" id="diaLeer" aria-pressed="false" title="Leer esta diapositiva en voz alta (V)"><b>&#128266;</b><span>Leer</span></button>
+    <button type="button" id="diaLapiz" aria-pressed="false" title="Lápiz (L)"><b>&#9998;</b><span>Lápiz</span></button>
+    <button type="button" id="diaPizarron" title="Abrir un pizarrón en blanco sin salir de Presentar"><b>&#9633;</b><span>Pizarrón</span></button>
     <span class="dia-lapiz-colores dia-solo-lapiz" id="diaLapizColores">
       <button type="button" class="dia-color activo" data-color="#1a73e8" style="background:#1a73e8" title="Azul" aria-label="Azul" aria-pressed="true"></button>
       <button type="button" class="dia-color" data-color="#e5484d" style="background:#e5484d" title="Rojo" aria-label="Rojo" aria-pressed="false"></button>
       <button type="button" class="dia-color" data-color="#2fae4e" style="background:#2fae4e" title="Verde" aria-label="Verde" aria-pressed="false"></button>
       <button type="button" class="dia-color" data-color="#f5a623" style="background:#f5a623" title="Naranja" aria-label="Naranja" aria-pressed="false"></button>
     </span>
-    <button type="button" id="diaBorrador" class="dia-solo-lapiz" aria-pressed="false" title="Borrador (B)">Borrador</button>
-    <button type="button" id="diaLimpiar" class="dia-solo-lapiz" title="Limpiar (C)">Limpiar</button>
-    <button type="button" id="diaGuardarAnotaciones" title="Añade lo dibujado como bloque al documento">Guardar anotaciones</button>
-    <button type="button" id="diaSalir" title="Salir (Esc)">&#10005; Salir</button>
+    <button type="button" id="diaBorrador" class="dia-solo-lapiz" aria-pressed="false" title="Borrador (B)"><b>&#9003;</b><span>Borrador</span></button>
+    <button type="button" id="diaLimpiar" class="dia-solo-lapiz" title="Limpiar (C)"><b>&#128465;</b><span>Limpiar</span></button>
+    <button type="button" id="diaGuardarAnotaciones" title="Añade lo dibujado como bloque al documento"><b>&#128190;</b><span>Guardar anotaciones</span></button>
+    <button type="button" id="diaSalir" title="Salir (Esc)"><b>&#10005;</b><span>Salir</span></button>
   </div>
 </div>
 
@@ -15437,7 +15496,15 @@ function cerrarPresentacion(){
   $("#diaEsquema").classList.remove("activo");
   $("#diaEsquema").setAttribute("aria-pressed", "false");
   document.removeEventListener("keydown", teclaDia);
-  if(document.fullscreenElement) try{ document.exitFullscreen(); }catch(e){}
+  /* mismo par requestFullscreen||webkitRequestFullscreen que abrirPresentacion():
+     sin el fallback webkit, un Safari de escritorio viejo que solo entro a
+     pantalla completa con el prefijo se quedaba trabado ahi, porque ni
+     document.fullscreenElement ni exitFullscreen() existen en ese caso. */
+  var elPantallaCompleta = document.fullscreenElement || document.webkitFullscreenElement;
+  if(elPantallaCompleta){
+    var salir = document.exitFullscreen || document.webkitExitFullscreen;
+    if(salir) try{ salir.call(document); }catch(e){}
+  }
 }
 function diaEscribiendo(){
   var a = document.activeElement;
@@ -15765,6 +15832,7 @@ function diaAbrirMiniaturas(){
   grilla.className = "dia-miniaturas";
   grilla.id = "diaGrillaMini";
   grilla.style.setProperty("--dia-mini-ar", ancho + "/" + alto);
+  grilla.setAttribute("data-ancho-ref", String(ancho));   // lo lee diaEscalarMiniaturas() para recalcular al redimensionar
   for(i = 0; i < DIA.grupos.length; i++){
     g = DIA.grupos[i];
     boton = document.createElement("button");
@@ -15792,13 +15860,47 @@ function diaAbrirMiniaturas(){
   $("#diaMiniaturas").setAttribute("aria-pressed", "true");
   requestAnimationFrame(function(){
     if(!diaMiniaturasAbiertas()) return;   // se pudo cerrar entre medio (repintado ajeno via pintar())
-    var celda = grilla.querySelector(".dia-mini-marco");
-    var anchoCelda = celda ? celda.getBoundingClientRect().width : 0;
-    if(!anchoCelda) return;
-    var esc = anchoCelda / ancho, nodos = grilla.querySelectorAll(".dia-mini-escala"), n;
-    for(n = 0; n < nodos.length; n++) nodos[n].style.transform = "scale(" + esc + ")";
+    diaEscalarMiniaturas();
   });
 }
+/* separado de diaAbrirMiniaturas() para poder recalcular la escala al
+   redimensionar/rotar sin reconstruir la grilla entera (ver diaProgramarAjuste
+   mas abajo) -- la grilla ya guarda el ancho de referencia en data-ancho-ref. */
+function diaEscalarMiniaturas(){
+  var grilla = document.getElementById("diaGrillaMini");
+  if(!grilla) return;
+  var ancho = parseFloat(grilla.getAttribute("data-ancho-ref")) || 0;
+  var celda = grilla.querySelector(".dia-mini-marco");
+  var anchoCelda = celda ? celda.getBoundingClientRect().width : 0;
+  if(!ancho || !anchoCelda) return;
+  var esc = anchoCelda / ancho, nodos = grilla.querySelectorAll(".dia-mini-escala"), n;
+  for(n = 0; n < nodos.length; n++) nodos[n].style.transform = "scale(" + esc + ")";
+}
+/* mismo patron que pizarronProgramarAjuste/pizarronAjustarTamano: en movil el
+   alto/ancho de "verdad" tarda en asentarse tras rotar o al ocultarse la barra
+   del navegador, asi que se espera un poco antes de medir de nuevo. Solo toca
+   capas de lapiz vacias (diaRemedirCapasVacias ya protege las que tienen
+   trazos) y recalcula la escala de las miniaturas si estan abiertas -- ninguna
+   de las dos cosas se recalculaba antes al redimensionar/girar la pantalla. */
+var diaAjusteTimer = null;
+function diaProgramarAjuste(){
+  if(!DIA || $("#diapositivas").hidden) return;
+  clearTimeout(diaAjusteTimer);
+  diaAjusteTimer = setTimeout(function(){
+    /* el guard de arriba corrio al PROGRAMAR el timer, no al dispararse: si en
+       esos 250ms el usuario abrio el Pizarron (diaAbrirPizarron oculta
+       #diapositivas pero deja DIA vivo a proposito, para volver a la misma
+       diapositiva), .dia-marco queda con display:none y su rect mide 0x0 --
+       sin repetir el chequeo aqui, diaRemedirCapasVacias() tomaria ese 0x0
+       como medida real y le pondria el tamaño generico de pizarra (no el de
+       la diapositiva) a cualquier capa de lapiz todavia vacia. */
+    if(!DIA || $("#diapositivas").hidden) return;
+    diaRemedirCapasVacias();
+    if(diaMiniaturasAbiertas()) diaEscalarMiniaturas();
+  }, 250);
+}
+window.addEventListener("resize", diaProgramarAjuste);
+window.addEventListener("orientationchange", diaProgramarAjuste);
 /* donde en fuenteActual, en numero de linea (0-based), empieza el bloque de
    nivel superior que viene justo despues de la diapositiva `indice` -- sea o
    no ese el nodo que de hecho la corto (trocearDiapositivas descarta el "---"
@@ -15917,9 +16019,11 @@ function prepararPresentacion(){
     if(e.target.closest && e.target.closest("a, button, input, select, label")) return;
     moverDia(1);
   });
-  document.addEventListener("fullscreenchange", function(){
-    if(!document.fullscreenElement && DIA && DIA.enPantallaCompleta) cerrarPresentacion();
-  });
+  var diaSalioDePantallaCompleta = function(){
+    if(!document.fullscreenElement && !document.webkitFullscreenElement && DIA && DIA.enPantallaCompleta) cerrarPresentacion();
+  };
+  document.addEventListener("fullscreenchange", diaSalioDePantallaCompleta);
+  document.addEventListener("webkitfullscreenchange", diaSalioDePantallaCompleta);
 }
 
 /* ==========================================================================
