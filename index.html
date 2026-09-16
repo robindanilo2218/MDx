@@ -271,6 +271,18 @@ body.editando #ed{flex:1 1 auto; height:auto; min-height:0}
 .barra button:active{transform:translateY(1px)}
 @media (max-width:640px){ .barra{left:.7rem; right:.7rem; justify-content:space-between} }
 
+/* ---------- barra de progreso de lectura ----------
+   una tira fina fija arriba del todo: no choca con .barra, que vive mas
+   abajo (top:.7rem) y solo ocupa su propio marco a la derecha. El relleno lo
+   mueve actualizarBarraLectura() (ver contenedorDoc()/desplazamientoDe()). */
+#barraLectura{
+  position:fixed; top:0; left:0; right:0; height:3px; z-index:56;
+  background:transparent; pointer-events:none;
+}
+#barraLecturaRelleno{
+  display:block; height:100%; width:0%; background:var(--acento);
+}
+
 /* ---------- pestañas de documentos ----------
    Una fila mas dentro de la misma barra: asi se esconde con ella al bajar y no
    tapa nada nuevo. Solo sale cuando hay mas de un documento a mano. */
@@ -1848,6 +1860,7 @@ math mo{font-family:inherit}
 </head>
 <body>
 
+<div class="no-print" id="barraLectura" aria-hidden="true"><div id="barraLecturaRelleno"></div></div>
 <div class="barra no-print" id="barra">
   <button type="button" id="btnEditar"    title="Escribir aquí mismo (Ctrl+E)"><b>&#9998;</b><span>Editar</span></button>
   <button type="button" id="btnPlantillas" title="Catálogo de plantillas (Ctrl+K)"><b>&#9636;</b><span>Plantillas</span></button>
@@ -10017,7 +10030,8 @@ var CLAVE_DOC = "mdcrgm.doc", CLAVE_NOMBRE = "mdcrgm.nombre",
     CLAVE_DOCS = "mdcrgm.docs", CLAVE_ACTIVO = "mdcrgm.activo",
     CLAVE_CONTADOR = "mdcrgm.n", CLAVE_NOTA = "mdcrgm.nota",
     CLAVE_ESPEJO = "mdcrgm.espejo", CLAVE_PESTANAS = "mdcrgm.pestanas",
-    CLAVE_SESION = "mdcrgm.sesion", CLAVE_MISPUB = "mdcrgm.mispub";
+    CLAVE_SESION = "mdcrgm.sesion", CLAVE_MISPUB = "mdcrgm.mispub",
+    CLAVE_LECTURA = "mdcrgm.leido.";
 
 var BIENVENIDA = elFuente ? elFuente.textContent : "";
 var fuenteActual = BIENVENIDA, textoBase = BIENVENIDA, nombreSugerido = "";
@@ -13448,6 +13462,7 @@ function pintar(md){
   /* contarCampos puede sacar o esconder el boton de rellenar, y con el cambia el
      alto de la barra: se vuelve a medir para que el hueco de arriba cuadre */
   medirAltoBarra();
+  actualizarBarraLectura();
   /* si Presentar esta abierto, elDoc.children de arriba son nodos NUEVOS --
      desinfectarFragmento rehace el <template> en cada pintar(), asi que
      cualquier nodo que DIA.grupos guardara de antes queda huerfano aunque el
@@ -13505,8 +13520,7 @@ function fijarTexto(txt, nombre, opc){
   pintarEstado();
   pintar(fuenteActual);
   tocaRepintar();
-  window.scrollTo(0, 0);
-  if(elDoc.parentNode) elDoc.scrollTop = 0;
+  restaurarPosicionLectura();
 }
 function hayCambios(){ return fuenteActual.trim() !== textoBase.trim(); }
 function confirmarReemplazo(){
@@ -13967,6 +13981,50 @@ function irAEditor(y){
   var antes = elEd.scrollTop;
   elEd.scrollTop = Math.max(0, y);
   if(Math.abs(elEd.scrollTop - antes) > 0.5) ecoEd = Date.now();
+}
+
+/* ---------- barra de progreso de lectura + recordar donde te quedaste ----------
+   #barraLectura (ver CSS) es una tira fina fija arriba que crece con cuanto
+   se ha scrolleado del documento actual; ademas esa misma fraccion se guarda
+   en localStorage por documento (CLAVE_LECTURA + docActual.id) para volver
+   a ella la proxima vez que se abra. Reutiliza contenedorDoc()/
+   desplazamientoDe() de arriba -- el mismo contenedor y el mismo scrollTop
+   que ya usa el scroll sincronizado -- para no recalcular nada aparte. */
+function fraccionLeida(c){
+  var tope = c.scrollHeight - c.clientHeight;
+  return tope > 0 ? Math.max(0, Math.min(1, desplazamientoDe(c) / tope)) : 0;
+}
+function actualizarBarraLectura(){
+  var relleno = document.getElementById("barraLecturaRelleno");
+  if(relleno) relleno.style.width = (fraccionLeida(contenedorDoc()) * 100) + "%";
+}
+var relojLectura = null;
+function guardarPosicionLectura(){
+  clearTimeout(relojLectura);
+  relojLectura = setTimeout(function(){
+    if(!HAY_ALMACEN || !docActual) return;
+    escribir(CLAVE_LECTURA + docActual.id, String(fraccionLeida(contenedorDoc())));
+  }, 400);
+}
+/* se llama cada vez que fijarTexto() pone un documento en pantalla: si hay
+   una posicion guardada para ese id se salta ahi (sin animacion), y si no,
+   arriba del todo -- el reseteo a 0 de los dos contenedores es defensivo,
+   igual que antes de existir esta funcion, por si el que queda activo
+   cambia justo despues (alternarEditor). */
+function restaurarPosicionLectura(){
+  window.scrollTo(0, 0);
+  if(elDoc.parentNode) elDoc.scrollTop = 0;
+  if(!HAY_ALMACEN || !docActual) return;
+  var pct = parseFloat(leer(CLAVE_LECTURA + docActual.id));
+  if(!(pct > 0)) return;
+  var c = contenedorDoc(), tope = c.scrollHeight - c.clientHeight;
+  if(tope > 0) irA(c, tope * pct);
+}
+function barraDeLectura(){
+  function enScroll(){ actualizarBarraLectura(); guardarPosicionLectura(); }
+  window.addEventListener("scroll", enScroll, { passive: true });
+  if(elDoc) elDoc.addEventListener("scroll", enScroll, { passive: true });
+  window.addEventListener("resize", actualizarBarraLectura);
 }
 
 /* ---------- scroll sincronizado ----------
@@ -15642,10 +15700,31 @@ function teclaDia(e){
   if(e.key === "o" || e.key === "O"){ diaAbrirEsquema(); return; }
   if(e.key === "v" || e.key === "V"){ alternarLeerVoz(); return; }
 }
-function abrirPresentacion(){
-  var grupos = trocearDiapositivas();
-  if(!grupos.length){ aviso("Este documento está vacío: no hay nada que presentar."); return; }
-  var sesion = { grupos: grupos, i: 0, lapiz: false, borrador: false, capas: {}, enCurso: null, enPantallaCompleta: false, vueltaPizarron: 0 };
+/* mapea la posicion de scroll actual del documento normal a la diapositiva mas
+   cercana: reusa contenedorDoc()/desplazamientoDe()/topEnDoc() (los mismos
+   helpers del scroll sincronizado editor<->doc, ver delDocAlEditor() arriba)
+   en vez de recalcular nada -- cada grupo de trocearDiapositivas() ya es un
+   array de nodos reales de #doc, asi que topEnDoc() de su primer nodo da una
+   posicion directamente comparable con el scroll actual. Si el hueco hasta el
+   grupo SIGUIENTE es menor que el hueco desde el elegido, ese siguiente esta
+   mas cerca de verdad (no basta con "el ultimo que ya se paso"). */
+function diaIndiceDesdeScroll(grupos){
+  var c = contenedorDoc(), y = desplazamientoDe(c), i, elegido = 0;
+  for(i = 0; i < grupos.length; i++){
+    if(topEnDoc(grupos[i][0]) <= y) elegido = i;
+    else break;
+  }
+  if(elegido < grupos.length - 1){
+    var yAct = topEnDoc(grupos[elegido][0]), ySig = topEnDoc(grupos[elegido + 1][0]);
+    if(ySig - y < y - yAct) elegido++;
+  }
+  return elegido;
+}
+/* arranca de verdad la sesion de Presentar en la diapositiva i (extraido de
+   abrirPresentacion() para poder llamarlo tanto directo como despues de que
+   la persona responda al chico "Desde el principio / Desde donde estoy"). */
+function diaIniciarSesion(grupos, i){
+  var sesion = { grupos: grupos, i: i || 0, lapiz: false, borrador: false, capas: {}, enCurso: null, enPantallaCompleta: false, vueltaPizarron: 0 };
   DIA = sesion;
   $("#diapositivas").hidden = false;
   pintarDiapositiva();
@@ -15665,6 +15744,20 @@ function abrirPresentacion(){
     }catch(e){}
   }
   document.addEventListener("keydown", teclaDia);
+}
+function abrirPresentacion(){
+  var grupos = trocearDiapositivas();
+  if(!grupos.length){ aviso("Este documento está vacío: no hay nada que presentar."); return; }
+  var iInicio = diaIndiceDesdeScroll(grupos);
+  if(!iInicio){ diaIniciarSesion(grupos, 0); return; }   // ya esta arriba (o cerca): sin friccion, directo
+  abrirChico("Presentar", [
+    '<div class="chico-menu">',
+    '<button type="button" id="diaDesdePrincipio"><b>Desde el principio</b><span>Empieza en la diapositiva 1</span></button>',
+    '<button type="button" id="diaDesdeAqui"><b>Desde donde estoy</b><span>Empieza en la diapositiva ' + (iInicio + 1) + ' de ' + grupos.length + '</span></button>',
+    "</div>"
+  ].join(""));
+  $("#diaDesdePrincipio").addEventListener("click", function(){ cerrarChico(); diaIniciarSesion(grupos, 0); });
+  $("#diaDesdeAqui").addEventListener("click", function(){ cerrarChico(); diaIniciarSesion(grupos, iInicio); });
 }
 
 /* ---------- lapiz sobre la diapositiva (mdx-bloques-spec-v2.md seccion 12.3) ----------
@@ -17765,6 +17858,7 @@ $("#tarjetas").addEventListener("click", function(e){
       : "¿Quitar este documento de Recientes?";
     if(!window.confirm(texto)) return;
     almacen.quitar(idr).then(function(){
+      borrar(CLAVE_LECTURA + idr);
       if(docActual && docActual.id === idr){ docActual = null; borrar(CLAVE_ACTIVO); pintarEstado(); }
       return cargarRecientes();
     }).then(pintarGaleria);
@@ -18593,6 +18687,10 @@ if(HAY_ALMACEN){
       guardarYa();
       pintarEstado();
     }
+    /* recien se supo cual es docActual (el espejo pinta antes, sin id todavia
+       conocido): si esta pantalla trae guardada una posicion de lectura para
+       ese documento, saltar ahi ahora */
+    restaurarPosicionLectura();
     return cargarRecientes();
   })["catch"](function(){});
 }
@@ -18601,6 +18699,7 @@ prepararFormularios();
 prepararPresentacion();
 prepararPizarron();
 barraQueSeAparta();
+barraDeLectura();
 medirAltoBarra();
 window.addEventListener("resize", medirAltoBarra);
 /* la barra cambia de alto sola: aparece el boton de rellenar, se parte en dos

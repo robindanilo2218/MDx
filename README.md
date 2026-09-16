@@ -316,7 +316,7 @@ y repartirlo — las plantillas están pensadas justo para eso. Si modifica y
 reparte su versión (incluidos los portables de Electron o el `.apk`), tiene que
 publicarla también bajo la GPL v3 y dar acceso al código.
 
-**Código fuente:** <https://github.com/robindanilo2218/visor_editor_md>
+**Código fuente:** <https://github.com/robindanilo2218/MDx>
 
 El empaquetado de escritorio (`escritorio/`) usa Electron como motor de
 ventana — es MIT, y no entra en conflicto con la GPL v3 del propio MDx: es el

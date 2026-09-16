@@ -29,7 +29,7 @@
     "publish": {
       "provider": "github",
       "owner": "robindanilo2218",
-      "repo": "visor_editor_md"
+      "repo": "MDx"
     },
     "win": {
       "target": [
