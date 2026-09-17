@@ -13724,11 +13724,19 @@ function guardarHtml(){
   });
   var av = clon.querySelector("#aviso"); if(av) av.hidden = true;
   var ed = clon.querySelector("#estadoDoc"); if(ed) ed.hidden = true;
-  /* los submenús de Descargar/Compartir de esa píldora cuelgan de <body> en
-     vivo (ver colocarSubmenu), fuera de #estadoDoc: hay que quitarlos aparte
-     o quedarían sueltos y sin botón que los abra en el .html exportado. */
+  /* los submenús de Descargar/Compartir (los de la píldora y los del menú de
+     los tres puntos) cuelgan de <body> en vivo, fuera de #estadoDoc/#menuTres
+     (ver colocarSubmenu), y el clon los serializa donde están AHORA: al
+     final de <body>, después del <script>. El arranque del .html exportado
+     busca #estadoBajaMd/Html/Png, #estadoCompartirSub, #menuBajaMd/Html/Png y
+     #menuCompartirSub por id sin comprobar null, y como el parser todavia no
+     los creó cuando el script corre, tira ese arranque a mitad de camino y
+     deja #doc sin pintar (pantalla en blanco). No se pueden quitar como
+     huérfanos (ya se intentó: revienta lo mismo) -- hay que devolverlos a
+     antes del <script>, tal como están en el index.html sin tocar. */
+  var cuerpo = clon.querySelector("body"), scriptEl = cuerpo.querySelector("script");
   Array.prototype.forEach.call(clon.querySelectorAll(".estado-submenu"), function(x){
-    if(x.parentNode) x.parentNode.removeChild(x);
+    cuerpo.insertBefore(x, scriptEl);
   });
   clon.querySelector("body").className = "";
   var nombreHtml = nombreBaseDoc() + ".html";
