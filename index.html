@@ -371,6 +371,15 @@ h4:hover .anclaje,h5:hover .anclaje,h6:hover .anclaje{opacity:1}
 p{margin:0 0 1.15em}
 a{color:var(--acento); text-underline-offset:.18em; text-decoration-thickness:from-font}
 a:hover{text-decoration-thickness:2px}
+/* enlaces internos tipo wiki: ((Titulo del documento)) -- ver RE_WIKILINK */
+a.wikilink{text-decoration-style:dashed}
+.wikilink-roto{
+  color:var(--tenue); text-decoration:underline dotted; text-underline-offset:.18em; cursor:help;
+}
+
+/* etiquetas sueltas: #palabra -- clic abre la galeria filtrada por ella */
+a.etiqueta{ font-weight:600; text-decoration:none }
+a.etiqueta:hover{ text-decoration:underline }
 
 strong{font-weight:700}
 em{font-style:italic}
@@ -541,7 +550,8 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 /* blockquote/h5/h6 heredaban el color de fuera de #diapositivas (var(--tenue)
    global): no seguian ni el toggle Neon/Adecuado ni el contraste automatico
    por diapositiva -- se re-anclan aqui igual que "a" arriba. */
-#diapositivas .dia-cuerpo blockquote, #diapositivas .dia-cuerpo h5, #diapositivas .dia-cuerpo h6{ color:var(--dia-tenue) }
+#diapositivas .dia-cuerpo blockquote, #diapositivas .dia-cuerpo details, #diapositivas .dia-cuerpo h5, #diapositivas .dia-cuerpo h6{ color:var(--dia-tenue) }
+#diapositivas .dia-cuerpo details > summary{ color:var(--dia-texto) }
 #diapositivas .dia-cuerpo :first-child{ margin-top:0 }
 #diapositivas .dia-cuerpo input, #diapositivas .dia-cuerpo select{ color:inherit }
 #diapositivas .dia-marco{ position:relative; flex:1; display:flex; min-height:0 }
@@ -716,6 +726,15 @@ blockquote{
   border-left:.25em solid var(--borde-fuerte); color:var(--tenue);
 }
 blockquote > *:last-child{margin-bottom:0}
+
+/* cita-pregunta (">? resumen" -> <details><summary>) */
+details{
+  margin:0 0 1.15em; padding:.1em 0 .1em 1.2em;
+  border-left:.25em solid var(--borde-fuerte); color:var(--tenue);
+}
+details > summary{ cursor:pointer; color:var(--texto); font-weight:600 }
+details[open] > summary{ margin-bottom:.5em }
+details > *:last-child{margin-bottom:0}
 
 /* avisos estilo GitHub */
 .alerta{
@@ -987,7 +1006,7 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
   a{color:#000 !important; text-decoration:underline}
   h1,h2,h3,h4,h5,h6{break-after:avoid; page-break-after:avoid}
   p,li,blockquote{orphans:3; widows:3}
-  pre,table,figure,.demo,.alerta,blockquote{break-inside:avoid; page-break-inside:avoid}
+  pre,table,figure,.demo,.alerta,blockquote,details{break-inside:avoid; page-break-inside:avoid}
   pre{white-space:pre-wrap; word-wrap:break-word}
   pre code{white-space:pre-wrap}
   tr,img{break-inside:avoid; page-break-inside:avoid}
@@ -1298,7 +1317,7 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
   --dia-nota:#fff8c5; --dia-nota-borde:#c9a227;
 
   --c-rojo:#c0392b; --c-verde:#137a3b; --c-azul:#1d4ed8; --c-naranja:#c2410c;
-  --c-morado:#6d28d9; --c-rosa:#be185d; --c-cian:#0e7490;
+  --c-morado:#6d28d9; --c-rosa:#be185d; --c-cian:#0e7490; --c-amarillo:#8a6800;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-tema="claro"]){
@@ -1312,7 +1331,7 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
     --dia-nota:#3a3111; --dia-nota-borde:#a98b1d;
 
     --c-rojo:#ff8b80; --c-verde:#5fd07a; --c-azul:#79c0ff; --c-naranja:#ffa657;
-    --c-morado:#d2a8ff; --c-rosa:#ff9ec8; --c-cian:#56d4dd;
+    --c-morado:#d2a8ff; --c-rosa:#ff9ec8; --c-cian:#56d4dd; --c-amarillo:#e3b341;
   }
 }
 :root[data-tema="oscuro"]{
@@ -1326,7 +1345,7 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
   --dia-nota:#3a3111; --dia-nota-borde:#a98b1d;
 
   --c-rojo:#ff8b80; --c-verde:#5fd07a; --c-azul:#79c0ff; --c-naranja:#ffa657;
-  --c-morado:#d2a8ff; --c-rosa:#ff9ec8; --c-cian:#56d4dd;
+  --c-morado:#d2a8ff; --c-rosa:#ff9ec8; --c-cian:#56d4dd; --c-amarillo:#e3b341;
 }
 
 /* marcas que deja el coloreador */
@@ -1678,6 +1697,7 @@ math mo{font-family:inherit}
 .morado{color:var(--c-morado)}
 .rosa{color:var(--c-rosa)}
 .cian{color:var(--c-cian)}
+.amarillo{color:var(--c-amarillo)}
 .gris{color:var(--tenue)}
 .grande{font-size:1.25em}
 .pequeno{font-size:.85em}
@@ -1782,7 +1802,7 @@ math mo{font-family:inherit}
   .tresd-svg{height:300px}
   .formula-bloque{font-size:1.06em}
   .ver-codigo{opacity:1}
-  blockquote, .alerta{padding-left:.9rem; padding-right:.9rem}
+  blockquote, .alerta, details{padding-left:.9rem; padding-right:.9rem}
   pre{padding:.9rem .8rem}
   pre[data-lenguaje]{padding-top:1.8rem}
   .dos-columnas{columns:1}
@@ -4885,6 +4905,21 @@ var RE_CAMPO = /\[\[([^\[\]\n]*)\]\]/g;
 var RE_CASILLA = /\[[ xX]\](?!\()/g;
 var RE_HUECO = /\[([^\[\]\n]+)\](?![\(\[:])/g;
 
+/* ---- enlaces internos tipo wiki -------------------------------------------
+   ((Titulo del documento)) busca, sin importar mayusculas/minusculas, un
+   documento guardado en este navegador (Recientes/IndexedDB, ver mas abajo
+   RECIENTES y documentoPorTitulo()) cuyo titulo coincida, y lo deja como
+   enlace clicable; si no hay ninguno, se pinta aparte (clase wikilink-roto)
+   en vez de romper el resto del documento.
+   Nota de diseno: [[...]] YA es de los campos de formulario de arriba (todo
+   [[algo]] se vuelve un campo -- ver guia-markdown.md, muy usado en las
+   plantillas), asi que un wikilink con la misma sintaxis de doble corchete
+   chocaria con esa funcion existente sin remedio. Doble parentesis esta
+   libre en el texto normal: ((...)) solo se usa, aparte, dentro de la forma
+   de nodo "circulo" del DSL de ```mermaid/diagrama (ver FORMAS mas arriba),
+   que corre con su propio parser por lineas y nunca pasa por enLinea(). */
+var RE_WIKILINK = /\(\(([^()\n]+)\)\)/g;
+
 function trocearCampo(dentro){
   var etq = String(dentro), valor = null, corte = etq.indexOf("::"), largo = 2;
   if(corte < 0){ corte = etq.indexOf("|"); largo = 1; }   /* la barra tambien vale fuera de una tabla */
@@ -4910,9 +4945,12 @@ var RE_HTML = /^ {0,3}<(\/?)(details|summary|div|section|article|aside|header|fo
 var RE_VALLA = /^( {0,3})(`{3,}|~{3,})[ \t]*([^\s`~]*)[ \t]*(.*)$/;
 var RE_CIERRE = /^ {0,3}(`{3,}|~{3,})[ \t]*$/;
 var RE_HR = /^ {0,3}([-*_])[ \t]*(?:\1[ \t]*){2,}$/;
+var RE_DIV_ABRE = /^ {0,3}(:{3,})[ \t]*([A-Za-z][\w-]*)?[ \t]*(.*)$/;
+var RE_DIV_CIERRE = /^ {0,3}(:{3,})[ \t]*$/;
 var RE_DIA_FONDO = /^!fondo:[ \t]*(.+)$/;
 var RE_ATX = /^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$/;
 var RE_TOC = /^ {0,3}\[\[?TOC\]\]?[ \t]*$/i;
+var RE_SALTO = /^ {0,3}\[SALTO\][ \t]*$/i;
 var RE_SEP_TABLA = /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
 var RE_DIACRITICOS = new RegExp("[\\u0300-\\u036f]", "g");
 
@@ -9265,6 +9303,18 @@ function mdAHtml(fuente){
       return m.indexOf(Z) >= 0 ? m : g(campoHtml(m, false));
     });
 
+    /* enlaces internos tipo wiki: ((Titulo del documento)) */
+    t = t.replace(RE_WIKILINK, function(m, dentro){
+      var titulo = dentro.trim();
+      if(!titulo) return m;
+      var d = documentoPorTitulo(titulo);
+      return g(d
+        ? '<a href="#" class="wikilink" data-wikilink="' + escAtr(d.id) +
+          '" title="Abrir «' + escAtr(d.titulo) + '»">' + esc(titulo) + "</a>"
+        : '<span class="wikilink wikilink-roto" title="No hay ningún documento guardado con este título">' +
+          esc(titulo) + "</span>");
+    });
+
     /* imagenes */
     t = t.replace(/!\[([^\]]*)\]\(\s*<?([^)\s>]*)>?(?:\s+["']([^"']*)["'])?\s*\)/g, function(m, alt, src, tit){
       return g('<img src="' + escAtr(hrefSeguro(src)) + '" alt="' + escAtr(alt) + '"' + (tit ? ' title="' + escAtr(tit) + '"' : "") + ">");
@@ -9273,6 +9323,14 @@ function mdAHtml(fuente){
       var r = refs[(id || alt).toLowerCase()];
       if(!r) return m;
       return g('<img src="' + escAtr(hrefSeguro(r.href)) + '" alt="' + escAtr(alt) + '"' + (r.titulo ? ' title="' + escAtr(r.titulo) + '"' : "") + ">");
+    });
+
+    /* vanos con clase, al estilo Pandoc: [texto]{.clase1 .clase2} -> <span class="clase1 clase2">texto</span>.
+       Va antes de los enlaces para que nunca lo capture el enlace por referencia (que solo excluye "(" tras "]"). */
+    t = t.replace(/\[((?:[^\[\]]|\[[^\]]*\])*)\]\{\s*((?:\.[A-Za-z][\w-]*\s*)+)\}/g, function(m, txt, clases){
+      var lista = clases.trim().split(/\s+/).map(function(c){ return c.slice(1); }).filter(Boolean);
+      if(!lista.length) return m;
+      return g('<span class="' + escAtr(lista.join(" ")) + '">' + enLinea(txt) + "</span>");
     });
 
     /* enlaces: directos, por referencia y por referencia corta */
@@ -9304,12 +9362,23 @@ function mdAHtml(fuente){
       return pre + g('<a href="' + escAtr(/^www\./i.test(u) ? "https://" + u : u) + '" target="_blank" rel="noopener">' + esc(u) + "</a>");
     });
 
+    /* etiquetas sueltas en el texto: #palabra. Va despues de enlaces e imagenes
+       para que un #fragmento dentro de [texto](#fragmento) ya este protegido
+       como marca y no se confunda con una etiqueta; nunca choca con un titulo
+       porque esos exigen un espacio tras las almohadillas (RE_ATX) y se
+       resuelven antes, en bloques(). */
+    t = t.replace(/(^|[\s(])#([A-Za-z0-9_][\w-]*)/g, function(m, pre, tag){
+      return pre + g('<a href="#" class="etiqueta" data-etiqueta="' + escAtr(tag.toLowerCase()) +
+             '" title="Filtrar por #' + escAtr(tag) + '">#' + esc(tag) + "</a>");
+    });
+
     /* enfasis y adornos */
     t = t.replace(/(\*\*\*|___)(?=\S)([\s\S]*?\S)\1/g, "<strong><em>$2</em></strong>");
     t = t.replace(/(\*\*|__)(?=\S)([\s\S]*?\S)\1/g, "<strong>$2</strong>");
     t = t.replace(/\*(?=\S)([\s\S]*?\S)\*/g, "<em>$1</em>");
     t = t.replace(/(^|[^\wÀ-ɏ])_(?=\S)([\s\S]*?\S)_(?![\wÀ-ɏ])/g, "$1<em>$2</em>");
     t = t.replace(/~~(?=\S)([\s\S]*?\S)~~/g, "<del>$1</del>");
+    t = t.replace(/\+\+(?=\S)([\s\S]*?\S)\+\+/g, "<u>$1</u>");
     t = t.replace(/==(?=\S)([\s\S]*?\S)==/g, "<mark>$1</mark>");
     t = t.replace(/\^([^\s^]+)\^/g, "<sup>$1</sup>");
     t = t.replace(/~([^\s~]+)~/g, "<sub>$1</sub>");
@@ -9339,7 +9408,8 @@ function mdAHtml(fuente){
   function esInicioBloque(l){
     return RE_VALLA.test(l) || RE_ATX.test(l) || RE_HR.test(l) ||
            /^ {0,3}>/.test(l) || RE_ITEM.test(l) || RE_HTML.test(l) ||
-           /^ {0,3}<!--/.test(l) || RE_TOC.test(l) || RE_DIA_FONDO.test(l);
+           /^ {0,3}<!--/.test(l) || RE_TOC.test(l) || RE_SALTO.test(l) || RE_DIA_FONDO.test(l) ||
+           RE_DIV_ABRE.test(l);
   }
   function esTabla(ls, i){
     return ls[i].indexOf("|") >= 0 && i + 1 < ls.length &&
@@ -9427,6 +9497,8 @@ function mdAHtml(fuente){
   /* ---------- bloques ---------- */
   function bloques(ls, mapa){
     var out = [], i = 0, m, lineaAct = null;
+    var capituloAuto = mapa && String(meta.formato || "").toLowerCase().trim() === "libro";
+    var dentroCapitulo = false;
     function apunta(h){ out.push(mapa ? conLinea(h, lineaAct) : h); }
 
     while(i < ls.length){
@@ -9437,6 +9509,9 @@ function mdAHtml(fuente){
 
       /* indice automatico */
       if(RE_TOC.test(L)){ apunta(Z + "TOC" + Z); hayTOC = true; i++; continue; }
+
+      /* salto de pagina, al imprimir */
+      if(RE_SALTO.test(L)){ apunta('<div class="salto-pagina"></div>'); i++; continue; }
 
       /* formula suelta entre dobles dolares */
       if(meta.matematicas !== "no" && /^ {0,3}\$\$/.test(L)){
@@ -9555,6 +9630,26 @@ function mdAHtml(fuente){
         continue;
       }
 
+      /* divisiones con nombre (columnas, capitulos, notas de portada, etc.):
+         ::: nombre-clase ... ::: -- el cierre debe tener al menos tantos
+         dos-puntos como la apertura, igual que las vallas de codigo, para
+         permitir anidar (una exterior con mas ":" que las interiores). */
+      m = L.match(RE_DIV_ABRE);
+      if(m){
+        var vallaDiv = m[1], claseDiv = (m[2] || "").trim();
+        var bufDiv = [];
+        i++;
+        while(i < ls.length){
+          var cDiv = ls[i].match(RE_DIV_CIERRE);
+          if(cDiv && cDiv[1].length >= vallaDiv.length){ i++; break; }
+          bufDiv.push(ls[i]);
+          i++;
+        }
+        apunta("<div" + (claseDiv ? ' class="' + escAtr(claseDiv) + '"' : "") + ">" +
+                 bloques(bufDiv) + "</div>");
+        continue;
+      }
+
       /* titulos con almohadilla */
       m = L.match(RE_ATX);
       if(m){
@@ -9564,6 +9659,11 @@ function mdAHtml(fuente){
         var htxt = enLinea(txt);
         if(!id) id = hacerId(txt);
         toc.push({ n: niv, id: id, t: htxt });
+        if(capituloAuto && niv === 1){
+          if(dentroCapitulo) apunta("</div>");
+          apunta('<div class="capitulo">');
+          dentroCapitulo = true;
+        }
         apunta("<h" + niv + ' id="' + escAtr(id) + '">' + htxt +
                  '<a class="anclaje no-print" href="#' + escAtr(id) + '" aria-label="Enlace a esta sección">#</a></h' + niv + ">");
         i++;
@@ -9596,14 +9696,23 @@ function mdAHtml(fuente){
           else if(ls[i].trim() !== "" && q.length && !esInicioBloque(ls[i])){ q.push(ls[i]); i++; }
           else break;
         }
-        var al = q.length ? q[0].match(/^\[!([A-Za-zÁÉÍÓÚÑáéíóúñ]+)\][ \t]*(.*)$/) : null;
-        var def = al ? ALERTAS[al[1].toUpperCase()] : null;
-        if(def){
-          q[0] = al[2] || "";
-          if(!q[0].trim()) q.shift();
-          apunta('<div class="alerta ' + def.c + '"><p class="alerta-titulo">' + def.i + " " + def.t + "</p>" + bloques(q) + "</div>");
+        /* cita-pregunta (">? resumen" en la primera linea): se convierte en
+           <details><summary>, con el resto de la cita como contenido colegable
+           procesado como markdown normal. Una cita normal (">" sin "?") sigue
+           el camino de siempre, sin tocar. */
+        var preg = q.length && /^\?[ \t]?/.test(q[0]) ? q[0].replace(/^\?[ \t]?/, "") : null;
+        if(preg !== null){
+          apunta("<details><summary>" + enLinea(preg) + "</summary>" + bloques(q.slice(1)) + "</details>");
         }else{
-          apunta("<blockquote>" + bloques(q) + "</blockquote>");
+          var al = q.length ? q[0].match(/^\[!([A-Za-zÁÉÍÓÚÑáéíóúñ]+)\][ \t]*(.*)$/) : null;
+          var def = al ? ALERTAS[al[1].toUpperCase()] : null;
+          if(def){
+            q[0] = al[2] || "";
+            if(!q[0].trim()) q.shift();
+            apunta('<div class="alerta ' + def.c + '"><p class="alerta-titulo">' + def.i + " " + def.t + "</p>" + bloques(q) + "</div>");
+          }else{
+            apunta("<blockquote>" + bloques(q) + "</blockquote>");
+          }
         }
         continue;
       }
@@ -9699,6 +9808,7 @@ function mdAHtml(fuente){
         apunta("<p>" + enLinea(p.join("\n")) + "</p>");
       }
     }
+    if(dentroCapitulo) apunta("</div>");
     return out.join("\n");
   }
 
@@ -10412,7 +10522,16 @@ function guardarRegistro(d){
 function guardarYa(){
   clearTimeout(relojGuardar);
   espejo();
-  return guardarRegistro(docActual);
+  return guardarRegistro(docActual).then(function(d){
+    /* RECIENTES tambien es de donde salen los enlaces ((tipo wiki)) -- se
+       refresca en segundo plano para que un documento recien guardado sea
+       encontrable desde otro sin tener que pasar antes por la galeria. No
+       repinta aqui (seria un pintar() extra en cada autoguardado, con
+       diagramas grandes eso pesa): el siguiente pintar() natural (la
+       proxima edicion, abrir Recientes, recargar) ya lo recoge al vuelo. */
+    cargarRecientes();
+    return d;
+  });
 }
 function guardarDoc(){
   if(!HAY_ALMACEN) return;
@@ -10471,6 +10590,21 @@ function cargarRecientes(){
     podarPestanas();
     return RECIENTES;
   })["catch"](function(){ RECIENTES = []; return RECIENTES; });
+}
+
+/* busca, sin importar mayusculas/minusculas, un documento guardado (el que
+   esta abierto ahora mismo o cualquiera de Recientes) cuyo titulo coincida
+   exactamente con el texto de un ((wikilink)) -- ver RE_WIKILINK/enLinea()
+   mas arriba. RECIENTES viene ordenada por uso mas reciente primero (ver
+   porFecha), asi que ante titulos repetidos gana el usado hace menos. */
+function documentoPorTitulo(t){
+  var q = String(t || "").trim().toLowerCase();
+  if(!q) return null;
+  if(docActual && (docActual.titulo || "").trim().toLowerCase() === q) return docActual;
+  for(var i = 0; i < RECIENTES.length; i++){
+    if((RECIENTES[i].titulo || "").trim().toLowerCase() === q) return RECIENTES[i];
+  }
+  return null;
 }
 
 /* --- nombres de descarga, con numero de version --- */
@@ -13822,6 +13956,29 @@ function edInsertarTab(){
   elEd.selectionStart = elEd.selectionEnd = s + 2;
   trasEditar();
 }
+/* si lo que trae el portapapeles es una imagen de verdad (captura de
+   pantalla, "Copiar imagen" del navegador o de un editor de fotos...) en vez
+   de solo texto/HTML -- clipboardData.files es lo que llenan casi todos los
+   navegadores al pegar una imagen asi; items+getAsFile queda de respaldo
+   para los que no. Null si no hay ninguna imagen. */
+function archivoImagenDePegado(cd){
+  var i, f;
+  if(!cd) return null;
+  if(cd.files){
+    for(i = 0; i < cd.files.length; i++){
+      if(/^image\//.test(cd.files[i].type)) return cd.files[i];
+    }
+  }
+  if(cd.items){
+    for(i = 0; i < cd.items.length; i++){
+      if(cd.items[i].kind === "file" && /^image\//.test(cd.items[i].type)){
+        f = cd.items[i].getAsFile();
+        if(f) return f;
+      }
+    }
+  }
+  return null;
+}
 if(elEd){
   elEd.addEventListener("input", function(){
     fuenteActual = aislado ? coserAislado() : elEd.value;
@@ -13847,6 +14004,34 @@ if(elEd){
      <span>/<meta> como pegan muchas apps incluso para texto plano -- se convierte
      con htmlAMd() (ver más arriba) en vez de tirar las etiquetas crudas. */
   elEd.addEventListener("paste", function(e){
+    /* imagen pegada tal cual (no un <img> dentro de HTML con formato): se
+       vuelve base64 y se inserta como ![Imagen](data:image/...) -- así el
+       .md sigue siendo un solo archivo, sin depender de una ruta local ni de
+       una URL externa que se puede mover o borrar. Mismo tope que la foto de
+       calibración GPX (gpx-input-captura, más arriba): pasado 8 MB el
+       documento se vuelve lento de re-parsear en cada tecla. */
+    var imagenPegada = archivoImagenDePegado(e.clipboardData);
+    if(imagenPegada){
+      e.preventDefault();
+      if(imagenPegada.size > 8 * 1024 * 1024){
+        aviso("Esa imagen pesa " + (imagenPegada.size / 1024 / 1024).toFixed(1) + " MB; pega una menor de 8 MB.");
+        return;
+      }
+      var iniImg = elEd.selectionStart, finImg = elEd.selectionEnd;
+      var pesada = imagenPegada.size > 500000;
+      var lectorImg = new FileReader();
+      lectorImg.onload = function(){
+        var url = String(lectorImg.result);
+        if(!/^data:image\//.test(url)) return;
+        elEd.focus();
+        elEd.setSelectionRange(iniImg, finImg);
+        meterTexto("![Imagen](" + url + ")", true);
+        if(pesada) aviso("Se pegó la imagen (" + Math.round(imagenPegada.size / 1024) + " KB); el documento va a crecer bastante.");
+      };
+      lectorImg.onerror = function(){ aviso("No pude leer esa imagen del portapapeles."); };
+      lectorImg.readAsDataURL(imagenPegada);
+      return;
+    }
     var html = e.clipboardData && e.clipboardData.getData("text/html");
     if(!html || !/<(h[1-6]|p|ul|ol|li|table|blockquote|pre|code|a|img|strong|b|em|i)[\s>]/i.test(html)) return;
     var md = htmlAMd(html).trim();
@@ -14557,6 +14742,8 @@ function formDiagrama(){
 var TECNICOS = [
   {id:"gpx", nombre:"Ruta GPX", desc:"Mapa 2D/3D o perfil de una ruta, con estadísticas",
     txt:'```gpx vista=2d\n<?xml version="1.0"?>\n<gpx version="1.1"><trk><trkseg>\n<trkpt lat="40.4168" lon="-3.7038"><ele>650</ele><time>2026-01-01T08:00:00Z</time></trkpt>\n<trkpt lat="40.4178" lon="-3.7028"><ele>660</ele><time>2026-01-01T08:05:00Z</time></trkpt>\n<trkpt lat="40.4188" lon="-3.7018"><ele>655</ele><time>2026-01-01T08:10:00Z</time></trkpt>\n</trkseg></trk></gpx>\n```'},
+  {id:"gpx-puntos", nombre:"Ruta GPX (sin archivo, a mano)", desc:"Lista de coordenadas escritas a mano — mapa sin necesidad de subir un .gpx real",
+    txt:'```gpx\n- 15.5041, -88.0250 Salida bodega | tipo=parada\n- 15.5089, -88.0198 Cliente 1 | tipo=cliente | nota=entrega programada\n```'},
   {id:"plano", nombre:"Plano 2D", desc:"Muros, puertas, ventanas y cotas, con área y metros de muro",
     txt:'```plano\nescala 1m = 40px\nmuro 0,0 → 10,0 → 10,8 → 0,8 → 0,0\nmuro 6,0 → 6,8\npuerta 2,0 ancho 1\npuerta 6,4 ancho 0.9\nventana 10,3 ancho 1.5\ntexto 3,4 Sala\ntexto 8,4 Dormitorio\ncota 0,0 → 10,0\n```'},
   {id:"iso", nombre:"Vista isométrica", desc:"Cajas en 2.5D, para plantas o volúmenes simples",
@@ -14609,9 +14796,9 @@ var LIBRO_PUB = [
   {id:"libro-portada", nombre:"Portada (frente de materia)", desc:"Pegar al principio del documento — activa numeración de página al imprimir",
     txt:"---\ntitulo: Título del libro\nsubtitulo: Subtítulo\nautor: Nombre Apellido\nfecha: 2026\nformato: libro\npapel: carta\n---"},
   {id:"libro-parte", nombre:"Parte", desc:"Agrupa varios capítulos bajo un mismo título",
-    txt:'<div class="parte">\n\n# Parte I — Título de la parte\n\n</div>'},
-  {id:"libro-capitulo", nombre:"Capítulo", desc:"Empieza en hoja nueva al imprimir; su título queda arriba a la derecha mientras dure",
-    txt:'<div class="capitulo">\n\n# Capítulo 1 — Título del capítulo\n\nTexto del capítulo.\n\n</div>'},
+    txt:"::: parte\n\n# Parte I — Título de la parte\n\n:::"},
+  {id:"libro-capitulo", nombre:"Capítulo", desc:"Con «formato: libro» en la portada, cada título de nivel 1 (#) ya empieza capítulo nuevo por su cuenta — no hace falta envolverlo a mano",
+    txt:"# Capítulo 1 — Título del capítulo\n\nTexto del capítulo."},
   {id:"libro-legal", nombre:"Página legal", desc:"Copyright, edición, ISBN",
     txt:'<section class="pagina-legal">\n\n© 2026 Nombre Apellido. Todos los derechos reservados.\n\nPrimera edición: 2026.\n\n</section>'},
   {id:"libro-dedicatoria", nombre:"Dedicatoria", desc:"Una frase corta, centrada",
@@ -14692,7 +14879,7 @@ var ESTILOS = [
   {id:"negrita_cursiva", a:"***", d:"***", muestra:"Negrita y cursiva", estilo:"font-weight:700;font-style:italic"},
   {id:"tachado", a:"~~", d:"~~", muestra:"Tachado", estilo:"text-decoration:line-through"},
   {id:"resaltado", a:"==", d:"==", muestra:"Resaltado", estilo:"background:var(--marca); border-radius:.25em"},
-  {id:"subrayado", a:"<u>", d:"</u>", muestra:"Subrayado", estilo:"text-decoration:underline"},
+  {id:"subrayado", a:"++", d:"++", muestra:"Subrayado", estilo:"text-decoration:underline"},
   {id:"codigo", a:"`", d:"`", muestra:"Código", estilo:"font-family:monospace"},
   {id:"superindice", a:"^", d:"^", muestra:"Superíndice", estilo:"vertical-align:super; font-size:.8em"},
   {id:"subindice", a:"~", d:"~", muestra:"Subíndice", estilo:"vertical-align:sub; font-size:.8em"}
@@ -14790,8 +14977,16 @@ function formMas(){
     '<button type="button" data-mas="toc"><b>Índice automático</b><span>Lista enlazada de todos los títulos</span></button>',
     '<button type="button" data-mas="detalles"><b>Detalles plegables</b><span>Un resumen que se despliega al pulsarlo</span></button>',
     '<button type="button" data-mas="nota"><b>Nota al pie</b><span>Una aclaración numerada, al final de la página</span></button>',
-    '<button type="button" data-mas="salto"><b>Salto de página</b><span>Fuerza un cambio de página al imprimir</span></button>',
+    '<button type="button" data-mas="wikilink"><b>Enlace interno</b><span>Enlaza a otro documento tuyo guardado, por su título — si no lo encuentra, queda marcado para crearlo después</span></button>',
+    '<button type="button" data-mas="salto"><b>Salto de página</b><span>[SALTO] — fuerza un cambio de página al imprimir</span></button>',
     '<button type="button" data-mas="columnas"><b>Dos columnas</b><span>Reparte un bloque de texto largo</span></button>',
+    '<button type="button" data-mas="division"><b>Bloque con nombre</b><span>::: nombre-clase … ::: — envuelve un trozo en un &lt;div&gt; con la clase que quieras, para darle estilo propio</span></button>',
+    '<button type="button" data-mas="etiqueta"><b>Etiqueta</b><span>#palabra — clasifica el documento; con un clic en ella se filtra la galería por esa etiqueta</span></button>',
+    '<button type="button" data-mas="campo"><b>Campo de formulario</b><span>[[Etiqueta]] — un recuadro que se rellena sin abrir el editor</span></button>',
+    '<button type="button" data-mas="tarea"><b>Lista de tareas</b><span>- [ ] pendiente / - [x] hecho — casillas que se marcan con el ratón</span></button>',
+    '<button type="button" data-mas="definicion"><b>Lista de definiciones</b><span>Un término y su definición debajo, empezando por «: »</span></button>',
+    '<button type="button" data-mas="abreviatura"><b>Abreviatura</b><span>*[SIGLA]: explicación — subraya la sigla en todo el documento con su significado al pasar el ratón</span></button>',
+    '<button type="button" data-mas="metadatos"><b>Metadatos del documento</b><span>Título, subtítulo, autor y fecha — sin forzar formato de libro, revista o periódico</span></button>',
     "</div>"
   ].join(""));
 }
@@ -16255,6 +16450,27 @@ var PIZARRON_HOJAS_MAX = 60;
 var CLAVE_PIZARRON_FONDO = "mdcrgm.pizarronFondo";
 var PIZARRON_FONDOS = ["liso", "lineas", "cuadricula"];
 var PIZARRON_FONDO_ETIQUETA = { liso: "Fondo: liso", lineas: "Fondo: líneas", cuadricula: "Fondo: cuadrícula" };
+
+/* ---- borrador local del Pizarron -------------------------------------
+   Guarda lo dibujado en localStorage aparte de los 3 destinos explicitos
+   (Insertar/Descargar/Descartar): si el navegador se cierra solo, se
+   traba (ver cerrarPizarron) o el usuario simplemente no elige nada,
+   nada se pierde -- la proxima vez que se abra el Pizarron se recupera
+   solo. Se borra en los 3 destinos explicitos: una vez que el usuario
+   decidio que hacer con el dibujo, el respaldo ya cumplio su proposito. */
+var CLAVE_PIZARRON_BORRADOR = "mdcrgm.pizarronBorrador";
+var pizarronGuardarBorradorTimer = null;
+function pizarronGuardarBorrador(){
+  if(!PIZARRON) return;
+  clearTimeout(pizarronGuardarBorradorTimer);
+  pizarronGuardarBorradorTimer = setTimeout(function(){
+    if(!PIZARRON){ return; }
+    if(!pizarronTieneAlgo()){ borrar(CLAVE_PIZARRON_BORRADOR); return; }
+    try{
+      escribir(CLAVE_PIZARRON_BORRADOR, JSON.stringify({ hojas: PIZARRON.hojas, i: PIZARRON.i, fondo: PIZARRON.fondo }));
+    }catch(e){}
+  }, 600);
+}
 function pizarronFondoInicial(){
   var f = leer(CLAVE_PIZARRON_FONDO);
   return PIZARRON_FONDOS.indexOf(f) >= 0 ? f : "liso";
@@ -16304,6 +16520,7 @@ function pizarronActualizarBarra(){
   if(bc) bc.disabled = !(PIZARRON.sel && PIZARRON.sel.idxs && PIZARRON.sel.idxs.length);
   var panel = $("#pizarron .pizarra-capas");
   if(panel) panel.outerHTML = pizarraCapasHTML(hoja, PIZARRON.estado.capaActiva);
+  pizarronGuardarBorrador();
 }
 /* una hoja por indice, igual que diaCapa(): si todavia no existe (nunca se
    dibujo ahi, o llego un indice de otra pestaña por delante de lo que esta
@@ -16450,32 +16667,59 @@ function cerrarPizarron(){
     diaRemedirCapasVacias();
     diaActualizarBarra();
     var caja = $("#diapositivas"), pedir = caja.requestFullscreen || caja.webkitRequestFullscreen, sesion = DIA, vuelta = DIA.vueltaPizarron;
+    /* "DIA !== sesion" solo detecta una presentacion DISTINTA -- DIA es
+       el mismo objeto durante toda una presentacion, asi que si el usuario
+       reabrio el Pizarron de nuevo antes de que esto se resolviera, hace
+       falta el token de vueltaPizarron para notar que esta ya no es la
+       vuelta vigente (ver diaAbrirPizarron). */
+    var vueltaSigueVigente = function(){ return DIA === sesion && DIA.vueltaPizarron === vuelta; };
+    var yaResolvio = false;
+    /* intentarSalirPizarron() ya salio de pantalla completa (async, sin
+       esperar) antes de mostrar el menu de salida -- si el navegador
+       rechaza o se queda a medias reentrando aqui (visto en Chromium/Linux
+       tras un ciclo salir+reentrar muy seguido, justo lo que pasa al
+       Descartar), antes esto dejaba la app en un estado intermedio sin
+       forma clara de salir ("se queda congelado"). Si no se puede confirmar
+       que volvimos a pantalla completa en un tiempo razonable, mejor cerrar
+       Presentar del todo -- vuelve a un estado conocido en vez de uno a
+       medias. */
+    var terminar = function(exito){
+      if(yaResolvio) return;
+      yaResolvio = true;
+      if(!vueltaSigueVigente()) return;
+      if(exito){
+        sesion.enPantallaCompleta = true;
+        diaRemedirCapasVacias();
+      }else{
+        sesion.enPantallaCompleta = false;
+        cerrarPresentacion();
+      }
+    };
     if(pedir){
       try{
         var promesa = pedir.call(caja);
-        if(promesa && promesa.then) promesa.then(function(){
-          /* "DIA !== sesion" solo detecta una presentacion DISTINTA -- DIA es
-             el mismo objeto durante toda una presentacion, asi que si el
-             usuario reabrio el Pizarron de nuevo antes de que esta promesa
-             resolviera, hace falta el token de vueltaPizarron para notar que
-             esta ya no es la vuelta vigente (ver diaAbrirPizarron). */
-          if(DIA !== sesion || DIA.vueltaPizarron !== vuelta) return;
-          sesion.enPantallaCompleta = true;
-          diaRemedirCapasVacias();
-        }, function(){});
-      }catch(e){}
+        if(promesa && promesa.then){
+          promesa.then(function(){ terminar(true); }, function(){ terminar(false); });
+          setTimeout(function(){ terminar(false); }, 2000);
+        }else{
+          terminar(true);
+        }
+      }catch(e){ terminar(false); }
+    }else{
+      terminar(true);   // sin Fullscreen API disponible, no hay nada que esperar
     }
-    return;   // #diapositivas vuelve a ser la pantalla completa: no hay que exitFullscreen()
+    return;   // #diapositivas vuelve a ser la pantalla completa (o Presentar se cerro solo): no hay que exitFullscreen()
   }
   if(document.fullscreenElement) try{ document.exitFullscreen(); }catch(e){}
 }
 function pizarronDescartar(){
   cerrarChico();
+  borrar(CLAVE_PIZARRON_BORRADOR);
   cerrarPizarron();
 }
 function pizarronInsertar(){
   cerrarChico();
-  if(!PIZARRON || !pizarronTieneAlgo()){ cerrarPizarron(); return; }
+  if(!PIZARRON || !pizarronTieneAlgo()){ borrar(CLAVE_PIZARRON_BORRADOR); cerrarPizarron(); return; }
   var bloques = [];
   for(var i = 0; i < PIZARRON.hojas.length; i++){
     var h = PIZARRON.hojas[i];
@@ -16499,6 +16743,7 @@ function pizarronInsertar(){
   guardarDoc();
   pintarCuenta();
   aviso(bloques.length > 1 ? "Pizarrón agregado al documento: " + bloques.length + " hojas nuevas en el Índice." : "Pizarrón agregado al documento.");
+  borrar(CLAVE_PIZARRON_BORRADOR);
   cerrarPizarron();
 }
 function pizarronDescargarPng(){
@@ -16523,12 +16768,14 @@ function pizarronDescargarPng(){
       lienzo.toBlob(function(b){
         if(!b){ aviso("No se pudo hacer la imagen"); return; }
         descargarBlob(nombre, b);
+        borrar(CLAVE_PIZARRON_BORRADOR);
         cerrarPizarron();
       }, "image/png");
     }else{
       var a = document.createElement("a");
       a.href = lienzo.toDataURL("image/png"); a.download = nombre;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      borrar(CLAVE_PIZARRON_BORRADOR);
       cerrarPizarron();
     }
   };
@@ -16569,15 +16816,22 @@ function abrirPizarron(){
   var rect = lienzoEl.getBoundingClientRect();
   var ancho = Math.max(200, Math.round(rect.width) || PIZARRA_ANCHO_DEF);
   var alto = Math.max(200, Math.round(rect.height) || PIZARRA_ALTO_DEF);
+  /* recuperar un borrador sin terminar (crash, pestaña cerrada de golpe, o el
+     congelamiento que cerrarPizarron() ahora evita) -- ver pizarronGuardarBorrador. */
+  var borradorCrudo = leer(CLAVE_PIZARRON_BORRADOR), borrador = null;
+  if(borradorCrudo){ try{ borrador = JSON.parse(borradorCrudo); }catch(e){ borrador = null; } }
+  var hayBorrador = !!(borrador && borrador.hojas && borrador.hojas.length);
   var sesion = {
-    hojas: [{ ancho: ancho, alto: alto, trazos: [] }], i: 0,
+    hojas: hayBorrador ? borrador.hojas : [{ ancho: ancho, alto: alto, trazos: [] }],
+    i: (hayBorrador && typeof borrador.i === "number" && borrador.i >= 0 && borrador.i < borrador.hojas.length) ? borrador.i : 0,
     estado: { color: $("#pizarronColor").value || PIZARRA_COLOR_DEF, grosor: Number($("#pizarronGrosor").value) || 3, borrador: false, herramienta: $("#pizarronHerramienta").value || "lapiz", capaActiva: 0 },
-    fondo: pizarronFondoInicial(),
+    fondo: (hayBorrador && borrador.fondo && PIZARRON_FONDOS.indexOf(borrador.fondo) >= 0) ? borrador.fondo : pizarronFondoInicial(),
     previo: null, enCurso: null, textoDown: null, sel: { idxs: [], arrastre: null }, capasAbiertas: false, enPantallaCompleta: false
   };
   PIZARRON = sesion;
   pizarronFondoAplicar(sesion.fondo);
   pizarronRedibujar();
+  if(hayBorrador) aviso("Se recuperó un pizarrón sin guardar de la última vez.");
   /* si otra pestaña ya tiene este mismo documento con el Pizarrón abierto,
      pedirle lo que tenga dibujado hasta ahora -- mismo canal, misma garantía
      de aislamiento entre documentos distintos que el texto y Presentar. */
@@ -18338,6 +18592,25 @@ $("#esquemaLista").addEventListener("click", function(e){
   if(b) irATitulo(parseInt(b.getAttribute("data-esq"), 10));
 });
 elDoc.addEventListener("click", function(e){
+  var w = e.target.closest("a.wikilink[data-wikilink]");
+  if(w){
+    e.preventDefault();
+    var id = w.getAttribute("data-wikilink");
+    if(docActual && docActual.id === id) return;   /* ya es este mismo documento */
+    if(confirmarReemplazo()) abrirReciente(id);
+    return;
+  }
+  var et = e.target.closest("a.etiqueta[data-etiqueta]");
+  if(et){
+    e.preventDefault();
+    /* reusa el buscador de la galeria (ya busca dentro del contenido, ver
+       pintarGaleria) en vez de armar una vista de filtro aparte: cualquier
+       documento guardado que tenga "#etiqueta" en el texto ya aparece. */
+    filtro = "#" + et.getAttribute("data-etiqueta");
+    var bb = $("#buscar"); if(bb) bb.value = filtro;
+    abrirGaleria();
+    return;
+  }
   var b = e.target.closest(".plegar");
   if(!b) return;
   e.preventDefault();
@@ -18425,7 +18698,7 @@ $("#cuerpoChico").addEventListener("click", function(e){
   }
   var col = e.target.closest("[data-color]");
   if(col){
-    envolverTexto('<span class="' + col.getAttribute("data-color") + '">', "</span>", "texto");
+    envolverTexto("[", "]{." + col.getAttribute("data-color") + "}", "texto");
     cerrarChico();
     return;
   }
@@ -18450,8 +18723,16 @@ $("#cuerpoChico").addEventListener("click", function(e){
     else if(qm === "toc") meterTexto("[TOC]", true);
     else if(qm === "detalles") insertarBloque("<details>\n<summary>Título</summary>\n\n", "\n\n</details>", "Contenido.");
     else if(qm === "nota") insertarNotaPie();
-    else if(qm === "salto") meterTexto('<div class="salto-pagina"></div>', true);
-    else if(qm === "columnas") insertarBloque('<div class="dos-columnas">\n\n', "\n\n</div>", "Texto largo que se reparte en dos columnas.");
+    else if(qm === "wikilink") envolverTexto("((", "))", "Título del documento");
+    else if(qm === "salto") meterTexto("[SALTO]", true);
+    else if(qm === "columnas") insertarBloque("::: dos-columnas\n\n", "\n\n:::", "Texto largo que se reparte en dos columnas.");
+    else if(qm === "division") insertarBloque("::: nombre-clase\n\n", "\n\n:::", "Contenido del bloque.");
+    else if(qm === "etiqueta") meterTexto("#etiqueta", true);
+    else if(qm === "campo") envolverTexto("[[", "]]", "Etiqueta");
+    else if(qm === "tarea") meterTexto("- [ ] Pendiente\n- [x] Hecho", true);
+    else if(qm === "definicion") meterTexto("Término\n: Definición.", true);
+    else if(qm === "abreviatura") meterTexto("*[SIGLA]: Escribe aquí el significado.", true);
+    else if(qm === "metadatos") meterTexto("---\ntitulo: Título del documento\nsubtitulo: Subtítulo\nautor: Tu nombre\nfecha: " + new Date().toLocaleDateString("es") + "\n---", true);
     cerrarChico();
     return;
   }

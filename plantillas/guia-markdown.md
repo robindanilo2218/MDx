@@ -49,6 +49,8 @@ Se admiten `titulo`, `subtitulo`, `autor` y `fecha` (también en inglés: `title
 
 También se admite `idioma` (o `lang`, `language`, `locale`): pone el documento en ese idioma para que el traductor del navegador parta de ahí y no traduzca el código ni los diagramas. Por ejemplo `idioma: en` para un documento en inglés.
 
+El botón **➕ Insertar → Más → Metadatos del documento** pega este mismo bloque para un documento normal, sin forzar `formato: libro/revista/periodico` — para esos tres casos hay portadas dedicadas en **Insertar → Libro, revista y periódico** (sección 30).
+
 ## 3. Encabezados
 
 ### Estilo almohadilla
@@ -133,7 +135,7 @@ Para separar bloques con aire de más, una línea con `&nbsp;` (un espacio duro)
 | `x^2^` (superíndice) | x^2^ |
 | `<kbd>Ctrl</kbd>` | <kbd>Ctrl</kbd> |
 | `<small>letra pequeña</small>` | <small>letra pequeña</small> |
-| `<u>subrayado</u>` | <u>subrayado</u> |
+| `++subrayado++` | ++subrayado++ |
 
 Se pueden combinar sin problema: ``**texto _mezclado_ con `código`**`` se ve como **texto _mezclado_ con `código`**.
 
@@ -237,6 +239,8 @@ Se anidan con **dos o cuatro espacios** de sangría respecto al punto padre.
 - [ ] Imprimirlo
 
 </div>
+
+El botón **➕ Insertar → Más → Lista de tareas** pega un punto pendiente y uno hecho para empezar. Las casillas se marcan con un clic directamente sobre el documento, sin editar el texto a mano.
 
 ### Listas apretadas y listas sueltas
 
@@ -485,6 +489,35 @@ Las líneas de definición se pueden colocar donde quieras: no se imprimen.
 
 Cada título tiene un identificador que se forma pasando el texto a minúsculas, quitando acentos y símbolos y cambiando los espacios por guiones. «## 11. Tablas» se convierte en `#11-tablas`. Pasa el ratón por encima de cualquier título de esta página y aparece una almohadilla a la derecha: es su enlace.
 
+### Enlaces a otro documento (wikilinks)
+
+Con doble paréntesis se enlaza a otro documento guardado en este navegador, buscando por su título:
+
+````md
+Ya quedó resuelto en ((Acta de la reunión pasada)).
+````
+
+Si existe un documento con ese título (sin importar mayúsculas o minúsculas), el texto queda subrayado y clicable: al pulsarlo se abre ese documento. Si no lo encuentra, el texto se marca aparte para que se note que ese documento todavía no existe, sin romper el resto de la página. El botón **Enlace interno** del menú **Insertar → Más** escribe el paréntesis doble por vos.
+
+> [!NOTE]
+> No uses corchetes dobles (`[[así]]`) para esto: esa sintaxis ya es la de los formularios rellenables del apartado 24.
+
+### Etiquetas
+
+Una almohadilla pegada a una palabra, en medio del texto, marca una etiqueta:
+
+````md
+Pendiente de #revisión antes del cierre. Tema: #facturación.
+````
+
+<div class="demo">
+
+Pendiente de #revisión antes del cierre. Tema: #facturación.
+
+</div>
+
+Se ve resaltada y es clicable: al pulsarla se abre la galería (➕ Plantillas) con la búsqueda ya puesta en esa etiqueta, y aparece cualquier documento guardado que la mencione. Nunca se confunde con un título: un título exige un espacio después de la almohadilla (`# Así`), una etiqueta no (`#así`).
+
 ## 10. Imágenes y figuras
 
 La sintaxis es la del enlace con una admiración delante. El texto entre corchetes es la descripción alternativa: se lee en voz alta para quien no ve la imagen y aparece si el archivo falta.
@@ -648,6 +681,8 @@ HTML
 
 </div>
 
+El botón **➕ Insertar → Más → Lista de definiciones** pega un término de ejemplo con su definición debajo, listo para reemplazar.
+
 ## 15. Abreviaturas
 
 Se declara una vez en cualquier parte del documento y a partir de ahí, cada vez que la palabra aparezca, sale subrayada con puntitos y con su explicación al pasar el ratón.
@@ -664,6 +699,8 @@ Este archivo es HTML y se puede imprimir en PDF.
 Este archivo es HTML y se puede imprimir en PDF. Pasa el ratón por encima de las siglas.
 
 </div>
+
+El botón **➕ Insertar → Más → Abreviatura** pega una declaración de ejemplo (`*[SIGLA]: ...`) para completar con la tuya.
 
 *[HTML]: Lenguaje de marcado para páginas web
 *[PDF]: Formato de documento portátil
@@ -722,22 +759,20 @@ Aquí dentro se sigue escribiendo **Markdown normal**, siempre que haya una lín
 | `<mark>resaltado</mark>` | <mark>resaltado</mark> |
 | `<abbr title="Por ejemplo">p. ej.</abbr>` | <abbr title="Por ejemplo">p. ej.</abbr> |
 | `<sup>arriba</sup>` y `<sub>abajo</sub>` | <sup>arriba</sup> y <sub>abajo</sub> |
-| `<u>subrayado</u>` | <u>subrayado</u> |
+| `++subrayado++` | ++subrayado++ |
 | `<span style="color:#cf222e">en rojo</span>` | <span style="color:#cf222e">en rojo</span> |
 | `<br>` | un salto de línea |
 
 ### Centrar y repartir en columnas
 
-Esta plantilla trae tres clases preparadas: `centrado`, `dos-columnas` y `salto-pagina`.
+Esta plantilla trae clases preparadas para envolver un bloque: `centrado` y `dos-columnas`. Para usarlas (o cualquier clase propia de CSS) no hace falta escribir HTML: basta `::: nombre-clase` para abrir y `:::` solo, en su propia línea, para cerrar — igual que una valla de código pero con dos puntos. (Para un cambio de página suelto, sin envolver nada, está `[SALTO]` — sección 20.)
 
 ````md
-<p class="centrado">Este párrafo va centrado.</p>
-
-<div class="dos-columnas">
+::: dos-columnas
 
 Texto largo que se reparte en dos columnas al imprimir...
 
-</div>
+:::
 ````
 
 <div class="demo">
@@ -752,7 +787,21 @@ El texto que va dentro de este bloque se reparte solo en dos columnas y salta a 
 
 </div>
 
-Ojo con dos detalles: hay que dejar una línea en blanco después de `<div ...>` y otra antes de `</div>`, porque si no el Markdown de dentro no se convierte; y las columnas solo se notan cuando hay texto suficiente para llenar la primera.
+Adentro se sigue escribiendo Markdown normal (títulos, listas, lo que sea). Para anidar un bloque dentro de otro, el de afuera lleva más dos puntos que el de adentro (`::::` por fuera, `:::` por dentro), así el cierre de uno no se confunde con el del otro:
+
+````md
+:::: dos-columnas
+
+::: centrado
+Este trozo va centrado, dentro de la columna.
+:::
+
+Y este texto sigue el reparto normal de las columnas.
+
+::::
+````
+
+Para casos sueltos que no necesitan una clase (`<p class="centrado">`, por ejemplo) o donde hace falta una etiqueta distinta de `<div>`, el HTML escrito a mano de siempre sigue funcionando igual: `::: nombre` y el HTML crudo son dos caminos al mismo resultado, se elige el que quede más cómodo.
 
 ## 18. Escapar caracteres
 
@@ -787,7 +836,7 @@ Un comentario de HTML no se ve en la página ni se imprime, pero queda escrito e
 
 ## 20. Preparar la impresión
 
-- **Forzar un cambio de página:** `<div class="salto-pagina"></div>` en una línea sola.
+- **Forzar un cambio de página:** `[SALTO]` en una línea sola (igual que `[TOC]`, sección 3).
 - **Márgenes del papel:** se cambian en la hoja de estilo, en la regla `@page`, arriba del archivo.
 - **Tamaño de hoja distinto de carta:** la clave `papel` en el front matter (`a4`, `a5`, `oficio`, `tabloide`) — ver sección 30.
 - Los títulos nunca se quedan solos al final de una página, y las tablas, imágenes y bloques de código no se parten por la mitad: eso ya está resuelto en la hoja de estilo.
@@ -1199,26 +1248,25 @@ Se reconocen: `javascript` `typescript` `json` `python` `css` `html` `bash` `yam
 
 ### Colores en el texto
 
-Markdown por sí solo no tiene colores, pero como admite HTML hay dos maneras. La primera, con las clases que ya trae la plantilla:
+Markdown por sí solo no tiene colores, pero se pueden marcar clases directamente entre corchetes, al estilo Pandoc: `[texto]{.clase}`. Es lo que usa el botón **Estilo y color de texto** del menú Insertar.
 
 ````md
-Texto en <span class="rojo">rojo</span>, en <span class="verde">verde</span>
-y en <span class="azul">azul</span>.
+Texto en [rojo]{.rojo}, en [verde]{.verde} y en [azul]{.azul}.
 
-<span class="fondo">resaltado con fondo</span> y <span class="recuadro">en un recuadro</span>
+[resaltado con fondo]{.fondo} y [en un recuadro]{.recuadro}
 ````
 
 <div class="demo">
 
-Texto en <span class="rojo">rojo</span>, en <span class="verde">verde</span>, en <span class="azul">azul</span>, en <span class="naranja">naranja</span>, en <span class="morado">morado</span>, en <span class="rosa">rosa</span>, en <span class="cian">cian</span> y en <span class="gris">gris</span>.
+Texto en [rojo]{.rojo}, en [verde]{.verde}, en [azul]{.azul}, en [naranja]{.naranja}, en [morado]{.morado}, en [rosa]{.rosa}, en [cian]{.cian} y en [gris]{.gris}.
 
-<span class="fondo">con fondo</span> &nbsp; <span class="recuadro">en un recuadro</span> &nbsp; <span class="grande">más grande</span> &nbsp; <span class="pequeno">más pequeño</span>
+[con fondo]{.fondo} &nbsp; [en un recuadro]{.recuadro} &nbsp; [más grande]{.grande} &nbsp; [más pequeño]{.pequeno}
 
 </div>
 
-Estas clases se llevan bien con el tema oscuro y con la impresión, que es la ventaja de usarlas en vez de escribir el color a mano.
+Estas clases se llevan bien con el tema oscuro y con la impresión, que es la ventaja de usarlas en vez de escribir el color a mano. También se puede escribir a la manera clásica de HTML (`<span class="rojo">rojo</span>`) si ya tienes texto así de antes: sigue funcionando igual.
 
-La segunda manera es poner el color directamente, útil para un tono concreto:
+Para un tono suelto que no es ninguna de las clases anteriores, se escribe el color a mano con HTML:
 
 ````md
 <span style="color:#c2255c">rosa fuerte</span>
@@ -1236,13 +1284,13 @@ La segunda manera es poner el color directamente, útil para un tono concreto:
 
 ### Color en las tablas y en los avisos
 
-Dentro de una celda de tabla también valen las clases: escribe `<span class="verde">Al día</span>` en la celda. Y para bloques enteros de color están los avisos del apartado 7 (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`...), que ya vienen con su color y su icono.
+Dentro de una celda de tabla también vale `[texto]{.clase}`. Y para bloques enteros de color están los avisos del apartado 7 (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`...), que ya vienen con su color y su icono.
 
 | Proyecto | Estado |
 | --- | --- |
-| Portal interno | <span class="verde">Al día</span> |
-| Migración | <span class="naranja">En riesgo</span> |
-| Facturación | <span class="rojo">Parado</span> |
+| Portal interno | [Al día]{.verde} |
+| Migración | [En riesgo]{.naranja} |
+| Facturación | [Parado]{.rojo} |
 
 ## 24. Formularios: recuadros que se rellenan
 
@@ -1264,6 +1312,9 @@ Después de la etiqueta, un espacio y `=` con el tipo: `=fecha`, `=hora`, `=nume
 Un valor que ya viene escrito va detrás de dos puntos dobles — `[[Ciudad::Panamá]]` — nunca detrás
 de una barra, porque la barra corta la fila de una tabla.
 
+El botón **➕ Insertar → Más → Campo de formulario** envuelve el texto seleccionado entre `[[` y
+`]]` (o pega `[[Etiqueta]]` de ejemplo si no hay selección) para no escribir los corchetes a mano.
+
 Las casillas `[ ]` y `[x]` también se marcan con el ratón, tanto en una lista como dentro de una
 celda:
 
@@ -1283,6 +1334,7 @@ plantillas, y una que explica el formato paso a paso: **Cómo se hace un formula
 
 | Para... | Se escribe |
 | --- | --- |
+| Metadatos del documento | `---` con `titulo:`/`subtitulo:`/`autor:`/`fecha:` entre dos líneas |
 | Título de nivel 2 | `## Texto` |
 | Negrita | `**texto**` |
 | Cursiva | `*texto*` |
@@ -1306,8 +1358,13 @@ plantillas, y una que explica el formato paso a paso: **Cómo se hace un formula
 | Recuadro para rellenar | `[[Etiqueta]]` |
 | Recuadro con tipo | `[[Fecha =fecha]]` o `[[Estado =Bueno/Malo]]` |
 | Recuadro ya escrito | `[[Ciudad::Panamá]]` |
-| Cambio de página | `<div class="salto-pagina"></div>` |
+| Lista de definiciones | `Término` y debajo `: definición` |
+| Abreviatura | `*[SIGLA]: significado` (una vez en el documento) |
+| Cambio de página | `[SALTO]` |
+| Etiqueta | `#palabra` suelta en el texto — un clic la filtra en la galería |
+| Bloque con clase propia | `::: nombre-clase` … `:::` |
 | Ruta GPX | ` ```gpx ` con el archivo `.gpx` dentro |
+| Ruta GPX sin archivo | ` ```gpx ` con líneas `- lat, lon Nombre` a mano |
 | Plano 2D | ` ```plano ` con `muro`, `puerta`, `ventana`... |
 | Vista isométrica | ` ```iso ` con `caja x,y,z ancho,fondo,alto` |
 | Alámbrico 3D | ` ```3d ` con `v`, `arista`, `caja` |
@@ -1497,6 +1554,8 @@ No hace falta un track grabado para tener mapa — basta una lista de coordenada
 
 Cada línea es `lat, lon` y un nombre; los extras van después de `|` en cualquier orden: `tipo=` (el color), `nota=` (la descripción), `enlace=` (imagen o página) y `ele=` (altura en metros). Las líneas se unen en orden con la línea de la ruta, y todo lo demás — estadísticas, letras, contexto de OpenStreetMap, dividir en tramos — funciona igual que con un GPX real. Hacen falta al menos dos líneas.
 
+El botón **➕ Insertar → Mapas y dibujo técnico → Ruta GPX (sin archivo, a mano)** pega este mismo punto de partida, listo para reemplazar las coordenadas por las tuyas.
+
 ### Botones bajo el mapa
 
 - **+ Agregar punto**: se activa y el siguiente clic sobre el mapa 2D crea un punto ahí, preguntando nombre y enlace opcional. Se escribe solo dentro del bloque, en el mismo formato que ya tenga (XML o lista).
@@ -1624,14 +1683,30 @@ Sin `formato`, el documento se comporta exactamente igual que cualquier otro: es
 
 ### Capítulo y parte
 
-````md
-<div class="capitulo">
+Con `formato: libro` en el front matter, cada título de nivel 1 (`# `) empieza un capítulo nuevo **por su cuenta**: no hace falta envolverlo a mano.
 
+````md
 # Capítulo 1 — El primer paso
 
 Texto del capítulo.
 
-</div>
+# Capítulo 2 — Lo que vino después
+
+Y así con cada capítulo, uno detrás de otro.
+````
+
+Cada capítulo empieza en hoja nueva y, al imprimir, su título queda escrito en la esquina de la página mientras dure el capítulo, igual que en un libro de imprenta. `[TOC]` (sección 3) sigue recogiendo estos títulos como cualquier otro; no hace falta un índice aparte.
+
+Para un documento que **no** está en `formato: libro` pero igual quiere una sección con ese mismo estilo de capítulo, el envoltorio se pone a mano con `::: capitulo … :::` (sección 17):
+
+````md
+::: capitulo
+
+# Capítulo de muestra
+
+Texto del capítulo.
+
+:::
 ````
 
 <div class="demo">
@@ -1640,20 +1715,20 @@ Texto del capítulo.
 
 # Capítulo de muestra
 
-Cada capítulo empieza en hoja nueva y, al imprimir, su título queda escrito en la esquina de la página mientras dure el capítulo, igual que en un libro de imprenta.
+Texto del capítulo.
 
 </div>
 
 </div>
 
-El título va **dentro** del `<div>`, con una línea en blanco antes. `[TOC]` (sección 3) sigue recogiendo estos títulos como cualquier otro; no hace falta un índice aparte. Para agrupar varios capítulos bajo una misma parte, el mismo truco con `<div class="parte">`:
+Para agrupar varios capítulos bajo una misma parte, el mismo truco con `::: parte`:
 
 ````md
-<div class="parte">
+::: parte
 
 # Parte I — Los oficios de siempre
 
-</div>
+:::
 ````
 
 ### Otras piezas de un libro
@@ -1666,7 +1741,7 @@ El título va **dentro** del `<div>`, con una línea en blanco antes. `[TOC]` (s
 | Prólogo, introducción, epílogo, glosario, bibliografía, sobre la autora o el autor | un título normal (`# Prólogo`, etc.) — no llevan clase propia |
 | Índice alfabético al final del libro (no confundir con `[TOC]`, que es el índice de arriba) | `<nav class="indice-alfabetico">…</nav>`, escrito a mano por letra |
 | Colofón | `<p class="colofon">…</p>` |
-| Forzar hoja nueva antes de cualquiera de estas piezas | `<div class="salto-pagina"></div>` (sección 20) |
+| Forzar hoja nueva antes de cualquiera de estas piezas | `[SALTO]` (sección 20) |
 
 <div class="demo">
 
