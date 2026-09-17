@@ -5,6 +5,7 @@
   "description": "MDx como app de escritorio (Windows portable / Linux AppImage)",
   "author": "Robin Gregorio",
   "main": "main.js",
+  "desktopName": "mdx.desktop",
   "scripts": {
     "prebuild": "rm -rf app && mkdir -p app && cp -r ../index.html ../manifest.webmanifest ../favicon.ico ../iconos ../plantillas app/",
     "build:win": "npm run prebuild && electron-builder --win nsis portable",
@@ -55,7 +56,8 @@
       ],
       "category": "Office",
       "artifactName": "MDx-Linux.${ext}",
-      "synopsis": "Editor de Markdown de una sola página"
+      "synopsis": "Editor de Markdown de una sola página",
+      "syncDesktopName": true
     }
   },
   "devDependencies": {
