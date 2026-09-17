@@ -55,7 +55,6 @@
       ],
       "category": "Office",
       "artifactName": "MDx-Linux.${ext}",
-      "desktopName": "mdx.desktop",
       "synopsis": "Editor de Markdown de una sola página"
     }
   },
