@@ -14316,6 +14316,7 @@ function abrirEsquema(){
   var b = $("#btnEsquema");
   if(b) b.setAttribute("aria-pressed", String(mostrar));
   if(mostrar) pintarEsquema();
+  reubicarEsquema();
 }
 function irATitulo(i){
   var hs = titulosDoc();
@@ -15248,6 +15249,23 @@ function colocarMenuTres(){
   panel.style.top = Math.max(8, arriba) + "px";
   panel.style.right = Math.max(8, window.innerWidth - r.right) + "px";
 }
+/* el esquema (z-index:60) y el menu de los tres puntos (z-index:55) cuelgan
+   los dos del mismo rincon superior derecho -- si el esquema ya estaba
+   abierto tapaba el panel del menu entero (o al reves, si el esquema se abre
+   con el menu ya abierto). Se corre el esquema a la izquierda del panel del
+   menu mientras los dos esten abiertos; en cuanto el menu se cierra vuelve a
+   su sitio de siempre (el ".7rem" fijo de la hoja de estilos). */
+function reubicarEsquema(){
+  var es = $("#esquema");
+  if(!es || es.hidden) return;
+  var menu = $("#menuTres");
+  if(menu && !menu.hidden){
+    var r = menu.getBoundingClientRect();
+    es.style.right = (window.innerWidth - r.left + 8) + "px";
+  }else{
+    es.style.right = "";
+  }
+}
 /* el boton de tres puntos ahora abre, de un solo toque, las pestañas (si hay
    mas de un documento a mano) junto con el menu de iconos -- antes hacian
    falta dos toques porque el dialogo grande de antes habria tapado la tira.
@@ -15263,16 +15281,20 @@ function abrirMenuTres(){
   $("#menuTres").hidden = false;
   colocarMenuTres();
   $("#btnMenu").setAttribute("aria-expanded", "true");
+  reubicarEsquema();
 }
 function cerrarMenuTres(){
   if($("#menuTres").hidden) return;
   $("#menuTres").hidden = true;
   $("#btnMenu").setAttribute("aria-expanded", "false");
-  Array.prototype.forEach.call($("#menuTres").querySelectorAll(".estado-submenu.mostrando"), function(o){
-    o.classList.remove("mostrando");
-  });
+  /* #menuBajaSub/#menuCompartirSub cuelgan de <body>, no de #menuTres (ver
+     prepararSubmenu): buscarlos aqui adentro nunca los encontraba, asi que
+     se quedaban "mostrando" -- flotando encima de la pantalla despues de
+     cerrar el menu -- de ahi el defecto reportado al descargar en .html. */
+  cerrarSubmenus();
   pestanasVisibles = false;
   pintarPestanas();
+  reubicarEsquema();
 }
 function alternarMenuBarra(){
   if($("#menuTres").hidden) abrirMenuTres(); else cerrarMenuTres();
@@ -18195,12 +18217,13 @@ $("#estadoLeer").addEventListener("click", alternarLeerVoz);
 $("#estadoEditar").addEventListener("click", alternarEditor);
 $("#estadoImprimir").addEventListener("click", imprimirDocumento);
 $("#estadoGuardarPlantilla").addEventListener("click", guardarComoMiPlantilla);
-$("#estadoBajaMd").addEventListener("click", descargarMd);
-$("#estadoBajaHtml").addEventListener("click", guardarHtml);
-$("#estadoBajaPng").addEventListener("click", exportarPng);
+$("#estadoBajaMd").addEventListener("click", function(){ cerrarSubmenus(); descargarMd(); });
+$("#estadoBajaHtml").addEventListener("click", function(){ cerrarSubmenus(); guardarHtml(); });
+$("#estadoBajaPng").addEventListener("click", function(){ cerrarSubmenus(); exportarPng(); });
 function manejarClicSubCompartir(e){
   var b = e.target.closest("[data-esubcomp]");
   if(!b) return;
+  cerrarSubmenus();
   var que = b.getAttribute("data-esubcomp");
   if(que === "guardarmia"){ guardarComoMiPlantilla(); }
   else if(que === "publicar"){ formPublicar(); }
@@ -18243,6 +18266,16 @@ function colocarSubmenu(boton, sub){
    cerrarse. En pantalla táctil no hay hover: el propio toque en el botón
    alterna abierto/cerrado. Se usa tanto para ".estado-doc .item" como para
    ".menu-tres .item" (ver colocarMenuTres). */
+/* cierra cualquier ".estado-submenu" que haya quedado "mostrando" -- hace
+   falta llamarla a mano despues de elegir una opcion final (descargar en tal
+   formato, copiar el enlace...): esos botones viven DENTRO del submenu, no
+   son el "boton" que abre/cierra (ver mas abajo), asi que un click ahi nunca
+   pasaba por cerrarYa() y el panel se quedaba flotando encima de la pantalla. */
+function cerrarSubmenus(){
+  Array.prototype.forEach.call(document.querySelectorAll(".estado-submenu.mostrando"), function(o){
+    o.classList.remove("mostrando");
+  });
+}
 function prepararSubmenu(item){
   var boton = item.firstElementChild, sub = item.querySelector(".estado-submenu");
   if(!boton || !sub) return;
@@ -18269,7 +18302,7 @@ function prepararSubmenu(item){
   sub.addEventListener("focusout", function(e){ if(!dentro(e.relatedTarget)) cerrarYa(); });
   boton.addEventListener("click", function(){
     if(sub.classList.contains("mostrando")){ cerrarYa(); return; }
-    Array.prototype.forEach.call(document.querySelectorAll(".estado-submenu.mostrando"), function(o){ o.classList.remove("mostrando"); });
+    cerrarSubmenus();
     abrir();
   });
 }
