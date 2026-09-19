@@ -10,17 +10,24 @@ Publicado en <https://md.crgm.app>.
 
 - **Convierte Markdown a HTML** con un motor propio de unas 900 líneas: sin
   librerías, sin CDN y sin peticiones a internet. Todo está dentro de `index.html`.
-- **Catálogo de plantillas** (`▤ Plantillas`, o <kbd>Ctrl</kbd>+<kbd>K</kbd>) con 103
-  documentos listos para usar, repartidos en doce categorías: habilidades y
+- **Catálogo de plantillas** (`▤ Plantillas`, o <kbd>Ctrl</kbd>+<kbd>K</kbd>) con 118
+  documentos listos para usar, repartidos en dieciséis categorías: habilidades y
   subagentes de Claude Code, `CLAUDE.md` / `AGENTS.md` y reglas, comandos y hooks,
   roles y prompts, cómo escribir un `.md` para una IA, documentos de trabajo
   (informes, actas, propuestas, ADR, changelog…), trabajos académicos con la
   norma APA 7, un juego completo de mantenimiento eléctrico industrial (plan
   maestro, criticidad, LOTO, termografía, calidad de energía, causa raíz, KPIs y
   el uso de la IA en la planta), trece formularios para rellenar, seis
-  diapositivas listas para presentar y cuatro hojas de cálculo. Cada plantilla
-  dice en qué ruta va el archivo y con qué nombre, y termina con las referencias
-  de dónde sale su formato.
+  diapositivas listas para presentar, cuatro hojas de cálculo, lógica y
+  electricidad (tablas de verdad y escaleras PLC), rutas y viajes, organización
+  y planificación (calendarios, planificadores) y libro/revista/periódico. Cada
+  plantilla dice en qué ruta va el archivo y con qué nombre, y termina con las
+  referencias de dónde sale su formato.
+- **Funciona en redes cerradas y sin internet**: fuera de la sincronización con
+  Google, la comunidad de plantillas y el contexto de mapas de las rutas GPX
+  (todos opcionales y bajo pedido explícito), nada de la aplicación depende de
+  una conexión — sirve igual en la intranet de una planta que en un equipo sin
+  red.
 - **Formularios que se rellenan sobre la vista**, sin abrir el editor: escribe
   `[[Nombre y apellidos]]` o `[[Fecha =fecha]]` y ahí aparece un recuadro donde
   pulsar y escribir; `[ ]` y `[x]` se marcan con el ratón, también dentro de una
@@ -36,12 +43,15 @@ Publicado en <https://md.crgm.app>.
 - **El catálogo viaja dentro del archivo**: la galería funciona igual servida por
   http que abriendo `index.html` a doble clic, sin servidor y sin conexión.
 - **Dibuja diagramas** de los bloques `mermaid`: flujo, secuencia, estados,
-  tarta, Gantt, clases, entidad-relación y mapa mental. El dibujo es un SVG hecho
-  en casa, sin librerías: se imprime nítido, se adapta al tema claro u oscuro y
-  funciona sin conexión.
-- **Dibuja fórmulas** escritas en LaTeX (`$E = mc^2$` o un bloque entre `$$`),
-  traducidas a MathML y dibujadas por el propio navegador: cero fuentes que
-  descargar.
+  tarta, Gantt, clases, entidad-relación, mapa mental, C4 (contexto,
+  contenedores y componentes), cuadrantes, línea de tiempo, trayecto de
+  usuario (`journey`), ramas de Git (`gitGraph`) y flujo Sankey. El dibujo es
+  un SVG hecho en casa, sin librerías: se imprime nítido, se adapta al tema
+  claro u oscuro y funciona sin conexión.
+- **Dibuja fórmulas** escritas en LaTeX, tanto `$E = mc^2$` o un bloque entre
+  `$$` como `\(...\)` o un bloque entre `\[...\]` (el formato que usa
+  Claude.ai), traducidas a MathML y dibujadas por el propio navegador: cero
+  fuentes que descargar.
 - **Presenta a pantalla completa** (`▶ Presentar`): cada línea `---` abre una
   diapositiva nueva; si el documento no tiene ninguna, cada título de primer
   nivel abre la suya. Se navega con flechas, espacio o clic, y se imprime una
@@ -111,6 +121,27 @@ Publicado en <https://md.crgm.app>.
   a internet hasta que entras ahí o pulsas Publicar. Lo que publicas desde tu
   navegador lleva un botón **retirar** en su propia tarjeta —solo tú lo ves, y
   solo mientras sea ese mismo navegador— para deshacerlo cuando quieras.
+- **Cuenta de Google, opcional** (`◐ Cuenta`): documentos privados sincronizados
+  con Firestore por REST (`fetch` a secas, sin el SDK de Google) y OAuth 2.0
+  escrito a mano. Sondea cada 4 segundos; si dos pestañas o dos equipos editan
+  el mismo documento, **nunca se pisa nada en silencio** — la versión más vieja
+  queda a un lado como copia "(conflicto, hora)". La colaboración es por enlace
+  (`?doc=<id>&u=<uid>`): a quien lo abre se le agrega solo como colaborador. No
+  es tiempo real (no hay CRDT): es sondeo con red de seguridad.
+- **Lógica y electricidad como texto**: tablas de verdad con operadores
+  `&&`/`||`/`!` y escaleras PLC estilo IEC/NEMA, con ramas y salidas múltiples
+  y la fila con error marcada en rojo sin tumbar el resto del diagrama.
+- **Libro, revista y periódico** (desde `Insertar`): portada, capítulos,
+  artículos y columnas que se **paginan de verdad** al imprimir (numeración,
+  encabezados corridos, saltos de página), con modo Folleto y Pliegos
+  (imposición 2-up a caballete) y dúplex automático. Usa Paged.js
+  (`paged.polyfill.min.js`, en la misma carpeta) — la única pieza de este
+  proyecto que no es código propio; sin ese archivo, todo lo demás sigue
+  funcionando y solo se pierde la numeración de página al imprimir.
+- **Lee el documento en voz alta** (`🔊 Leer`) con la síntesis de voz del propio
+  navegador: sin librerías ni voces que descargar, salta código y diagramas al
+  leer un párrafo (pero sí lee un bloque de código corto si es lo único
+  seleccionado), y se detiene solo si cambias de pestaña.
 - **Imprime limpio**: la barra de botones y el editor no salen en el papel.
 - **Se lleva bien con el traductor del navegador**: la página declara su idioma
   con `hreflang`, el documento hereda el que digan sus metadatos (`idioma: en`) y
@@ -141,9 +172,11 @@ alineación y fórmulas de hoja de cálculo en sus celdas, notas al pie con enla
 de vuelta, listas de definiciones, abreviaturas, emojis por su nombre
 (`:warning:`), HTML crudo, escapes con barra invertida, diagramas `mermaid`,
 fórmulas en LaTeX, rutas GPX, planos, vistas isométricas y escenas 3D
-(`gpx`/`plano`/`iso`/`3d`), pizarras dibujadas a mano (`pizarra`) y metadatos
-al principio del documento (*front matter*). En los metadatos,
-`matematicas: no` apaga las fórmulas por si el documento habla de dólares.
+(`gpx`/`plano`/`iso`/`3d`), pizarras dibujadas a mano (`pizarra`), tablas de
+verdad y escaleras PLC (`verdad`/`ladder`), libros/revistas/periódicos
+paginados y metadatos al principio del documento (*front matter*). En los
+metadatos, `matematicas: no` apaga las fórmulas por si el documento habla de
+dólares.
 
 ## Atajos
 
@@ -221,9 +254,11 @@ compila.
 index.html            La aplicación entera: estilos, motor, interfaz y catálogo
 manifest.webmanifest  Nombre, iconos y accesos directos de la aplicación
 sw.js                 Service worker: guarda la aplicación para usarla sin conexión
+paged.polyfill.min.js Paginador de Publicaciones (libro/revista/periódico); sin
+                      este archivo, todo lo demás sigue funcionando igual
 iconos/               Icono en SVG y en PNG (normal, maskable, favicon, Apple)
 favicon.ico           Icono para las pestañas antiguas
-plantillas/           Las 103 plantillas en .md e indice.json que las describe
+plantillas/           Las 118 plantillas en .md e indice.json que las describe
 herramientas/         empaquetar.py: mete el catálogo dentro de index.html
 CNAME                 md.crgm.app
 .nojekyll             Para que GitHub Pages sirva los archivos tal cual

@@ -1384,17 +1384,86 @@ pre[data-lenguaje]{padding-top:1.9rem}
 figure.diagrama{
   margin:1.5rem 0; padding:.9rem .6rem; text-align:center; position:relative;
   background:var(--dia-fondo); border:1px solid var(--borde); border-radius:.6rem;
+  cursor:zoom-in; transition:box-shadow .15s;
 }
-figure.diagrama .diagrama-svg{max-width:100%; height:auto; display:inline-block}
-.ver-codigo{
-  position:absolute; top:.45rem; right:.5rem; font:inherit; font-family:var(--sans);
-  font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; cursor:pointer;
-  color:var(--tenue); background:var(--papel); border:1px solid var(--borde);
-  border-radius:.35rem; padding:.2rem .5rem; opacity:0; transition:opacity .15s;
-}
-figure.diagrama:hover .ver-codigo, .ver-codigo:focus{opacity:1}
+figure.diagrama .diagrama-svg{max-width:100%; height:auto; display:inline-block; pointer-events:none}
+figure.diagrama:hover, figure.diagrama:focus-visible{box-shadow:0 0 0 2px var(--acento-suave)}
+figure.diagrama:focus-visible{outline:none}
 .diagrama-fuente{text-align:left; margin:.8rem 0 0}
 .diagrama-fuente[hidden]{display:none}
+
+/* diagrama ampliado a pantalla completa: pantalla, girar, anotar, ventana, imprimir */
+.diag-amp-dialogo{
+  /* .dialogo.grande solo trae max-height: sin un height explicito, el
+     contenido chico (un diagrama pequeño es justo el caso que hay que
+     arreglar) encoge el dialogo entero en vez de usar la pantalla -- el
+     "1fr" de abajo no tiene de donde crecer si nadie le da un alto real. */
+  display:grid; grid-template-rows:auto minmax(0,1fr); height:min(94vh,1200px);
+}
+.diag-amp-cabecera{flex-wrap:wrap; row-gap:.5rem}
+.diag-amp-herramientas{display:flex; flex-wrap:wrap; gap:.4rem; margin-left:auto; margin-right:.6rem}
+.diag-amp-herramientas button, .diag-amp-colores button{
+  display:inline-flex; align-items:center; gap:.3rem; font:inherit; font-family:var(--sans);
+  font-size:12.5px; color:var(--texto); background:var(--papel); border:1px solid var(--borde);
+  border-radius:.4rem; padding:.35rem .55rem; cursor:pointer;
+}
+.diag-amp-herramientas button[aria-pressed="true"], .diag-amp-herramientas button[aria-expanded="true"]{
+  background:var(--acento); color:#fff; border-color:var(--acento);
+}
+.diag-amp-herramientas button span, .diag-amp-colores button span{display:inline}
+.diag-amp-colores{display:inline-flex; align-items:center; gap:.35rem}
+.diag-amp-colores[hidden]{display:none}
+.diag-amp-color{width:1.5rem; height:1.5rem; padding:0 !important; border-radius:50% !important; background:var(--c) !important; border:2px solid transparent !important}
+.diag-amp-color.activo{border-color:var(--texto) !important}
+.diag-amp-cuerpo{display:flex; flex-direction:column; min-height:0}
+.diag-amp-lienzo{
+  position:relative; flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center;
+  overflow:auto; background:var(--dia-fondo); border-radius:.5rem;
+}
+.diag-amp-lienzo[hidden]{display:none}
+.diag-amp-imp-panel[hidden]{display:none}
+.diag-amp-envoltorio{transition:transform .2s}
+.diag-amp-envoltorio svg{display:block; max-width:none; max-height:none}
+.diag-amp-lapiz-svg{
+  position:absolute; inset:0; width:100%; height:100%; pointer-events:none; touch-action:none;
+}
+.diag-amp-lapiz-svg.activo{pointer-events:auto; cursor:crosshair}
+.diag-amp-lapiz-svg.activo.borrador{cursor:not-allowed}
+.diag-amp-lapiz-svg.activo.borrador .diag-amp-trazo{cursor:pointer}
+.diag-amp-fuente{margin:.8rem 0 0; max-height:30vh; overflow:auto; flex:0 0 auto}
+.diag-amp-imp-vista{
+  flex:1; min-height:0; overflow:auto; background:#666; padding:1.5rem;
+  display:flex; align-items:center; justify-content:center; border-radius:.5rem;
+}
+.diag-amp-hoja{
+  position:relative; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,.35);
+  width:min(100%, 22rem); box-sizing:border-box; padding:.4in; flex:none;
+  display:flex; align-items:center; justify-content:center;
+}
+.diag-amp-hoja-contenido{display:flex; align-items:center; justify-content:center}
+.diag-amp-hoja-contenido svg{display:block; width:100%; height:100%}
+@media print{
+  body.diagrama-imprimir-abierto #doc{display:none !important}
+  /* mismo mecanismo que #posterImprimir: el dialogo pasa de flotar sobre todo
+     a ser la pagina misma -- .no-print gana por especificidad normal, pero
+     esta regla (id + clase) pesa mas y se impone solo mientras se imprime. */
+  #veloDiagrama.imprimir-activo{position:static !important; background:none !important; padding:0 !important; display:block !important}
+  #veloDiagrama.imprimir-activo .dialogo{
+    width:auto !important; max-width:none !important; height:auto !important; max-height:none !important;
+    box-shadow:none !important; border:0 !important; border-radius:0 !important; display:block !important;
+  }
+  #veloDiagrama.imprimir-activo .diag-amp-cabecera,
+  #veloDiagrama.imprimir-activo .diag-amp-lienzo,
+  #veloDiagrama.imprimir-activo .diag-amp-fuente,
+  #veloDiagrama.imprimir-activo .pg-no-imprimir{display:none !important}
+  #veloDiagrama.imprimir-activo .diag-amp-imp-panel{display:block !important; padding:0 !important}
+  #veloDiagrama.imprimir-activo .diag-amp-imp-vista{
+    display:block !important; background:none !important; padding:0 !important; overflow:visible !important;
+  }
+  #veloDiagrama.imprimir-activo .diag-amp-hoja{
+    box-shadow:none !important; width:100%; height:100vh; padding:.4in; box-sizing:border-box; break-after:auto;
+  }
+}
 
 /* bloques gpx */
 .gpx-viewer{position:relative; margin:1.5rem 0; padding:1rem; border:1px solid var(--borde); border-radius:.6rem; background:var(--papel)}
@@ -1761,7 +1830,7 @@ math mo{font-family:inherit}
   select.campo{ background-image:none !important; padding-right:.25em }
   span.campo:empty::before{ color:#8a8a8a }
   input.casilla{ -webkit-print-color-adjust:exact; print-color-adjust:exact }
-  .ver-codigo, .diagrama-fuente{display:none !important}
+  .diagrama-fuente{display:none !important}
   pre[data-lenguaje]::after{color:#777}
 }
 
@@ -1801,7 +1870,6 @@ math mo{font-family:inherit}
   .gpx-svg-perfil{height:min(36vh, 300px)}
   .tresd-svg{height:300px}
   .formula-bloque{font-size:1.06em}
-  .ver-codigo{opacity:1}
   blockquote, .alerta, details{padding-left:.9rem; padding-right:.9rem}
   pre{padding:.9rem .8rem}
   pre[data-lenguaje]{padding-top:1.8rem}
@@ -2156,6 +2224,68 @@ math mo{font-family:inherit}
       <div class="pg-acciones pg-no-imprimir">
         <button type="button" id="posterCancelar">Cancelar</button>
         <button type="button" id="posterImprimirBoton">Imprimir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="velo no-print" id="veloDiagrama" hidden>
+  <div class="dialogo grande diag-amp-dialogo" role="dialog" aria-modal="true" aria-labelledby="tituloDiagAmp">
+    <div class="dialogo-cabecera diag-amp-cabecera">
+      <h2 id="tituloDiagAmp">Diagrama</h2>
+      <div class="diag-amp-herramientas">
+        <button type="button" id="diagAmpGirar" title="Girar 90° (para aprovechar el ancho o el alto de la pantalla)"><b>&#8635;</b><span>Girar</span></button>
+        <button type="button" id="diagAmpLapiz" aria-pressed="false" title="Anotar a mano libre (no se guarda en el documento)"><b>&#9998;</b><span>Anotar</span></button>
+        <span class="diag-amp-colores" id="diagAmpColores" hidden>
+          <button type="button" class="diag-amp-color activo" data-color="#e5484d" style="--c:#e5484d" title="Rojo" aria-label="Rojo"></button>
+          <button type="button" class="diag-amp-color" data-color="#2f6fed" style="--c:#2f6fed" title="Azul" aria-label="Azul"></button>
+          <button type="button" class="diag-amp-color" data-color="#1a9e6b" style="--c:#1a9e6b" title="Verde" aria-label="Verde"></button>
+          <button type="button" class="diag-amp-color" data-color="#e8a20a" style="--c:#e8a20a" title="Amarillo" aria-label="Amarillo"></button>
+          <button type="button" id="diagAmpBorrador" aria-pressed="false" title="Borrador: toca un trazo para borrarlo"><b>&#9003;</b><span>Borrador</span></button>
+          <button type="button" id="diagAmpLimpiar" title="Borrar todas las anotaciones"><b>&#128465;</b><span>Limpiar</span></button>
+        </span>
+        <button type="button" id="diagAmpCodigo" aria-expanded="false" title="Ver el código fuente del diagrama"><b>&lt;/&gt;</b><span>Código</span></button>
+        <button type="button" id="diagAmpVentana" title="Abrir el diagrama solo, en una ventana nueva"><b>&#8599;</b><span>Ventana</span></button>
+        <button type="button" id="diagAmpImprimir" title="Imprimir o guardar como PDF, solo este diagrama"><b>&#128438;</b><span>Imprimir</span></button>
+      </div>
+      <button type="button" class="cerrar" id="diagAmpCerrar" aria-label="Cerrar">&#10005;</button>
+    </div>
+    <div class="dialogo-cuerpo diag-amp-cuerpo">
+      <div class="diag-amp-lienzo" id="diagAmpLienzo">
+        <div class="diag-amp-envoltorio" id="diagAmpEnvoltorio"></div>
+        <svg class="diag-amp-lapiz-svg" id="diagAmpLapizSvg"></svg>
+      </div>
+      <pre class="diagrama-fuente diag-amp-fuente" id="diagAmpFuente" hidden><code id="diagAmpFuenteCodigo"></code></pre>
+      <div class="diag-amp-imp-panel pg-cuerpo" id="diagAmpImpPanel" hidden>
+        <div class="pg-controles pg-no-imprimir">
+          <label>Tamaño de hoja
+            <select id="diagAmpPapel">
+              <option value="carta" selected>Carta — 8.5 × 11 in</option>
+              <option value="a4">A4 — 210 × 297 mm</option>
+              <option value="oficio">Oficio — 216 × 330 mm</option>
+              <option value="tabloide">Tabloide — 11 × 17 in</option>
+            </select>
+          </label>
+          <label>Orientación
+            <select id="diagAmpOrientacion">
+              <option value="vertical">Vertical</option>
+              <option value="horizontal">Horizontal</option>
+            </select>
+          </label>
+          <label>Tamaño en la hoja
+            <select id="diagAmpTamanoHoja">
+              <option value="ajustar" selected>Ajustar a toda la hoja</option>
+              <option value="grande">Grande</option>
+              <option value="mediano">Mediano</option>
+              <option value="chico">Chico</option>
+            </select>
+          </label>
+        </div>
+        <div class="diag-amp-imp-vista" id="diagAmpImpVista"></div>
+        <div class="pg-acciones pg-no-imprimir">
+          <button type="button" id="diagAmpImpVolver">Volver</button>
+          <button type="button" id="diagAmpImpConfirmar">Imprimir</button>
+        </div>
       </div>
     </div>
   </div>
@@ -4349,6 +4479,631 @@ function dibujarMapa(texto){
   return envolver("m" + (++nDiagramas), ancho, alto, partes.join("\n"), "Mapa mental");
 }
 
+/* ---------- C4 (contexto, contenedores, componentes): reaprovecha el
+   mismo motor de cajas y capas que clases/entidad-relacion ---------- */
+var TIPOS_C4 = {
+  Person: { grupo: "persona" }, Person_Ext: { grupo: "persona", ext: 1 },
+  System: { grupo: "sistema" }, System_Ext: { grupo: "sistema", ext: 1 },
+  SystemDb: { grupo: "sistema" }, SystemDb_Ext: { grupo: "sistema", ext: 1 },
+  SystemQueue: { grupo: "sistema" }, SystemQueue_Ext: { grupo: "sistema", ext: 1 },
+  Container: { grupo: "contenedor" }, Container_Ext: { grupo: "contenedor", ext: 1 },
+  ContainerDb: { grupo: "contenedor" }, ContainerDb_Ext: { grupo: "contenedor", ext: 1 },
+  ContainerQueue: { grupo: "contenedor" }, ContainerQueue_Ext: { grupo: "contenedor", ext: 1 },
+  Component: { grupo: "componente" }, Component_Ext: { grupo: "componente", ext: 1 },
+  ComponentDb: { grupo: "componente" }, ComponentQueue: { grupo: "componente" }
+};
+var NOMBRE_TIPO_C4 = { persona: "Persona", sistema: "Sistema", contenedor: "Contenedor", componente: "Componente" };
+var RE_ELEM_C4 = new RegExp("^(" + Object.keys(TIPOS_C4).join("|") + ")\\s*\\(([\\s\\S]*)\\)\\s*$");
+var RE_BOUND_C4 = /^(?:Boundary|System_Boundary|Container_Boundary|Enterprise_Boundary)\s*\(([\s\S]*?)\)\s*\{\s*$/;
+var RE_REL_C4 = /^(Bi)?Rel[A-Za-z_]*\s*\(([\s\S]*)\)\s*$/i;
+
+function argsC4(s){
+  var out = [], cur = "", enComillas = false, i;
+  for(i = 0; i < s.length; i++){
+    var c = s.charAt(i);
+    if(c === '"'){ enComillas = !enComillas; continue; }
+    if(c === "," && !enComillas){ out.push(cur.trim()); cur = ""; continue; }
+    cur += c;
+  }
+  out.push(cur.trim());
+  return out.filter(function(a){ return a.charAt(0) !== "$"; });
+}
+
+function analizarC4(texto){
+  var G = { nodos: {}, orden: [], enlaces: [], dir: "TB", grupos: [], titulo: "" };
+  var pila = [], lineas = String(texto).split("\n"), i, L, m;
+  function nodo(id, titulo, tipo, filas){
+    if(!G.nodos[id]){
+      G.nodos[id] = { id: id, titulo: titulo || id, filas: filas || [], forma: "caja",
+                      grupo: pila.length ? pila[pila.length - 1] : null };
+      G.orden.push(id);
+      if(pila.length) pila[pila.length - 1].miembros.push(id);
+    }
+    return G.nodos[id];
+  }
+  for(i = 0; i < lineas.length; i++){
+    L = lineas[i].replace(/%%.*$/, "").trim();
+    if(!L) continue;
+    if(/^C4\w*\b/i.test(L)) continue;
+    if((m = /^title\s+(.*)$/i.exec(L))){ G.titulo = m[1].trim(); continue; }
+    if(/^\}$/.test(L)){ if(pila.length) pila.pop(); continue; }
+    if(/^(UpdateElementStyle|UpdateRelStyle|UpdateLayoutConfig|AddElementTag|AddRelTag|AddBoundaryTag|Lay_)/i.test(L)) continue;
+
+    if((m = RE_BOUND_C4.exec(L))){
+      var aB = argsC4(m[1]);
+      var grupo = { id: aB[0] || ("g" + G.grupos.length), texto: aB[1] || "", miembros: [],
+                    padre: pila.length ? pila[pila.length - 1] : null, indice: G.grupos.length };
+      G.grupos.push(grupo);
+      pila.push(grupo);
+      continue;
+    }
+
+    if((m = RE_ELEM_C4.exec(L))){
+      var tInfo = TIPOS_C4[m[1]], aE = argsC4(m[2]), id3 = aE[0];
+      if(!id3) continue;
+      var esCont = tInfo.grupo === "contenedor" || tInfo.grupo === "componente";
+      var etiqueta = aE[1] || id3, tecnologia = esCont ? (aE[2] || "") : "", desc = esCont ? (aE[3] || "") : (aE[2] || "");
+      var filas = [];
+      if(tecnologia) filas.push({ txt: "[" + tecnologia + "]", tenue: true });
+      partirTexto(desc, 160, 11.5).forEach(function(l){ if(l) filas.push({ txt: l, tenue: true }); });
+      var n = nodo(id3, etiqueta, tInfo, filas);
+      n.estereotipo = (tInfo.ext ? "Externo, " : "") + NOMBRE_TIPO_C4[tInfo.grupo];
+      continue;
+    }
+
+    if((m = RE_REL_C4.exec(L))){
+      var aR = argsC4(m[2]);
+      if(aR.length < 2) continue;
+      G.enlaces.push({ a: aR[0], b: aR[1], texto: (aR[2] || "").trim() + (aR[3] ? "  [" + aR[3] + "]" : ""), bi: !!m[1] });
+      continue;
+    }
+  }
+  return G;
+}
+
+function dibujarC4(texto){
+  var G = analizarC4(texto);
+  if(!G.orden.length) return null;
+  G.orden.forEach(function(id){ prepararCaja(G.nodos[id]); });
+  var caja = colocarFlujo(G);
+  if(!caja) return null;
+  var id = "c4" + (++nDiagramas), partes = [];
+  repartirPuertos(G);
+  G.grupos.forEach(function(g){
+    if(!g.caja) return;
+    var c = g.caja;
+    partes.push('<rect x="' + r2(c.x1) + '" y="' + r2(c.y1) + '" width="' + r2(c.x2 - c.x1) +
+                '" height="' + r2(c.y2 - c.y1) + '" rx="8" fill="var(--dia-grupo)" stroke="var(--dia-grupo-borde)" stroke-width="1.2" stroke-dasharray="5 4"/>');
+    if(g.texto) partes.push('<text x="' + r2(c.x1 + 12) + '" y="' + r2(c.y1 + 15) + '" text-anchor="start" font-size="11.5" font-weight="600" fill="var(--dia-tenue)">' + X(g.texto) + "</text>");
+  });
+  G.enlaces.forEach(function(e){
+    var a = G.nodos[e.a], b = G.nodos[e.b];
+    if(!a || !b) return;
+    e.mFin = "flecha";
+    if(e.bi) e.mIni = "flecha-i";
+    pintarUnionCaja(partes, G, e, id);
+  });
+  G.orden.forEach(function(x){ pintarCaja(G.nodos[x], partes); });
+  var alto = caja.h, cuerpo;
+  if(G.titulo){
+    alto += 30;
+    cuerpo = '<text x="' + r2(caja.w / 2) + '" y="20" font-size="14.5" font-weight="600" text-anchor="middle" fill="var(--dia-texto)">' +
+             X(G.titulo) + '</text><g transform="translate(0,30)">' + partes.join("\n") + "</g>";
+  }else{
+    cuerpo = partes.join("\n");
+  }
+  return envolver(id, caja.w, alto, cuerpo, "Diagrama C4");
+}
+
+/* ---------- cuadrante (x/y de 0 a 1, cuatro cuadrantes con rotulo) ---------- */
+function analizarQuadrant(texto){
+  var lineas = String(texto).split("\n"), i, L, m;
+  var d = { titulo: "", ejeX: ["", ""], ejeY: ["", ""], cuad: ["", "", "", ""], puntos: [] };
+  for(i = 0; i < lineas.length; i++){
+    L = lineas[i].replace(/%%.*$/, "").trim();
+    if(!L || /^quadrantChart\b/i.test(L)) continue;
+    if((m = /^title\s+(.*)$/i.exec(L))){ d.titulo = m[1].trim(); continue; }
+    if((m = /^x-axis\s+(.+)$/i.exec(L))){
+      var px = m[1].split(/\s+-->\s+/);
+      d.ejeX = [(px[0] || "").trim(), (px[1] || "").trim()];
+      continue;
+    }
+    if((m = /^y-axis\s+(.+)$/i.exec(L))){
+      var py = m[1].split(/\s+-->\s+/);
+      d.ejeY = [(py[0] || "").trim(), (py[1] || "").trim()];
+      continue;
+    }
+    if((m = /^quadrant-([1-4])\s+(.*)$/i.exec(L))){ d.cuad[+m[1] - 1] = m[2].trim(); continue; }
+    if((m = /^([^:]+):\s*\[\s*([\d.]+)\s*,\s*([\d.]+)\s*\]\s*$/.exec(L))){
+      d.puntos.push({ nombre: m[1].trim(), x: Math.max(0, Math.min(1, parseFloat(m[2]))),
+                       y: Math.max(0, Math.min(1, parseFloat(m[3]))) });
+      continue;
+    }
+  }
+  return d;
+}
+function dibujarQuadrant(texto){
+  var d = analizarQuadrant(texto);
+  if(!d.puntos.length && !d.ejeX[0] && !d.ejeY[0] && !d.cuad[0] && !d.cuad[1] && !d.cuad[2] && !d.cuad[3]) return null;
+  var TAM = 300, mArriba = d.titulo ? 34 : 16, mIzq = 20, mDer = 20, mAbajo = 50;
+  var ox = mIzq, oyTop = mArriba, oyBot = mArriba + TAM;
+  var ancho = ox + TAM + mDer, alto = oyBot + mAbajo;
+  var mitadX = ox + TAM / 2, mitadY = oyTop + TAM / 2;
+  var partes = [];
+  if(d.titulo)
+    partes.push('<text x="' + r2(ancho / 2) + '" y="20" font-size="14.5" font-weight="600" text-anchor="middle" fill="var(--dia-texto)">' + X(d.titulo) + "</text>");
+
+  function fondoCuad(x, y, sombreado){
+    if(!sombreado) return;
+    partes.push('<rect x="' + r2(x) + '" y="' + r2(y) + '" width="' + (TAM / 2) + '" height="' + (TAM / 2) + '" fill="var(--dia-grupo)"/>');
+  }
+  fondoCuad(mitadX, oyTop, true);   /* q1: arriba-derecha */
+  fondoCuad(ox, mitadY, true);      /* q3: abajo-izquierda */
+
+  partes.push('<rect x="' + r2(ox) + '" y="' + r2(oyTop) + '" width="' + TAM + '" height="' + TAM + '" fill="none" stroke="var(--dia-borde)" stroke-width="1.4"/>');
+  partes.push('<line x1="' + r2(mitadX) + '" y1="' + r2(oyTop) + '" x2="' + r2(mitadX) + '" y2="' + r2(oyBot) + '" stroke="var(--dia-borde)" stroke-width="1"/>');
+  partes.push('<line x1="' + r2(ox) + '" y1="' + r2(mitadY) + '" x2="' + r2(ox + TAM) + '" y2="' + r2(mitadY) + '" stroke="var(--dia-borde)" stroke-width="1"/>');
+
+  function etiquetaCuad(txt, cx, cy){
+    if(!txt) return;
+    var ls = partirTexto(txt, TAM / 2 - 16, 11.5);
+    partes.push(textoSvg(ls, cx, cy, { tam: 11.5, alto: 14, color: "var(--dia-tenue)" }));
+  }
+  etiquetaCuad(d.cuad[0], mitadX + TAM / 4, mitadY - TAM / 4);
+  etiquetaCuad(d.cuad[1], ox + TAM / 4, mitadY - TAM / 4);
+  etiquetaCuad(d.cuad[2], ox + TAM / 4, mitadY + TAM / 4);
+  etiquetaCuad(d.cuad[3], mitadX + TAM / 4, mitadY + TAM / 4);
+
+  if(d.ejeX[0]) partes.push('<text x="' + r2(ox) + '" y="' + r2(oyBot + 18) + '" font-size="11.5" text-anchor="start" fill="var(--dia-tenue)">' + X(d.ejeX[0]) + "</text>");
+  if(d.ejeX[1]) partes.push('<text x="' + r2(ox + TAM) + '" y="' + r2(oyBot + 18) + '" font-size="11.5" text-anchor="end" fill="var(--dia-tenue)">' + X(d.ejeX[1]) + "</text>");
+  if(d.ejeY[0]) partes.push('<text x="' + r2(ox) + '" y="' + r2(oyBot + 36) + '" font-size="11" text-anchor="start" fill="var(--dia-tenue)">▼ ' + X(d.ejeY[0]) + "</text>");
+  if(d.ejeY[1]) partes.push('<text x="' + r2(ox + TAM) + '" y="' + r2(oyBot + 36) + '" font-size="11" text-anchor="end" fill="var(--dia-tenue)">▲ ' + X(d.ejeY[1]) + "</text>");
+
+  d.puntos.forEach(function(p){
+    var px2 = ox + p.x * TAM, py2 = oyBot - p.y * TAM;
+    partes.push('<circle cx="' + r2(px2) + '" cy="' + r2(py2) + '" r="5" fill="var(--dia-linea)" stroke="var(--dia-fondo)" stroke-width="1.5"/>');
+    partes.push('<text x="' + r2(px2 + 8) + '" y="' + r2(py2 - 8) + '" font-size="11.5" text-anchor="start" fill="var(--dia-texto)">' + X(p.nombre) + "</text>");
+  });
+
+  return envolver("q" + (++nDiagramas), ancho, alto, partes.join("\n"), "Grafico de cuadrantes");
+}
+
+/* ---------- linea de tiempo: periodos con eventos apilados debajo ---------- */
+function analizarTimeline(texto){
+  var lineas = String(texto).split("\n"), i, L, m;
+  var d = { titulo: "", secciones: [] };
+  var actual = { nombre: "", periodos: [] };
+  function empujar(){ if(actual.periodos.length || actual.nombre) d.secciones.push(actual); }
+  for(i = 0; i < lineas.length; i++){
+    L = lineas[i].replace(/%%.*$/, "").trim();
+    if(!L || /^timeline\b/i.test(L)) continue;
+    if((m = /^title\s+(.*)$/i.exec(L))){ d.titulo = m[1].trim(); continue; }
+    if((m = /^section\s+(.*)$/i.exec(L))){ empujar(); actual = { nombre: m[1].trim(), periodos: [] }; continue; }
+    if(L.indexOf(":") !== -1){
+      var trozos = L.split(":").map(function(s){ return s.trim(); }).filter(function(s){ return s !== ""; });
+      if(trozos.length) actual.periodos.push({ periodo: trozos[0], eventos: trozos.slice(1) });
+      continue;
+    }
+  }
+  empujar();
+  return d;
+}
+function dibujarTimeline(texto){
+  var d = analizarTimeline(texto), periodos = [];
+  d.secciones.forEach(function(sec){
+    sec.periodos.forEach(function(p){ periodos.push(p); });
+  });
+  if(!periodos.length) return null;
+
+  var ANCHO_COL = 150, PAD = 14, SEP_EVT = 8;
+  periodos.forEach(function(p){
+    p.lineasPeriodo = partirTexto(p.periodo, ANCHO_COL - 20, 13);
+    p.eventosLineas = p.eventos.map(function(e){ return partirTexto(e, ANCHO_COL - 20, 12); });
+  });
+  var maxEventos = 0, maxLineasEvt = 1, maxLineasPeriodo = 1;
+  periodos.forEach(function(p){
+    maxEventos = Math.max(maxEventos, p.eventos.length);
+    maxLineasPeriodo = Math.max(maxLineasPeriodo, p.lineasPeriodo.length);
+    p.eventosLineas.forEach(function(ls){ maxLineasEvt = Math.max(maxLineasEvt, ls.length); });
+  });
+  var altoCajaEvt = maxLineasEvt * 15 + 14;
+  var altoEtiquetaPeriodo = maxLineasPeriodo * 16 + 10;
+
+  var mArriba = d.titulo ? 34 : 16;
+  var hayNombreSeccion = d.secciones.some(function(s){ return s.nombre; });
+  var altoSeccion = hayNombreSeccion ? 28 : 0;
+  var yLineaTiempo = mArriba + altoSeccion + 22;
+  var yEtiquetaPeriodo = yLineaTiempo + 10 + altoEtiquetaPeriodo / 2;
+  var yEventosInicio = yLineaTiempo + 10 + altoEtiquetaPeriodo + 14;
+
+  var anchoTotal = PAD * 2 + periodos.length * ANCHO_COL;
+  var altoTotal = yEventosInicio + (maxEventos ? maxEventos * (altoCajaEvt + SEP_EVT) : 10);
+
+  var partes = [];
+  if(d.titulo) partes.push('<text x="' + r2(anchoTotal / 2) + '" y="20" font-size="14.5" font-weight="600" text-anchor="middle" fill="var(--dia-texto)">' + X(d.titulo) + "</text>");
+
+  if(hayNombreSeccion){
+    var col = 0;
+    d.secciones.forEach(function(sec, si){
+      var n = sec.periodos.length;
+      if(!n) return;
+      var x1 = PAD + col * ANCHO_COL, w = n * ANCHO_COL;
+      partes.push('<rect x="' + r2(x1) + '" y="' + r2(mArriba) + '" width="' + r2(w) + '" height="' + r2(altoSeccion) +
+                  '" rx="4" fill="' + COLORES_TARTA[si % COLORES_TARTA.length] + '" opacity="0.28"/>');
+      if(sec.nombre) partes.push(textoSvg([sec.nombre], x1 + w / 2, mArriba + altoSeccion / 2, { tam: 11.5, alto: 14, negrita: true, color: "var(--dia-texto)" }));
+      col += n;
+    });
+  }
+
+  partes.push('<line x1="' + r2(PAD) + '" y1="' + r2(yLineaTiempo) + '" x2="' + r2(anchoTotal - PAD) + '" y2="' + r2(yLineaTiempo) + '" stroke="var(--dia-linea)" stroke-width="2"/>');
+
+  periodos.forEach(function(p, k){
+    var cx = PAD + k * ANCHO_COL + ANCHO_COL / 2;
+    partes.push('<circle cx="' + r2(cx) + '" cy="' + r2(yLineaTiempo) + '" r="6" fill="var(--dia-linea)" stroke="var(--dia-fondo)" stroke-width="2"/>');
+    partes.push(textoSvg(p.lineasPeriodo, cx, yEtiquetaPeriodo, { tam: 13, alto: 16, negrita: true, color: "var(--dia-texto)" }));
+    p.eventos.forEach(function(ev, ei){
+      var ey = yEventosInicio + ei * (altoCajaEvt + SEP_EVT), ancho = ANCHO_COL - 20;
+      partes.push('<rect x="' + r2(cx - ancho / 2) + '" y="' + r2(ey) + '" width="' + r2(ancho) + '" height="' + r2(altoCajaEvt) +
+                  '" rx="6" fill="var(--dia-relleno)" stroke="var(--dia-borde)" stroke-width="1.2"/>');
+      partes.push(textoSvg(p.eventosLineas[ei], cx, ey + altoCajaEvt / 2, { tam: 12, alto: 15, color: "var(--dia-texto)" }));
+    });
+  });
+
+  return envolver("tl" + (++nDiagramas), anchoTotal, altoTotal, partes.join("\n"), "Linea de tiempo");
+}
+
+/* ---------- journey: puntaje 1-5 por tarea, una linea por actor ---------- */
+function analizarJourney(texto){
+  var lineas = String(texto).split("\n"), i, L, m;
+  var d = { titulo: "", secciones: [] };
+  var actual = { nombre: "", tareas: [] };
+  function empujar(){ if(actual.tareas.length || actual.nombre) d.secciones.push(actual); }
+  for(i = 0; i < lineas.length; i++){
+    L = lineas[i].replace(/%%.*$/, "").trim();
+    if(!L || /^journey\b/i.test(L)) continue;
+    if((m = /^title\s+(.*)$/i.exec(L))){ d.titulo = m[1].trim(); continue; }
+    if((m = /^section\s+(.*)$/i.exec(L))){ empujar(); actual = { nombre: m[1].trim(), tareas: [] }; continue; }
+    if((m = /^([^:]+):\s*([\d.]+)\s*:\s*(.*)$/.exec(L))){
+      actual.tareas.push({ nombre: m[1].trim(), score: parseFloat(m[2]) || 0,
+                            actores: m[3].split(",").map(function(s){ return s.trim(); }).filter(function(s){ return s !== ""; }) });
+      continue;
+    }
+  }
+  empujar();
+  return d;
+}
+function dibujarJourney(texto){
+  var d = analizarJourney(texto), tareas = [];
+  d.secciones.forEach(function(sec, si){
+    sec.tareas.forEach(function(t){ tareas.push({ nombre: t.nombre, score: t.score, actores: t.actores, seccion: si }); });
+  });
+  if(!tareas.length) return null;
+
+  var actores = [];
+  tareas.forEach(function(t){ t.actores.forEach(function(a){ if(actores.indexOf(a) === -1) actores.push(a); }); });
+
+  var ANCHO_COL = 110, PAD = 30, ALTO_GRAF = 180;
+  var mArriba = d.titulo ? 34 : 16;
+  var hayNombreSeccion = d.secciones.some(function(s){ return s.nombre; });
+  var altoSeccion = hayNombreSeccion ? 26 : 0;
+  var yGrafTop = mArriba + altoSeccion + 10, yGrafBot = yGrafTop + ALTO_GRAF;
+  function yDeScore(s){ return yGrafBot - (Math.max(0, Math.min(5, s)) / 5) * ALTO_GRAF; }
+
+  tareas.forEach(function(t){ t.lineasNombre = partirTexto(t.nombre, ANCHO_COL - 10, 11.5); });
+  var maxLineasNombre = 1;
+  tareas.forEach(function(t){ maxLineasNombre = Math.max(maxLineasNombre, t.lineasNombre.length); });
+  var altoEtiquetas = maxLineasNombre * 14 + 8;
+
+  var anchoLeyenda = 0;
+  actores.forEach(function(a){ anchoLeyenda = Math.max(anchoLeyenda, medir(a, 11.5) + 26); });
+  var anchoGraf = tareas.length * ANCHO_COL;
+  var anchoTotal = PAD * 2 + anchoGraf + (actores.length ? anchoLeyenda + 10 : 0);
+  var altoTotal = yGrafBot + altoEtiquetas + 14;
+
+  var partes = [];
+  if(d.titulo) partes.push('<text x="' + r2((PAD * 2 + anchoGraf) / 2) + '" y="20" font-size="14.5" font-weight="600" text-anchor="middle" fill="var(--dia-texto)">' + X(d.titulo) + "</text>");
+
+  if(hayNombreSeccion){
+    var col = 0;
+    d.secciones.forEach(function(sec, si){
+      var n = sec.tareas.length;
+      if(!n) return;
+      var x1 = PAD + col * ANCHO_COL, w = n * ANCHO_COL;
+      partes.push('<rect x="' + r2(x1) + '" y="' + r2(mArriba) + '" width="' + r2(w) + '" height="' + r2(altoSeccion) +
+                  '" rx="4" fill="' + COLORES_TARTA[si % COLORES_TARTA.length] + '" opacity="0.28"/>');
+      if(sec.nombre) partes.push(textoSvg([sec.nombre], x1 + w / 2, mArriba + altoSeccion / 2, { tam: 11.5, alto: 14, negrita: true, color: "var(--dia-texto)" }));
+      col += n;
+    });
+  }
+
+  for(var s = 1; s <= 5; s++){
+    var gy = yDeScore(s);
+    partes.push('<line x1="' + r2(PAD) + '" y1="' + r2(gy) + '" x2="' + r2(PAD + anchoGraf) + '" y2="' + r2(gy) + '" stroke="var(--dia-borde)" stroke-width="0.6" opacity="0.4"/>');
+  }
+
+  actores.forEach(function(actor, ai){
+    var color = COLORES_TARTA[ai % COLORES_TARTA.length], pts = [];
+    tareas.forEach(function(t, k){
+      if(t.actores.indexOf(actor) === -1) return;
+      pts.push({ x: PAD + k * ANCHO_COL + ANCHO_COL / 2, y: yDeScore(t.score) });
+    });
+    if(pts.length > 1){
+      var dLinea = "M" + pts.map(function(p){ return r2(p.x) + "," + r2(p.y); }).join(" L");
+      partes.push('<path d="' + dLinea + '" fill="none" stroke="' + color + '" stroke-width="2"/>');
+    }
+    pts.forEach(function(p){ partes.push('<circle cx="' + r2(p.x) + '" cy="' + r2(p.y) + '" r="4.5" fill="' + color + '" stroke="var(--dia-fondo)" stroke-width="1.3"/>'); });
+  });
+
+  tareas.forEach(function(t, k){
+    var cx = PAD + k * ANCHO_COL + ANCHO_COL / 2;
+    partes.push(textoSvg(t.lineasNombre, cx, yGrafBot + altoEtiquetas / 2 + 4, { tam: 11.5, alto: 14, color: "var(--dia-texto)" }));
+  });
+
+  if(actores.length){
+    var lx = PAD * 2 + anchoGraf;
+    actores.forEach(function(actor, ai){
+      var ly = yGrafTop + ai * 20, color = COLORES_TARTA[ai % COLORES_TARTA.length];
+      partes.push('<circle cx="' + r2(lx + 6) + '" cy="' + r2(ly) + '" r="5" fill="' + color + '"/>');
+      partes.push('<text x="' + r2(lx + 18) + '" y="' + r2(ly + 4) + '" font-size="11.5" text-anchor="start" fill="var(--dia-texto)">' + X(actor) + "</text>");
+    });
+  }
+
+  return envolver("j" + (++nDiagramas), anchoTotal, altoTotal, partes.join("\n"), "Diagrama de trayecto (journey)");
+}
+
+/* ---------- gitGraph: carriles horizontales por rama ---------- */
+function analizarGitGraph(texto){
+  var lineas = String(texto).split("\n"), i, L, m;
+  var G = { ramas: {}, ordenRamas: [], commits: [], ramaActual: "main" };
+  function asegurarRama(nombre, origenRama, origenCommit){
+    if(!G.ramas[nombre]){
+      G.ramas[nombre] = { nombre: nombre, lane: G.ordenRamas.length, cabeza: null,
+                           origenRama: origenRama || null, origenCommit: origenCommit || null };
+      G.ordenRamas.push(nombre);
+    }
+    return G.ramas[nombre];
+  }
+  asegurarRama("main");
+  var xActual = 0;
+  function nuevoCommit(rama, tipo, etiqueta, id, fusionDe){
+    if(!G.ramas[rama]) return null;
+    xActual++;
+    var c = { id: id || ("c" + xActual), x: xActual, rama: rama, tipo: tipo || "NORMAL",
+              etiqueta: etiqueta || "", fusionDe: fusionDe || null };
+    G.ramas[rama].cabeza = c.id;
+    G.commits.push(c);
+    return c;
+  }
+  for(i = 0; i < lineas.length; i++){
+    L = lineas[i].replace(/%%.*$/, "").trim();
+    if(!L || /^gitGraph\b/i.test(L)) continue;
+    if((m = /^commit\b(.*)$/i.exec(L))){
+      var opts = m[1] || "";
+      var idm = /id:\s*"([^"]*)"/.exec(opts), tagm = /tag:\s*"([^"]*)"/.exec(opts), tipom = /type:\s*(NORMAL|REVERSE|HIGHLIGHT)/i.exec(opts);
+      nuevoCommit(G.ramaActual, tipom ? tipom[1].toUpperCase() : "NORMAL", tagm ? tagm[1] : "", idm ? idm[1] : null);
+      continue;
+    }
+    if((m = /^branch\s+"?([^"\s]+)"?/i.exec(L))){
+      asegurarRama(m[1], G.ramaActual, G.ramas[G.ramaActual].cabeza);
+      continue;
+    }
+    if((m = /^(?:checkout|switch)\s+"?([^"\s]+)"?/i.exec(L))){
+      if(G.ramas[m[1]]) G.ramaActual = m[1];
+      continue;
+    }
+    if((m = /^merge\s+"?([^"\s]+)"?(.*)$/i.exec(L))){
+      if(!G.ramas[m[1]]) continue;
+      var tagm2 = /tag:\s*"([^"]*)"/.exec(m[2] || "");
+      nuevoCommit(G.ramaActual, "MERGE", tagm2 ? tagm2[1] : "", null, G.ramas[m[1]].cabeza);
+      continue;
+    }
+    /* cherry-pick y otras variantes avanzadas: se ignoran sin romper el resto */
+  }
+  return G;
+}
+function dibujarGitGraph(texto){
+  var G = analizarGitGraph(texto);
+  if(!G.commits.length) return null;
+
+  var SEP_X = 60, SEP_Y = 54, PAD_IZQ = 80, PAD_ARR = 40, R = 8;
+  function buscarCommit(id){
+    for(var k = 0; k < G.commits.length; k++) if(G.commits[k].id === id) return G.commits[k];
+    return null;
+  }
+  function colorRama(nombre){ return COLORES_TARTA[G.ramas[nombre].lane % COLORES_TARTA.length]; }
+  function pos(rama, x){ return { x: PAD_IZQ + x * SEP_X, y: PAD_ARR + G.ramas[rama].lane * SEP_Y }; }
+  function curvaGit(p0, p1, color){
+    var mx = (p0.x + p1.x) / 2;
+    return '<path d="M' + r2(p0.x) + "," + r2(p0.y) + " C" + r2(mx) + "," + r2(p0.y) + " " + r2(mx) + "," + r2(p1.y) + " " +
+           r2(p1.x) + "," + r2(p1.y) + '" fill="none" stroke="' + color + '" stroke-width="2" opacity="0.8"/>';
+  }
+
+  var maxX = 0;
+  G.commits.forEach(function(c){ maxX = Math.max(maxX, c.x); });
+  var ancho = PAD_IZQ + maxX * SEP_X + 40;
+  var alto = PAD_ARR + (G.ordenRamas.length - 1) * SEP_Y + 34;
+
+  var partes = [];
+
+  G.ordenRamas.forEach(function(nombre){
+    var y = PAD_ARR + G.ramas[nombre].lane * SEP_Y;
+    partes.push('<text x="8" y="' + r2(y + 4) + '" font-size="12" font-weight="600" fill="' + colorRama(nombre) + '" text-anchor="start">' + X(nombre) + "</text>");
+  });
+
+  G.ordenRamas.forEach(function(nombre){
+    var r = G.ramas[nombre];
+    if(!r.origenRama || !r.origenCommit) return;
+    var primerCommit = null, k2;
+    for(k2 = 0; k2 < G.commits.length; k2++){ if(G.commits[k2].rama === nombre){ primerCommit = G.commits[k2]; break; } }
+    if(!primerCommit) return;
+    var cOrigen = buscarCommit(r.origenCommit);
+    if(!cOrigen) return;
+    partes.push(curvaGit(pos(r.origenRama, cOrigen.x), pos(nombre, primerCommit.x), colorRama(nombre)));
+  });
+
+  G.ordenRamas.forEach(function(nombre){
+    var previo = null;
+    G.commits.forEach(function(c){
+      if(c.rama !== nombre) return;
+      if(previo){
+        var p0 = pos(nombre, previo.x), p1 = pos(nombre, c.x);
+        partes.push('<line x1="' + r2(p0.x) + '" y1="' + r2(p0.y) + '" x2="' + r2(p1.x) + '" y2="' + r2(p1.y) + '" stroke="' + colorRama(nombre) + '" stroke-width="2.4"/>');
+      }
+      previo = c;
+    });
+  });
+
+  G.commits.forEach(function(c){
+    if(!c.fusionDe) return;
+    var cOrigen = buscarCommit(c.fusionDe);
+    if(!cOrigen) return;
+    partes.push(curvaGit(pos(cOrigen.rama, cOrigen.x), pos(c.rama, c.x), colorRama(cOrigen.rama)));
+  });
+
+  G.commits.forEach(function(c){
+    var p = pos(c.rama, c.x), color = colorRama(c.rama);
+    if(c.tipo === "HIGHLIGHT"){
+      partes.push('<rect x="' + r2(p.x - R) + '" y="' + r2(p.y - R) + '" width="' + (R * 2) + '" height="' + (R * 2) +
+                  '" rx="3" fill="' + color + '" stroke="var(--dia-fondo)" stroke-width="2" transform="rotate(45 ' + r2(p.x) + " " + r2(p.y) + ')"/>');
+    }else if(c.fusionDe){
+      partes.push('<circle cx="' + r2(p.x) + '" cy="' + r2(p.y) + '" r="' + (R + 2) + '" fill="' + color + '" stroke="var(--dia-fondo)" stroke-width="2.5"/>');
+      partes.push('<circle cx="' + r2(p.x) + '" cy="' + r2(p.y) + '" r="3.5" fill="var(--dia-fondo)"/>');
+    }else{
+      partes.push('<circle cx="' + r2(p.x) + '" cy="' + r2(p.y) + '" r="' + R + '" fill="' + color + '" stroke="var(--dia-fondo)" stroke-width="2"/>');
+    }
+    if(c.etiqueta){
+      var aw = medir(c.etiqueta, 10.5) + 12;
+      partes.push('<rect x="' + r2(p.x - aw / 2) + '" y="' + r2(p.y - R - 22) + '" width="' + r2(aw) + '" height="16" rx="8" fill="' + color + '"/>');
+      partes.push('<text x="' + r2(p.x) + '" y="' + r2(p.y - R - 10) + '" font-size="10.5" text-anchor="middle" fill="#fff">' + X(c.etiqueta) + "</text>");
+    }
+  });
+
+  return envolver("gg" + (++nDiagramas), ancho, alto, partes.join("\n"), "Diagrama de ramas de git");
+}
+
+/* ---------- sankey: columnas por rango + cintas de ancho proporcional ---------- */
+function partirCSVSankey(L){
+  var out = [], cur = "", enComillas = false, i;
+  for(i = 0; i < L.length; i++){
+    var c = L.charAt(i);
+    if(c === "'"){ enComillas = !enComillas; continue; }
+    if(c === "," && !enComillas){ out.push(cur); cur = ""; continue; }
+    cur += c;
+  }
+  out.push(cur);
+  return out;
+}
+function analizarSankey(texto){
+  var lineas = String(texto).replace(/\r\n?/g, "\n").split("\n"), i, L, enlaces = [];
+  for(i = 0; i < lineas.length; i++){
+    L = lineas[i];
+    var Lt = L.trim();
+    if(!Lt || /^sankey(-beta)?\b/i.test(Lt) || /^%%/.test(Lt)) continue;
+    var campos = partirCSVSankey(L);
+    if(campos.length < 3) continue;
+    var valor = parseFloat(campos[2]);
+    var origen = campos[0].trim(), destino = campos[1].trim();
+    if(!isFinite(valor) || valor <= 0 || !origen || !destino) continue;
+    enlaces.push({ origen: origen, destino: destino, valor: valor });
+  }
+  return enlaces;
+}
+function dibujarSankey(texto){
+  var enlaces = analizarSankey(texto);
+  if(!enlaces.length) return null;
+
+  var nodos = {}, orden = [];
+  function nodo(id){
+    if(!nodos[id]){ nodos[id] = { id: id, entra: [], sale: [], rango: 0 }; orden.push(id); }
+    return nodos[id];
+  }
+  enlaces.forEach(function(e){ nodo(e.origen).sale.push(e); nodo(e.destino).entra.push(e); });
+
+  var cambio = true, vueltas = 0;
+  while(cambio && vueltas++ < orden.length + 4){
+    cambio = false;
+    enlaces.forEach(function(e){
+      if(nodos[e.destino].rango < nodos[e.origen].rango + 1){ nodos[e.destino].rango = nodos[e.origen].rango + 1; cambio = true; }
+    });
+  }
+
+  var columnas = [];
+  orden.forEach(function(id){ var r = nodos[id].rango; (columnas[r] = columnas[r] || []).push(id); });
+  for(var ci = 0; ci < columnas.length; ci++) if(!columnas[ci]) columnas[ci] = [];
+
+  orden.forEach(function(id){
+    var n = nodos[id];
+    var sEntra = n.entra.reduce(function(s, e){ return s + e.valor; }, 0);
+    var sSale = n.sale.reduce(function(s, e){ return s + e.valor; }, 0);
+    n.valor = Math.max(sEntra, sSale) || 1;
+  });
+
+  var ALTO_UTIL = 420, ANCHO_COL = 190, ANCHO_BARRA = 18, GAP = 10, PAD_IZQ = 10, mArriba = 20;
+  var escala = Infinity;
+  columnas.forEach(function(col){
+    var suma = 0; col.forEach(function(id){ suma += nodos[id].valor; });
+    if(suma <= 0) return;
+    var disponible = ALTO_UTIL - GAP * Math.max(0, col.length - 1);
+    escala = Math.min(escala, disponible / suma);
+  });
+  if(!isFinite(escala) || escala <= 0) escala = 1;
+
+  columnas.forEach(function(col){
+    var y = mArriba;
+    col.forEach(function(id){
+      var n = nodos[id];
+      n.alto = Math.max(2, n.valor * escala);
+      n.y = y;
+      y += n.alto + GAP;
+    });
+  });
+
+  orden.forEach(function(id){
+    var n = nodos[id], curS = n.y, curE = n.y;
+    n.sale.forEach(function(e){
+      var h = Math.max(1, e.valor * escala);
+      e._y0O = curS; e._y1O = curS + h; curS += h;
+    });
+    n.entra.forEach(function(e){
+      var h = Math.max(1, e.valor * escala);
+      e._y0D = curE; e._y1D = curE + h; curE += h;
+    });
+  });
+
+  var colorPorNodo = {};
+  orden.forEach(function(id, k){ colorPorNodo[id] = COLORES_TARTA[k % COLORES_TARTA.length]; });
+
+  var maxRango = columnas.length - 1, anchoEtiquetaMax = 0;
+  orden.forEach(function(id){
+    var n = nodos[id];
+    n._etiqueta = id + " (" + (Math.round(n.valor * 100) / 100) + ")";
+    anchoEtiquetaMax = Math.max(anchoEtiquetaMax, medir(n._etiqueta, 11.5) + 12);
+  });
+  var ancho = PAD_IZQ + maxRango * ANCHO_COL + ANCHO_BARRA + anchoEtiquetaMax + 10;
+  var alto = mArriba + ALTO_UTIL + 20;
+
+  var partes = [];
+  enlaces.forEach(function(e){
+    var nO = nodos[e.origen], nD = nodos[e.destino];
+    var x0 = PAD_IZQ + nO.rango * ANCHO_COL + ANCHO_BARRA, x1 = PAD_IZQ + nD.rango * ANCHO_COL;
+    var mx = (x0 + x1) / 2;
+    var d = "M" + r2(x0) + "," + r2(e._y0O) +
+            " C" + r2(mx) + "," + r2(e._y0O) + " " + r2(mx) + "," + r2(e._y0D) + " " + r2(x1) + "," + r2(e._y0D) +
+            " L" + r2(x1) + "," + r2(e._y1D) +
+            " C" + r2(mx) + "," + r2(e._y1D) + " " + r2(mx) + "," + r2(e._y1O) + " " + r2(x0) + "," + r2(e._y1O) + " z";
+    partes.push('<path d="' + d + '" fill="' + colorPorNodo[e.origen] + '" opacity="0.38" stroke="none"/>');
+  });
+  orden.forEach(function(id){
+    var n = nodos[id], x = PAD_IZQ + n.rango * ANCHO_COL, esUltima = n.rango === maxRango;
+    partes.push('<rect x="' + r2(x) + '" y="' + r2(n.y) + '" width="' + ANCHO_BARRA + '" height="' + r2(n.alto) + '" fill="' + colorPorNodo[id] + '"/>');
+    var lx = esUltima ? x - 8 : x + ANCHO_BARRA + 8;
+    partes.push('<text x="' + r2(lx) + '" y="' + r2(n.y + n.alto / 2 + 4) + '" font-size="11.5" text-anchor="' +
+                (esUltima ? "end" : "start") + '" fill="var(--dia-texto)">' + X(n._etiqueta) + "</text>");
+  });
+
+  return envolver("sk" + (++nDiagramas), ancho, alto, partes.join("\n"), "Diagrama de flujo Sankey");
+}
+
 /* ---------- puerta de entrada ---------- */
 function dibujarDiagrama(texto){
   var t = String(texto == null ? "" : texto).replace(/\r\n?/g, "\n");
@@ -4367,6 +5122,12 @@ function dibujarDiagrama(texto){
     if(/^classDiagram(?:-v2)?\b/i.test(cab)) return dibujarClases(t);
     if(/^erDiagram\b/i.test(cab)) return dibujarER(t);
     if(/^mindmap\b/i.test(cab)) return dibujarMapa(t);
+    if(/^C4\w*\b/i.test(cab)) return dibujarC4(t);
+    if(/^quadrantChart\b/i.test(cab)) return dibujarQuadrant(t);
+    if(/^timeline\b/i.test(cab)) return dibujarTimeline(t);
+    if(/^journey\b/i.test(cab)) return dibujarJourney(t);
+    if(/^gitGraph\b/i.test(cab)) return dibujarGitGraph(t);
+    if(/^sankey(-beta)?\b/i.test(cab)) return dibujarSankey(t);
   }catch(e){ return null; }
   return null;
 }
@@ -9273,6 +10034,11 @@ function mdAHtml(fuente){
       });
     }
 
+    /* formulas entre \( \): estilo de Claude.ai */
+    if(meta.matematicas !== "no"){
+      t = t.replace(/\\\(([^\n]+?)\\\)/g, function(m, cuerpo){ return g(formula(cuerpo, false)); });
+    }
+
     /* caracteres escapados con barra invertida */
     t = t.replace(/\\([\\`*_{}\[\]()<>#+\-.!|~^=$:@\/"'])/g, function(m, c){ return g(esc(c)); });
 
@@ -9541,6 +10307,34 @@ function mdAHtml(fuente){
         }
       }
 
+      /* formula suelta entre \[ \]: estilo de Claude.ai */
+      if(meta.matematicas !== "no" && /^ {0,3}\\\[/.test(L)){
+        var restoC = L.replace(/^ {0,3}\\\[/, ""), bufC = [];
+        var cerradaC = /\\\][ \t]*$/.test(restoC) && restoC.replace(/\\\][ \t]*$/, "").trim() !== "";
+        if(cerradaC){
+          bufC.push(restoC.replace(/\\\][ \t]*$/, ""));
+          i++;
+        }else{
+          if(restoC.trim()) bufC.push(restoC);
+          i++;
+          while(i < ls.length){
+            if(/\\\][ \t]*$/.test(ls[i])){
+              var colaC = ls[i].replace(/\\\][ \t]*$/, "");
+              if(colaC.trim()) bufC.push(colaC);
+              i++;
+              cerradaC = true;
+              break;
+            }
+            bufC.push(ls[i]);
+            i++;
+          }
+        }
+        if(cerradaC || bufC.length){
+          apunta('<div class="formula-caja no-romper">' + formula(bufC.join("\n").trim(), true) + "</div>");
+          continue;
+        }
+      }
+
       /* bloque de codigo con vallas */
       m = L.match(RE_VALLA);
       if(m && (m[2].length >= 3)){
@@ -9618,8 +10412,8 @@ function mdAHtml(fuente){
         if(etiqueta === "mermaid" || etiqueta === "diagrama" || etiqueta === "grafico" || etiqueta === "gr\u00e1fico"){
           var svg = dibujarDiagrama(codigo);
           if(svg){
-            apunta('<figure class="diagrama no-romper" translate="no">' + svg +
-                     '<button type="button" class="ver-codigo no-print" aria-expanded="false">c\u00f3digo</button>' +
+            apunta('<figure class="diagrama no-romper" translate="no" tabindex="0" role="button" ' +
+                     'aria-label="Ampliar diagrama a pantalla completa">' + svg +
                      '<pre class="diagrama-fuente" hidden><code>' + esc(codigo) + "</code></pre></figure>");
             continue;
           }
@@ -11435,18 +12229,252 @@ document.addEventListener("visibilitychange", function(){ if(document.hidden && 
 
 function prepararDiagramas(){
   Array.prototype.forEach.call(elDoc.querySelectorAll("figure.diagrama"), function(fig){
-    var boton = fig.querySelector(".ver-codigo"), fuente = fig.querySelector(".diagrama-fuente");
-    if(!boton || !fuente || boton.dataset.listo) return;
-    boton.dataset.listo = "1";
-    boton.addEventListener("click", function(){
-      var abierto = !fuente.hidden;
-      fuente.hidden = abierto;
-      boton.setAttribute("aria-expanded", String(!abierto));
-      boton.textContent = abierto ? "c\u00f3digo" : "dibujo";
-      boton.style.opacity = abierto ? "" : "1";
+    if(fig.dataset.listo) return;
+    fig.dataset.listo = "1";
+    fig.addEventListener("click", function(){ abrirDiagramaAmpliado(fig); });
+    fig.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); abrirDiagramaAmpliado(fig); }
     });
   });
 }
+
+/* ==========================================================================
+   DIAGRAMA AMPLIADO
+   Tocar o hacer clic en un diagrama (mermaid/diagrama/grafico) lo abre a
+   pantalla completa: ahi se puede girar 90\u00b0 (un diagrama angosto y horizontal
+   se ve minusculo en su tama\u00f1o normal; girado usa el lado largo de la
+   pantalla), anotar encima a mano libre (efimero, no se guarda en el
+   documento -- es para se\u00f1alar mientras se explica, no para dibujar), ver el
+   c\u00f3digo fuente, abrirlo solo en una ventana nueva o imprimirlo/pasarlo a PDF
+   sin el resto del documento alrededor.
+   ========================================================================== */
+var DIAG_AMP = null;          // {fig, girado, lapiz, color, borrador}
+var diagAmpTrazoEnCurso = null;
+
+/* dos copias del mismo diagrama (la chica en el documento y esta ampliada)
+   no pueden compartir los id= de sus <marker> (flechas, circulos...): aunque
+   sean id iguales por diagrama, tener el mismo id dos veces en el documento
+   es invalido -- se le agrega un sufijo a la copia ampliada y se corrigen sus
+   propios url(#...) para que sigan apuntando a sus propios <marker>. */
+function diagAmpIdsUnicos(html, sufijo){
+  var ids = {};
+  html = html.replace(/\bid="([^"]+)"/g, function(m, id){ ids[id] = id + sufijo; return 'id="' + ids[id] + '"'; });
+  html = html.replace(/url\(#([^)]+)\)/g, function(m, id){ return ids[id] ? "url(#" + ids[id] + ")" : m; });
+  return html;
+}
+
+/* recalcula el tama\u00f1o del svg (a partir de su ancho/alto naturales) para que
+   entre en el hueco disponible -- intercambiando ancho y alto del hueco
+   cuando esta girado, ya que rotate() no cambia el flujo/layout, solo lo que
+   se ve. */
+function diagAmpAjustar(){
+  if(!DIAG_AMP || $("#veloDiagrama").hidden) return;
+  var env = $("#diagAmpEnvoltorio"), svg = env.querySelector("svg");
+  var lienzo = $("#diagAmpLienzo"), r = lienzo.getBoundingClientRect();
+  if(svg){
+    var natW = parseFloat(svg.getAttribute("width")) || 1, natH = parseFloat(svg.getAttribute("height")) || 1;
+    var PAD = 24;
+    var cajaW = Math.max(1, r.width - PAD * 2), cajaH = Math.max(1, r.height - PAD * 2);
+    var boxW = DIAG_AMP.girado ? cajaH : cajaW, boxH = DIAG_AMP.girado ? cajaW : cajaH;
+    var escala = Math.min(boxW / natW, boxH / natH, 4);
+    svg.style.width = (natW * escala) + "px";
+    svg.style.height = (natH * escala) + "px";
+  }
+  env.style.transform = DIAG_AMP.girado ? "rotate(90deg)" : "";
+  $("#diagAmpLapizSvg").setAttribute("viewBox", "0 0 " + r.width + " " + r.height);
+}
+window.addEventListener("resize", function(){ if(DIAG_AMP) diagAmpAjustar(); });
+
+function abrirDiagramaAmpliado(fig){
+  var svgOriginal = fig.querySelector("svg.diagrama-svg");
+  if(!svgOriginal) return;
+  var fuente = fig.querySelector(".diagrama-fuente code");
+  DIAG_AMP = { fig: fig, girado: false, lapiz: false, color: "#e5484d", borrador: false };
+  $("#diagAmpEnvoltorio").innerHTML = diagAmpIdsUnicos(svgOriginal.outerHTML, "-amp");
+  $("#diagAmpEnvoltorio").style.transform = "";
+  $("#diagAmpLapizSvg").innerHTML = "";
+  $("#diagAmpLapizSvg").classList.remove("activo", "borrador");
+  $("#tituloDiagAmp").textContent = svgOriginal.getAttribute("aria-label") || "Diagrama";
+  $("#diagAmpFuenteCodigo").textContent = fuente ? fuente.textContent : "";
+  $("#diagAmpFuente").hidden = true;
+  $("#diagAmpCodigo").setAttribute("aria-expanded", "false");
+  $("#diagAmpLapiz").setAttribute("aria-pressed", "false");
+  $("#diagAmpBorrador").setAttribute("aria-pressed", "false");
+  $("#diagAmpColores").hidden = true;
+  $("#diagAmpImpPanel").hidden = true;
+  $("#diagAmpImpVista").innerHTML = "";
+  $("#diagAmpLienzo").hidden = false;
+  $("#veloDiagrama").hidden = false;
+  requestAnimationFrame(diagAmpAjustar);
+  $("#diagAmpCerrar").focus();
+}
+
+function cerrarDiagramaAmpliado(){
+  if(!DIAG_AMP) return;
+  var fig = DIAG_AMP.fig;
+  $("#veloDiagrama").hidden = true;
+  $("#diagAmpEnvoltorio").innerHTML = "";
+  $("#diagAmpLapizSvg").innerHTML = "";
+  $("#diagAmpImpVista").innerHTML = "";
+  DIAG_AMP = null;
+  if(fig && fig.focus) fig.focus();
+}
+
+function diagAmpGirar(){
+  if(!DIAG_AMP) return;
+  DIAG_AMP.girado = !DIAG_AMP.girado;
+  diagAmpAjustar();
+}
+
+function diagAmpAlternarCodigo(){
+  var abierto = !$("#diagAmpFuente").hidden;
+  $("#diagAmpFuente").hidden = abierto;
+  $("#diagAmpCodigo").setAttribute("aria-expanded", String(!abierto));
+  requestAnimationFrame(diagAmpAjustar);
+}
+
+function diagAmpLapizPoner(activo){
+  if(!DIAG_AMP) return;
+  DIAG_AMP.lapiz = activo;
+  $("#diagAmpLapizSvg").classList.toggle("activo", activo);
+  $("#diagAmpLapiz").setAttribute("aria-pressed", String(activo));
+  $("#diagAmpColores").hidden = !activo;
+}
+
+function diagAmpColor(c){
+  if(!DIAG_AMP) return;
+  DIAG_AMP.color = c;
+  Array.prototype.forEach.call(document.querySelectorAll("#diagAmpColores .diag-amp-color"), function(b){
+    b.classList.toggle("activo", b.getAttribute("data-color") === c);
+  });
+}
+
+function diagAmpBorradorPoner(activo){
+  if(!DIAG_AMP) return;
+  DIAG_AMP.borrador = activo;
+  $("#diagAmpBorrador").setAttribute("aria-pressed", String(activo));
+  $("#diagAmpLapizSvg").classList.toggle("borrador", activo);
+}
+
+function diagAmpLimpiar(){
+  $("#diagAmpLapizSvg").innerHTML = "";
+}
+
+function diagAmpPunteroAbajo(e){
+  if(!DIAG_AMP || !DIAG_AMP.lapiz) return;
+  var svg = $("#diagAmpLapizSvg"), r = svg.getBoundingClientRect();
+  var x = e.clientX - r.left, y = e.clientY - r.top;
+  if(DIAG_AMP.borrador){
+    var t = e.target.closest ? e.target.closest(".diag-amp-trazo") : null;
+    if(t && t.parentNode === svg) t.parentNode.removeChild(t);
+    return;
+  }
+  var p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("class", "diag-amp-trazo");
+  p.setAttribute("fill", "none");
+  p.setAttribute("stroke", DIAG_AMP.color);
+  p.setAttribute("stroke-width", "3");
+  p.setAttribute("stroke-linecap", "round");
+  p.setAttribute("stroke-linejoin", "round");
+  var d = "M" + x.toFixed(1) + "," + y.toFixed(1);
+  p.setAttribute("d", d);
+  svg.appendChild(p);
+  diagAmpTrazoEnCurso = { el: p, d: d };
+  if(svg.setPointerCapture && e.pointerId != null) svg.setPointerCapture(e.pointerId);
+}
+function diagAmpPunteroMueve(e){
+  if(!diagAmpTrazoEnCurso) return;
+  var svg = $("#diagAmpLapizSvg"), r = svg.getBoundingClientRect();
+  var x = e.clientX - r.left, y = e.clientY - r.top;
+  diagAmpTrazoEnCurso.d += " L" + x.toFixed(1) + "," + y.toFixed(1);
+  diagAmpTrazoEnCurso.el.setAttribute("d", diagAmpTrazoEnCurso.d);
+}
+function diagAmpSoltarPuntero(){
+  diagAmpTrazoEnCurso = null;
+}
+
+/* ventana nueva / imprimir: documento minimo con solo el svg del diagrama,
+   sin las anotaciones a mano (son para mirar en pantalla, no para el papel)
+   y sin ancho/alto fijos, para que ocupe toda la hoja o toda la ventana. */
+function diagAmpDocumentoHTML(){
+  var svg = $("#diagAmpEnvoltorio svg");
+  var titulo = $("#tituloDiagAmp").textContent || "Diagrama";
+  return "<!doctype html><html><head><meta charset=\"utf-8\"><title>" + X(titulo) + "</title>" +
+    "<style>html,body{margin:0;padding:0;background:#fff}" +
+    "body{display:flex;align-items:center;justify-content:center;min-height:100vh}" +
+    "svg{max-width:100vw;max-height:100vh;width:auto;height:auto}</style></head><body>" +
+    (svg ? svg.outerHTML.replace(/\s(width|height)="[^"]*"/g, "") : "") +
+    "</body></html>";
+}
+function diagAmpAbrirVentana(){
+  var w = window.open("", "_blank");
+  if(!w){ aviso("El navegador bloque\u00f3 la ventana nueva. Permit\u00ed las ventanas emergentes para este sitio."); return; }
+  w.document.write(diagAmpDocumentoHTML());
+  w.document.close();
+}
+
+/* imprimir, con elegir hoja/orientacion/tama\u00f1o y ver antes como queda: mismo
+   mecanismo que el poster de GPX (gpxPosterImprimirAhora) -- un <style> con
+   @page inyectado a mano, una clase en <body> que esconde #doc, y la vista
+   previa es literalmente el mismo DOM que despues se imprime (no hay un
+   segundo documento aparte que se pueda desincronizar del primero). */
+var DIAG_AMP_TAMANOS = { ajustar: 100, grande: 80, mediano: 55, chico: 32 };
+function diagAmpPapelDims(papel){
+  var partes = (PAPELES[papel] || PAPELES.carta).split(" ");
+  return { w: parseFloat(partes[0]), h: parseFloat(partes[1]) };
+}
+function diagAmpImprimir(){
+  if(!DIAG_AMP) return;
+  $("#diagAmpFuente").hidden = true;
+  $("#diagAmpCodigo").setAttribute("aria-expanded", "false");
+  $("#diagAmpLienzo").hidden = true;
+  var svg = $("#diagAmpEnvoltorio svg");
+  if(svg){
+    var natW = parseFloat(svg.getAttribute("width")) || 1, natH = parseFloat(svg.getAttribute("height")) || 1;
+    $("#diagAmpOrientacion").value = natW >= natH ? "horizontal" : "vertical";
+  }
+  $("#diagAmpImpPanel").hidden = false;
+  diagAmpImpActualizar();
+}
+function diagAmpImpVolver(){
+  $("#diagAmpImpPanel").hidden = true;
+  $("#diagAmpImpVista").innerHTML = "";
+  $("#diagAmpLienzo").hidden = false;
+  requestAnimationFrame(diagAmpAjustar);
+}
+function diagAmpImpActualizar(){
+  var svg = $("#diagAmpEnvoltorio svg");
+  if(!svg) return;
+  var horizontal = $("#diagAmpOrientacion").value === "horizontal";
+  var dims = diagAmpPapelDims($("#diagAmpPapel").value);
+  var w = horizontal ? dims.h : dims.w, h = horizontal ? dims.w : dims.h;
+  var pct = DIAG_AMP_TAMANOS[$("#diagAmpTamanoHoja").value] || 100;
+  var svgLimpio = diagAmpIdsUnicos(svg.outerHTML, "-imp").replace(/\s(width|height)="[^"]*"/g, "");
+  $("#diagAmpImpVista").innerHTML =
+    '<div class="diag-amp-hoja" style="aspect-ratio:' + w + "/" + h + '">' +
+      '<div class="diag-amp-hoja-contenido" style="width:' + pct + "%; height:" + pct + '%">' + svgLimpio + "</div>" +
+    "</div>";
+}
+function diagAmpImpConfirmar(){
+  var papel = PAPELES[$("#diagAmpPapel").value] || PAPELES.carta;
+  var horizontal = $("#diagAmpOrientacion").value === "horizontal";
+  var partes = papel.split(" ");
+  var size = horizontal ? (partes[1] + " " + partes[0]) : papel;
+  var estilo = document.getElementById("diagAmpTamanoPagina") || document.createElement("style");
+  estilo.id = "diagAmpTamanoPagina";
+  estilo.textContent = "@page{ size:" + size + "; margin:0 }";
+  document.head.appendChild(estilo);
+  $("#veloDiagrama").classList.add("imprimir-activo");
+  document.body.classList.add("diagrama-imprimir-abierto");
+  window.print();
+}
+window.addEventListener("afterprint", function(){
+  var estilo = document.getElementById("diagAmpTamanoPagina");
+  if(estilo && estilo.parentNode) estilo.parentNode.removeChild(estilo);
+  $("#veloDiagrama").classList.remove("imprimir-activo");
+  document.body.classList.remove("diagrama-imprimir-abierto");
+  if(DIAG_AMP) diagAmpImpVolver();
+});
 
 /* bloques gpx: zoom/paneo del viewBox con Pointer Events (mismo mecanismo
    para mouse, dedo y stylus) y click en un waypoint resalta su nota abajo. */
@@ -13794,7 +14822,7 @@ function moldeDeLaFoto(){
      del simulador (velocimetro, carrito, la barra .gpx-sim) hay que
      sacarlos del DOM del clon a mano, si no la foto queda con el auto
      congelado a mitad de ruta y la aguja del velocimetro en cualquier lado. */
-  Array.prototype.forEach.call(caja.querySelectorAll(".no-print, .copiar, .anclaje, .ver-codigo, .diagrama-fuente, " +
+  Array.prototype.forEach.call(caja.querySelectorAll(".no-print, .copiar, .anclaje, .diagrama-fuente, " +
     ".gpx-sim, .gpx-velocimetro, .gpx-carrito, .gpx-carrito-perfil, .gpx-carrito3d-asta, .gpx-carrito3d-cuerpo, .gpx-carrito-cuerpo, " +
     ".gpx-contexto, .gpx-boton-camara2d"),
     function(x){ if(x.parentNode) x.parentNode.removeChild(x); });
@@ -18395,6 +19423,27 @@ $("#posterCerrar").addEventListener("click", gpxCerrarImprimirPoster);
 $("#posterCancelar").addEventListener("click", gpxCerrarImprimirPoster);
 $("#posterImprimir").addEventListener("click", function(e){ if(e.target === this) gpxCerrarImprimirPoster(); });
 $("#posterImprimirBoton").addEventListener("click", gpxPosterConfirmarImprimir);
+$("#diagAmpCerrar").addEventListener("click", cerrarDiagramaAmpliado);
+$("#veloDiagrama").addEventListener("click", function(e){ if(e.target === this) cerrarDiagramaAmpliado(); });
+$("#diagAmpGirar").addEventListener("click", diagAmpGirar);
+$("#diagAmpCodigo").addEventListener("click", diagAmpAlternarCodigo);
+$("#diagAmpLapiz").addEventListener("click", function(){ diagAmpLapizPoner(!DIAG_AMP.lapiz); });
+$("#diagAmpBorrador").addEventListener("click", function(){ diagAmpBorradorPoner(!DIAG_AMP.borrador); });
+$("#diagAmpLimpiar").addEventListener("click", diagAmpLimpiar);
+$("#diagAmpVentana").addEventListener("click", diagAmpAbrirVentana);
+$("#diagAmpImprimir").addEventListener("click", diagAmpImprimir);
+$("#diagAmpPapel").addEventListener("change", diagAmpImpActualizar);
+$("#diagAmpOrientacion").addEventListener("change", diagAmpImpActualizar);
+$("#diagAmpTamanoHoja").addEventListener("change", diagAmpImpActualizar);
+$("#diagAmpImpVolver").addEventListener("click", diagAmpImpVolver);
+$("#diagAmpImpConfirmar").addEventListener("click", diagAmpImpConfirmar);
+Array.prototype.forEach.call(document.querySelectorAll("#diagAmpColores .diag-amp-color"), function(b){
+  b.addEventListener("click", function(){ diagAmpColor(b.getAttribute("data-color")); });
+});
+$("#diagAmpLapizSvg").addEventListener("pointerdown", diagAmpPunteroAbajo);
+$("#diagAmpLapizSvg").addEventListener("pointermove", diagAmpPunteroMueve);
+$("#diagAmpLapizSvg").addEventListener("pointerup", diagAmpSoltarPuntero);
+$("#diagAmpLapizSvg").addEventListener("pointercancel", diagAmpSoltarPuntero);
 $("#btnDescargar").addEventListener("click", menuDescargar);
 $("#btnCompartir").addEventListener("click", menuCompartir);
 $("#btnCuenta").addEventListener("click", menuCuenta);
@@ -18557,7 +19606,9 @@ document.addEventListener("keydown", function(e){
     e.preventDefault(); bsAbrir(); $("#bsCambio").focus();
   }
   else if(e.key === "Escape"){
-    if(!$("#velo2").hidden){ cerrarChico(); }
+    if(!$("#veloDiagrama").hidden && !$("#diagAmpImpPanel").hidden){ diagAmpImpVolver(); }
+    else if(!$("#veloDiagrama").hidden){ cerrarDiagramaAmpliado(); }
+    else if(!$("#velo2").hidden){ cerrarChico(); }
     else if(!$("#velo").hidden){ cerrarGaleria(); }
     else if(!$("#buscador").hidden){ bsCerrarCaja(); }
     else if(!$("#menuTres").hidden){ cerrarMenuTres(); }
