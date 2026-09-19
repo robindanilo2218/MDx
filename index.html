@@ -12340,7 +12340,7 @@ function diagAmpDistanciaPunteros(){
 }
 function diagAmpPunteroBajaLienzo(e){
   if(!DIAG_AMP || DIAG_AMP.lapiz) return;
-  $("#diagAmpLienzo").setPointerCapture(e.pointerId);
+  try{ $("#diagAmpLienzo").setPointerCapture(e.pointerId); }catch(err){}
   diagAmpPunteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
   $("#diagAmpLienzo").classList.add("arrastrando");
   $("#diagAmpEnvoltorio").classList.add("sin-transicion");
