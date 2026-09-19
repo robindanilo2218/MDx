@@ -637,7 +637,8 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
   position:absolute; inset:var(--dia-pad-v) var(--dia-pad-h); margin:0; border:none; background:none; pointer-events:none;
 }
 #diapositivas .dia-cuerpo .pizarra-viewer .pizarra-svg{ background:transparent }
-#diapositivas .dia-cuerpo .pizarra-viewer .pizarra-boton-editar{ display:none }
+#diapositivas .dia-cuerpo .pizarra-viewer .pizarra-boton-editar,
+#diapositivas .dia-cuerpo .pizarra-viewer .pizarra-boton-ventana{ display:none }
 #diapositivas .dia-cuerpo .pizarra-viewer::before{ display:none }
 @media (prefers-reduced-motion:no-preference){
   #diapositivas .dia-cuerpo > div{ animation:dia-entra .25s ease-out }
@@ -1676,7 +1677,8 @@ g.pizarra-trazo[data-tipo="texto"] text{stroke:none; font-family:inherit; white-
 .pizarra-seleccion-caja{fill:transparent; stroke:var(--acento); stroke-width:1.5; stroke-dasharray:6 4; cursor:move}
 .pizarra-asa{fill:var(--papel); stroke:var(--acento); stroke-width:1.5; cursor:nwse-resize}
 .pizarra-asa[data-asa="ne"], .pizarra-asa[data-asa="sw"]{cursor:nesw-resize}
-.pizarra-boton-editar{margin-top:.6rem; padding:.45rem 1rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.88em; cursor:pointer}
+.pizarra-boton-editar, .pizarra-boton-ventana{margin-top:.6rem; padding:.45rem 1rem; border:1px solid var(--borde); border-radius:.4rem; background:var(--papel); color:var(--texto); font-size:.88em; cursor:pointer}
+.pizarra-boton-ventana{margin-left:.4rem}
 .pizarra-barra{margin-top:.6rem; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap}
 .pizarra-barra input[type="color"]{width:2.2rem; height:2.2rem; padding:0; border:1px solid var(--borde); border-radius:.4rem; background:none; cursor:pointer}
 .pizarra-barra input[type="range"]{width:7rem}
@@ -1822,7 +1824,7 @@ math mo{font-family:inherit}
   .gpx-previa-img{display:none}
   .gpx-captura-controles, .gpx-boton-calibrar, .gpx-boton-cancelar-calibracion{display:none}
   .pizarra-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
-  .pizarra-boton-editar, .pizarra-barra, .pizarra-viewer::before{display:none}
+  .pizarra-boton-editar, .pizarra-boton-ventana, .pizarra-barra, .pizarra-viewer::before{display:none}
   figure.svg-viewer, .plano-viewer, .iso-viewer, .tresd-viewer, .verdad-viewer, .ladder-viewer{border:1px solid #ccc; break-inside:avoid; page-break-inside:avoid}
   .tresd-svg{height:320px}
   .formula-caja{break-inside:avoid; page-break-inside:avoid}
@@ -2881,8 +2883,28 @@ var FORMAS = [
   { a: "(",   c: [")"],   f: "redondo" },
   { a: "{",   c: ["}"],   f: "rombo" }
 ];
+/* alternativa legible a los doce símbolos de arriba: "[Texto: forma]" en vez
+   de tener que recordar que "[(x)]" es cilindro o "(((x)))" círculo doble.
+   Los símbolos siguen intactos (documentos existentes y lo que exporta
+   cualquier editor de Mermaid real siguen andando igual). */
+var FORMAS_NOMBRE = {
+  rect: "rect", rectangulo: "rect", redondo: "redondo", redondeado: "redondo",
+  rombo: "rombo", circulo: "circulo", "circulo-doble": "circulo2", circulo2: "circulo2",
+  hexagono: "hexagono", cilindro: "cilindro", estadio: "estadio", subrutina: "subrutina",
+  bandera: "bandera", paralelogramo: "paralelogramo", paralelogramo2: "paralelogramo2",
+  trapecio: "trapecio", trapecio2: "trapecio2"
+};
+var RE_FORMA_SUFIJO = /^\[\s*([^\]]*?)\s*:\s*([a-záéíóúñ0-9-]+)\s*\]/i;
 
 function casarForma(L, j){
+  /* comillas justo despues del "[" == texto literal, sin interpretar ":forma"
+     (escape hatch para un nodo que de casualidad tenga dos puntos en el texto) */
+  if(L.charAt(j) === "[" && L.charAt(j + 1) !== '"'){
+    var sufijo = RE_FORMA_SUFIJO.exec(L.slice(j));
+    if(sufijo && FORMAS_NOMBRE[sufijo[2].toLowerCase()]){
+      return { texto: sufijo[1], forma: FORMAS_NOMBRE[sufijo[2].toLowerCase()], fin: j + sufijo[0].length };
+    }
+  }
   for(var k = 0; k < FORMAS.length; k++){
     var F = FORMAS[k];
     if(L.substr(j, F.a.length) !== F.a) continue;
@@ -3002,6 +3024,19 @@ function analizarFlujo(texto, esEstado){
 
     var me = L.match(/^style\s+([A-Za-z0-9_À-ɏ]+)\s+(.*)$/i);
     if(me){ G.estilos[me[1]] = leerEstilo(me[2]); continue; }
+    /* alternativa a "style X fill:#f00,stroke:#333,stroke-width:2px": nombre
+       en español en vez de propiedades CSS sueltas. "color" a secas no sirve
+       de nombre porque leerEstilo() ya usa esa palabra para el color de TEXTO
+       dentro de style/classDef -- por eso "relleno", que además coincide con
+       el campo interno que ya arma leerEstilo(). */
+    var mr = L.match(/^relleno\s+([A-Za-z0-9_À-ɏ]+)\s+([^,]+)(?:\s*,\s*([^,]+))?(?:\s*,\s*(grueso|fino))?\s*$/i);
+    if(mr){
+      var estR = { relleno: mr[2].trim() };
+      if(mr[3]) estR.borde = mr[3].trim();
+      if(mr[4]) estR.grosor = mr[4].toLowerCase() === "grueso" ? 3 : 0.75;
+      G.estilos[mr[1]] = estR;
+      continue;
+    }
     var mcd = L.match(/^classDef\s+([A-Za-z0-9_,À-ɏ]+)\s+(.*)$/i);
     if(mcd){
       var est = leerEstilo(mcd[2]);
@@ -3914,9 +3949,25 @@ function fechaMs(s){
     return Date.UTC(+m[3], +m[2] - 1, +m[1]);
   return NaN;
 }
+/* unidades de una letra tomadas de Mermaid real: "m"=minutos, "M"=meses --
+   una trampa de may/minúscula heredada tal cual (un typo de Shift convierte
+   "2 meses" en "2 minutos" sin aviso). Las palabras en español de abajo no
+   tienen esa ambigüedad y quedan como alternativa, sin tocar los códigos de
+   una letra para quien ya los usa. */
+var UNIDADES_ES = {
+  milisegundo: "ms", milisegundos: "ms", segundo: "s", segundos: "s",
+  minuto: "m", minutos: "m", hora: "h", horas: "h",
+  dia: "d", dias: "d", "día": "d", "días": "d",
+  semana: "w", semanas: "w", mes: "M", meses: "M",
+  "año": "y", "años": "y", ano: "y", anos: "y"
+};
 function duracionMs(s){
-  var m = /^(\d+(?:[.,]\d+)?)\s*(ms|s|m|h|d|w|M|y)$/.exec(String(s).trim());
-  return m ? parseFloat(m[1].replace(",", ".")) * MS_U[m[2]] : NaN;
+  var t = String(s).trim();
+  var m = /^(\d+(?:[.,]\d+)?)\s*(ms|s|m|h|d|w|M|y)$/.exec(t);
+  if(m) return parseFloat(m[1].replace(",", ".")) * MS_U[m[2]];
+  var m2 = /^(\d+(?:[.,]\d+)?)\s*([A-Za-zÀ-ɏ]+)$/.exec(t);
+  var u = m2 && UNIDADES_ES[m2[2].toLowerCase()];
+  return u ? parseFloat(m2[1].replace(",", ".")) * MS_U[u] : NaN;
 }
 function dosCifras(n){ return (n < 10 ? "0" : "") + n; }
 function formatoFecha(ms, patron){
@@ -4224,6 +4275,13 @@ var RE_REL_CLASE = new RegExp(
   "^([A-Za-z0-9_\\u00c0-\\u024f]+)\\s*(?:\"([^\"]*)\")?\\s*" +
   "(<\\|--|--\\|>|<\\|\\.\\.|\\.\\.\\|>|\\*--|--\\*|o--|--o|<--|-->|<\\.\\.|\\.\\.>|--|\\.\\.)" +
   "\\s*(?:\"([^\"]*)\")?\\s*([A-Za-z0-9_\\u00c0-\\u024f]+)\\s*(?::\\s*(.*))?$");
+/* alternativa a memorizar "<|--"/"*--"/"o--" etc: verbos en español que se
+   traducen al mismo símbolo ANTES de correr RE_REL_CLASE, así se reusa toda
+   la lógica de a/b/mIni/mFin de abajo sin duplicarla. El orden A-verbo-B
+   importa: "A hereda de B" es "A --|> B" (B es la clase base, no "A <|-- B",
+   que dejaría el triángulo del lado equivocado). */
+var VERBOS_CLASE = { "hereda de": "--|>", hereda: "--|>", compone: "*--", agrega: "o--", usa: "-->" };
+var RE_REL_CLASE_ES = /^([A-Za-z0-9_\u00c0-\u024f]+)\s+(hereda de|hereda|compone|agrega|usa)\s+([A-Za-z0-9_\u00c0-\u024f]+)\s*(?::\s*(.*))?$/i;
 
 function miembroClase(n, L){
   var t = String(L).replace(/[;,]\s*$/, "").trim(), m;
@@ -4262,6 +4320,8 @@ function analizarClases(texto){
       continue;
     }
     if((m = /^<<([^>]+)>>\s*([A-Za-z0-9_\u00c0-\u024f]+)/.exec(L))){ nodo(m[2]).estereotipo = m[1].trim(); continue; }
+    var mvc = RE_REL_CLASE_ES.exec(L);
+    if(mvc) L = mvc[1] + " " + VERBOS_CLASE[mvc[2].toLowerCase()] + " " + mvc[3] + (mvc[4] !== undefined ? " : " + mvc[4] : "");
     if((m = RE_REL_CLASE.exec(L))){
       var r = REL_CLASE[m[3]] || {};
       var a = r.inv ? m[5] : m[1], b = r.inv ? m[1] : m[5];
@@ -4301,6 +4361,14 @@ var CARD_ER = { "|o": "ceroouno", "||": "uno", "}o": "ceroomuchos", "}|": "unoom
 var RE_REL_ER = new RegExp(
   "^([A-Za-z0-9_\\u00c0-\\u024f\\-]+)\\s+(\\|o|\\|\\||\\}o|\\}\\|)(--|\\.\\.)(o\\||\\|\\||o\\{|\\|\\{)\\s+" +
   "([A-Za-z0-9_\\u00c0-\\u024f\\-]+)\\s*(?::\\s*(.*))?$");
+/* alternativa a memorizar la pata de gallo ("||--o{", "}o--||"...): frases en
+   español que se traducen al mismo par de símbolos antes de correr
+   RE_REL_ER. El lado A siempre queda "||" (exactamente uno) -- cubre el caso
+   común (uno-a-muchos, uno-a-uno); para relaciones más raras (muchos-a-muchos,
+   A opcional) sigue estando la sintaxis de símbolos de siempre. "muchos" a
+   secas es sinónimo de "cero o muchos" (el lado B puede no tener ninguno). */
+var VERBOS_ER = { "cero o uno": "o|", "cero o muchos": "o{", "uno o muchos": "|{", "uno": "||", "muchos": "o{" };
+var RE_REL_ER_ES = /^([A-Za-z0-9_À-ɏ\-]+)\s+tiene\s+(cero o uno|cero o muchos|uno o muchos|uno|muchos)\s+([A-Za-z0-9_À-ɏ\-]+)\s*(?::\s*(.*))?$/i;
 
 function analizarER(texto){
   var G = { nodos: {}, orden: [], enlaces: [], dir: "TB", grupos: [] };
@@ -4330,6 +4398,8 @@ function analizarER(texto){
     }
     if(/^erDiagram\b/i.test(L)) continue;
     if((m = /^direction\s+(TB|TD|BT|LR|RL)\b/i.exec(L))){ G.dir = m[1].toUpperCase(); continue; }
+    var mve = RE_REL_ER_ES.exec(L);
+    if(mve) L = mve[1] + " ||--" + VERBOS_ER[mve[2].toLowerCase()] + " " + mve[3] + (mve[4] !== undefined ? " : " + mve[4] : "");
     if((m = RE_REL_ER.exec(L))){
       var a = nodo(m[1]).id, b = nodo(m[5]).id;
       G.enlaces.push({ a: a, b: b, texto: (m[6] || "").trim().replace(/^"|"$/g, ""),
@@ -9041,6 +9111,7 @@ function dibujarPizarra(codigo, indicePizarra){
     ' data-pizarra-indice="' + (indicePizarra || 0) + '"' + ocupaAttr + ' data-pizarra="' + escUI(JSON.stringify(payload)) + '">' +
     pizarraLienzoHTML(datos) +
     '<button type="button" class="pizarra-boton-editar no-print">✎ Dibujar</button>' +
+    '<button type="button" class="pizarra-boton-ventana no-print">⛶ Ventana nueva</button>' +
     "</figure>";
 }
 
@@ -9388,9 +9459,17 @@ var TRESD_RE_ARISTA = /^arista\s+(\S+)\s+(\S+)\s*$/i;
 var TRESD_RE_CAJA = /^caja\s+(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s+([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*$/i;
 var TRESD_CAJA_ESQ = [[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
 var TRESD_CAJA_BORDES = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+/* mismo azucar sintactico que "caja": generan vertices/aristas con nombre
+   interno con prefijo reservado, para no tener que declarar cada vertice a
+   mano y despues unirlos por nombre (v A.../arista A B... sigue andando
+   igual para figuras irregulares). */
+var TRESD_RE_PIRAMIDE = /^piramide\s+(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s+([\d.]+)\s*,\s*([\d.]+)\s*$/i;
+var TRESD_PIRAMIDE_ESQ = [[-0.5,-0.5,0],[0.5,-0.5,0],[0.5,0.5,0],[-0.5,0.5,0],[0,0,1]];
+var TRESD_PIRAMIDE_BORDES = [[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]];
+var TRESD_RE_LINEA = /^linea\s+(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s+(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*$/i;
 function tresDParsear(texto){
   var lineas = String(texto || "").split("\n");
-  var vertices = {}, aristasRaw = [], cajaN = 0, i, l, m, k, b, x0, y0, z0, w, d, h, pre;
+  var vertices = {}, aristasRaw = [], cajaN = 0, piraN = 0, lineaN = 0, i, l, m, k, b, x0, y0, z0, w, d, h, lado, alto, pre;
   for(i = 0; i < lineas.length; i++){
     l = lineas[i].trim();
     if(!l) continue;
@@ -9402,6 +9481,21 @@ function tresDParsear(texto){
       cajaN++; pre = "__caja" + cajaN + "_";
       for(k = 0; k < 8; k++) vertices[pre + k] = { x: x0 + TRESD_CAJA_ESQ[k][0] * w, y: y0 + TRESD_CAJA_ESQ[k][1] * d, z: z0 + TRESD_CAJA_ESQ[k][2] * h };
       for(b = 0; b < TRESD_CAJA_BORDES.length; b++) aristasRaw.push([pre + TRESD_CAJA_BORDES[b][0], pre + TRESD_CAJA_BORDES[b][1]]);
+      continue;
+    }
+    if((m = l.match(TRESD_RE_PIRAMIDE))){
+      x0 = parseFloat(m[1]); y0 = parseFloat(m[2]); z0 = parseFloat(m[3]);
+      lado = parseFloat(m[4]); alto = parseFloat(m[5]);
+      piraN++; pre = "__piramide" + piraN + "_";
+      for(k = 0; k < 5; k++) vertices[pre + k] = { x: x0 + TRESD_PIRAMIDE_ESQ[k][0] * lado, y: y0 + TRESD_PIRAMIDE_ESQ[k][1] * lado, z: z0 + TRESD_PIRAMIDE_ESQ[k][2] * alto };
+      for(b = 0; b < TRESD_PIRAMIDE_BORDES.length; b++) aristasRaw.push([pre + TRESD_PIRAMIDE_BORDES[b][0], pre + TRESD_PIRAMIDE_BORDES[b][1]]);
+      continue;
+    }
+    if((m = l.match(TRESD_RE_LINEA))){
+      lineaN++; pre = "__linea" + lineaN + "_";
+      vertices[pre + 0] = { x: parseFloat(m[1]), y: parseFloat(m[2]), z: parseFloat(m[3]) };
+      vertices[pre + 1] = { x: parseFloat(m[4]), y: parseFloat(m[5]), z: parseFloat(m[6]) };
+      aristasRaw.push([pre + 0, pre + 1]);
       continue;
     }
     /* linea no reconocida: se ignora */
@@ -12323,6 +12417,22 @@ function diagAmpZoomAjustar(factor){
   DIAG_AMP.zoom = Math.max(DIAG_AMP_ZOOM_MIN, Math.min(DIAG_AMP_ZOOM_MAX, DIAG_AMP.zoom * factor));
   diagAmpAplicarTransformacion();
 }
+/* igual que diagAmpZoomAjustar pero ancla el punto (clientX,clientY) a la
+   misma posicion en pantalla antes y despues -- necesario para que la rueda
+   con Ctrl y el doble-clic hagan zoom "hacia donde apunta el mouse", como
+   Google Maps/Figma, en vez de siempre hacia el centro. */
+function diagAmpZoomAjustarHacia(factor, clientX, clientY){
+  if(!DIAG_AMP) return;
+  var r = $("#diagAmpLienzo").getBoundingClientRect();
+  var sx = clientX - r.left - r.width / 2, sy = clientY - r.top - r.height / 2;
+  var z0 = DIAG_AMP.zoom;
+  var z1 = Math.max(DIAG_AMP_ZOOM_MIN, Math.min(DIAG_AMP_ZOOM_MAX, z0 * factor));
+  var k = z1 / z0;
+  DIAG_AMP.panX = DIAG_AMP.panX * k + sx * (1 - k);
+  DIAG_AMP.panY = DIAG_AMP.panY * k + sy * (1 - k);
+  DIAG_AMP.zoom = z1;
+  diagAmpAplicarTransformacion();
+}
 function diagAmpEncuadrar(){
   if(!DIAG_AMP) return;
   DIAG_AMP.zoom = 1; DIAG_AMP.panX = 0; DIAG_AMP.panY = 0;
@@ -12385,7 +12495,16 @@ function diagAmpPunteroSubeLienzo(e){
 function diagAmpRuedaLienzo(e){
   if(!DIAG_AMP || DIAG_AMP.lapiz) return;
   e.preventDefault();
-  diagAmpZoomAjustar(Math.pow(1.0015, -e.deltaY));
+  if(e.ctrlKey){
+    /* Ctrl+rueda de mouse, o pellizco de trackpad (el navegador lo manda como
+       rueda con ctrlKey activado solo, sin que nadie toque Ctrl de verdad). */
+    diagAmpZoomAjustarHacia(Math.pow(1.0015, -e.deltaY), e.clientX, e.clientY);
+  } else {
+    /* rueda sola de mouse, o deslizar 2 dedos en trackpad: desplazar, no zoom. */
+    DIAG_AMP.panX -= e.deltaX;
+    DIAG_AMP.panY -= e.deltaY;
+    diagAmpAplicarTransformacion();
+  }
 }
 
 function abrirDiagramaAmpliado(fig){
@@ -12554,26 +12673,76 @@ function diagAmpVentanaScript(){
     '  document.getElementById("pvZoomMenos").addEventListener("click", function(){ PV.zoom = Math.max(1, PV.zoom / 1.4); aplicar(); });',
     '  document.getElementById("pvZoomFit").addEventListener("click", function(){ PV.zoom = 1; aplicar(); lienzo.scrollLeft = 0; lienzo.scrollTop = 0; });',
     '  document.getElementById("pvGirar").addEventListener("click", function(){ PV.girado = !PV.girado; aplicar(); });',
+    '  function zoomHacia(factor, clientX, clientY){',
+    '    var antes = svg.getBoundingClientRect();',
+    '    var fracX = (clientX - antes.left) / antes.width, fracY = (clientY - antes.top) / antes.height;',
+    '    PV.zoom = Math.max(1, Math.min(6, PV.zoom * factor));',
+    '    aplicar();',
+    '    var despues = svg.getBoundingClientRect();',
+    '    lienzo.scrollLeft += (despues.left + fracX * despues.width) - clientX;',
+    '    lienzo.scrollTop += (despues.top + fracY * despues.height) - clientY;',
+    '  }',
     '  lienzo.addEventListener("wheel", function(e){',
     '    if(PV.lapiz) return;',
+    '    if(!e.ctrlKey) return;',
     '    e.preventDefault();',
-    '    PV.zoom = Math.max(1, Math.min(6, PV.zoom * Math.pow(1.0015, -e.deltaY)));',
-    '    aplicar();',
+    '    zoomHacia(Math.pow(1.0015, -e.deltaY), e.clientX, e.clientY);',
     '  }, { passive:false });',
-    '  var arrastre = null;',
+    '  lienzo.addEventListener("dblclick", function(e){',
+    '    if(PV.lapiz) return;',
+    '    e.preventDefault();',
+    '    zoomHacia(1.6, e.clientX, e.clientY);',
+    '  });',
+    '  var punteros = new Map();',
+    '  var gesto = null;',
+    '  function distanciaPunteros(){',
+    '    var pts = Array.from(punteros.values());',
+    '    return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);',
+    '  }',
     '  lienzo.addEventListener("pointerdown", function(e){',
     '    if(PV.lapiz) return;',
-    '    arrastre = { x0:e.clientX, y0:e.clientY, sl0:lienzo.scrollLeft, st0:lienzo.scrollTop };',
     '    try{ lienzo.setPointerCapture(e.pointerId); }catch(err){}',
+    '    punteros.set(e.pointerId, { x:e.clientX, y:e.clientY });',
+    '    if(punteros.size === 1){',
+    '      gesto = { tipo:"pan", x0:e.clientX, y0:e.clientY, sl0:lienzo.scrollLeft, st0:lienzo.scrollTop };',
+    '    } else if(punteros.size === 2){',
+    '      var pts = Array.from(punteros.values());',
+    '      var midX0 = (pts[0].x + pts[1].x) / 2, midY0 = (pts[0].y + pts[1].y) / 2;',
+    '      var antes = svg.getBoundingClientRect();',
+    '      gesto = {',
+    '        tipo:"pellizco", dist0: distanciaPunteros(), zoom0: PV.zoom,',
+    '        fracX0: (midX0 - antes.left) / antes.width, fracY0: (midY0 - antes.top) / antes.height',
+    '      };',
+    '    }',
     '  });',
     '  lienzo.addEventListener("pointermove", function(e){',
-    '    if(!arrastre) return;',
-    '    lienzo.scrollLeft = arrastre.sl0 - (e.clientX - arrastre.x0);',
-    '    lienzo.scrollTop = arrastre.st0 - (e.clientY - arrastre.y0);',
+    '    if(!punteros.has(e.pointerId) || !gesto) return;',
+    '    punteros.set(e.pointerId, { x:e.clientX, y:e.clientY });',
+    '    if(gesto.tipo === "pan"){',
+    '      lienzo.scrollLeft = gesto.sl0 - (e.clientX - gesto.x0);',
+    '      lienzo.scrollTop = gesto.st0 - (e.clientY - gesto.y0);',
+    '    } else if(gesto.tipo === "pellizco" && punteros.size === 2){',
+    '      var pts = Array.from(punteros.values());',
+    '      var factor = distanciaPunteros() / (gesto.dist0 || 1);',
+    '      PV.zoom = Math.max(1, Math.min(6, gesto.zoom0 * factor));',
+    '      aplicar();',
+    '      var midX = (pts[0].x + pts[1].x) / 2, midY = (pts[0].y + pts[1].y) / 2;',
+    '      var despues = svg.getBoundingClientRect();',
+    '      lienzo.scrollLeft += (despues.left + gesto.fracX0 * despues.width) - midX;',
+    '      lienzo.scrollTop += (despues.top + gesto.fracY0 * despues.height) - midY;',
+    '    }',
     '  });',
-    '  function soltarArrastre(){ arrastre = null; }',
-    '  lienzo.addEventListener("pointerup", soltarArrastre);',
-    '  lienzo.addEventListener("pointercancel", soltarArrastre);',
+    '  function soltarPuntero(e){',
+    '    punteros.delete(e.pointerId);',
+    '    if(punteros.size === 0){',
+    '      gesto = null;',
+    '    } else if(punteros.size === 1){',
+    '      var restante = Array.from(punteros.values())[0];',
+    '      gesto = { tipo:"pan", x0:restante.x, y0:restante.y, sl0:lienzo.scrollLeft, st0:lienzo.scrollTop };',
+    '    }',
+    '  }',
+    '  lienzo.addEventListener("pointerup", soltarPuntero);',
+    '  lienzo.addEventListener("pointercancel", soltarPuntero);',
     '  function ponerLapiz(activo){',
     '    PV.lapiz = activo;',
     '    lapiz.classList.toggle("activo", activo);',
@@ -12654,7 +12823,67 @@ function diagAmpVentanaScript(){
     '    document.getElementById("pvCodigo").setAttribute("aria-expanded", String(!abierto));',
     '    requestAnimationFrame(aplicar);',
     '  });',
-    '  document.getElementById("pvImprimir").addEventListener("click", function(){ window.print(); });',
+    '  var PAPELES = { carta:"8.5in 11in", a4:"210mm 297mm", oficio:"216mm 330mm", tabloide:"11in 17in" };',
+    '  var TAMANOS = { ajustar:100, grande:80, mediano:55, chico:32 };',
+    '  function idsUnicos(html, sufijo){',
+    '    var ids = {};',
+    '    html = html.replace(/\\bid="([^"]+)"/g, function(m, id){ ids[id] = id + sufijo; return \'id="\' + ids[id] + \'"\'; });',
+    '    html = html.replace(/url\\(#([^)]+)\\)/g, function(m, id){ return ids[id] ? "url(#" + ids[id] + ")" : m; });',
+    '    return html;',
+    '  }',
+    '  function papelDims(papel){',
+    '    var partes = (PAPELES[papel] || PAPELES.carta).split(" ");',
+    '    return { w: parseFloat(partes[0]), h: parseFloat(partes[1]) };',
+    '  }',
+    '  function impActualizar(){',
+    '    var horizontal = document.getElementById("pvOrientacion").value === "horizontal";',
+    '    var dims = papelDims(document.getElementById("pvPapel").value);',
+    '    var w = horizontal ? dims.h : dims.w, h = horizontal ? dims.w : dims.h;',
+    '    var pct = TAMANOS[document.getElementById("pvTamanoHoja").value] || 100;',
+    '    var svgLimpio = idsUnicos(svg.outerHTML, "-imp").replace(/\\s(width|height)="[^"]*"/g, "");',
+    '    document.getElementById("pvImpVista").innerHTML =',
+    '      \'<div class="pv-hoja" style="aspect-ratio:\' + w + "/" + h + \'">\' +',
+    '        \'<div class="pv-hoja-contenido" style="width:\' + pct + "%;height:" + pct + \'%">\' + svgLimpio + "</div>" +',
+    '      "</div>";',
+    '  }',
+    '  function abrirImprimir(){',
+    '    document.getElementById("pvFuente").hidden = true;',
+    '    document.getElementById("pvCodigo").setAttribute("aria-expanded", "false");',
+    '    lienzo.hidden = true;',
+    '    document.querySelector(".pv-barra").hidden = true;',
+    '    var vb = svg.viewBox.baseVal;',
+    '    document.getElementById("pvOrientacion").value = vb.width >= vb.height ? "horizontal" : "vertical";',
+    '    document.getElementById("pvImpPanel").hidden = false;',
+    '    impActualizar();',
+    '  }',
+    '  function volverImprimir(){',
+    '    document.getElementById("pvImpPanel").hidden = true;',
+    '    document.getElementById("pvImpVista").innerHTML = "";',
+    '    lienzo.hidden = false;',
+    '    document.querySelector(".pv-barra").hidden = false;',
+    '    requestAnimationFrame(aplicar);',
+    '  }',
+    '  function confirmarImprimir(){',
+    '    var papel = PAPELES[document.getElementById("pvPapel").value] || PAPELES.carta;',
+    '    var horizontal = document.getElementById("pvOrientacion").value === "horizontal";',
+    '    var partes = papel.split(" ");',
+    '    var size = horizontal ? (partes[1] + " " + partes[0]) : papel;',
+    '    var estilo = document.getElementById("pvTamanoPagina") || document.createElement("style");',
+    '    estilo.id = "pvTamanoPagina";',
+    '    estilo.textContent = "@page{ size:" + size + "; margin:0 }";',
+    '    document.head.appendChild(estilo);',
+    '    window.print();',
+    '  }',
+    '  window.addEventListener("afterprint", function(){',
+    '    var estilo = document.getElementById("pvTamanoPagina");',
+    '    if(estilo && estilo.parentNode) estilo.parentNode.removeChild(estilo);',
+    '  });',
+    '  document.getElementById("pvImprimir").addEventListener("click", abrirImprimir);',
+    '  document.getElementById("pvPapel").addEventListener("change", impActualizar);',
+    '  document.getElementById("pvOrientacion").addEventListener("change", impActualizar);',
+    '  document.getElementById("pvTamanoHoja").addEventListener("change", impActualizar);',
+    '  document.getElementById("pvImpVolver").addEventListener("click", volverImprimir);',
+    '  document.getElementById("pvImpConfirmar").addEventListener("click", confirmarImprimir);',
     '})();'
   ].join("\n");
 }
@@ -12683,7 +12912,7 @@ function diagAmpDocumentoHTML(){
   partes.push('.pv-colores[hidden]{display:none}');
   partes.push('.pv-color{width:1.5rem;height:1.5rem;padding:0;border-radius:50%;border:2px solid transparent;cursor:pointer}');
   partes.push('.pv-color.activo{border-color:var(--texto)}');
-  partes.push('.pv-lienzo{position:relative;flex:1 1 auto;min-height:0;overflow:auto;background:var(--dia-fondo);display:flex;align-items:center;justify-content:center;touch-action:pan-x pan-y}');
+  partes.push('.pv-lienzo{position:relative;flex:1 1 auto;min-height:0;overflow:auto;background:var(--dia-fondo);display:flex;align-items:center;justify-content:center;touch-action:none}');
   partes.push('.pv-envoltorio{position:relative;flex:0 0 auto}');
   partes.push('.pv-envoltorio svg{display:block;max-width:none;max-height:none}');
   partes.push('#pvLapizSvg{position:absolute;top:0;left:0;pointer-events:none;touch-action:none}');
@@ -12692,7 +12921,25 @@ function diagAmpDocumentoHTML(){
   partes.push('#pvLapizSvg.activo.borrador .pv-trazo{cursor:pointer}');
   partes.push('.pv-fuente{margin:0;padding:.8rem;max-height:35vh;overflow:auto;border-top:1px solid var(--borde);white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace}');
   partes.push('.pv-fuente[hidden]{display:none}');
-  partes.push('@media print{ .pv-barra,.pv-fuente{display:none !important} .pv-lienzo{overflow:visible} }');
+  partes.push('.pv-imp-panel{display:flex;flex-direction:column;min-height:0;flex:1 1 auto;overflow:auto;padding:1rem;gap:.8rem}');
+  partes.push('.pv-imp-panel[hidden]{display:none}');
+  partes.push('.pv-controles{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;font-size:.88rem}');
+  partes.push('.pv-controles select{font:inherit;padding:.3em .5em;border:1px solid var(--borde);border-radius:.4em;background:var(--papel);color:var(--texto)}');
+  partes.push('.pv-controles label{display:inline-flex;align-items:center;gap:.4em}');
+  partes.push('.pv-imp-vista{flex:1;min-height:0;overflow:auto;background:#666;padding:1.5rem;display:flex;align-items:center;justify-content:center;border-radius:.5rem}');
+  partes.push('.pv-hoja{position:relative;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.35);width:min(100%,22rem);box-sizing:border-box;padding:.4in;flex:none;display:flex;align-items:center;justify-content:center}');
+  partes.push('.pv-hoja-contenido{display:flex;align-items:center;justify-content:center}');
+  partes.push('.pv-hoja-contenido svg{display:block;width:100%;height:100%}');
+  partes.push('.pv-acciones{display:flex;gap:.6rem;justify-content:flex-end}');
+  partes.push('.pv-acciones button{font:inherit;cursor:pointer;padding:.55em 1.1em;border-radius:.5em;border:1px solid var(--borde);background:var(--acento);color:#fff}');
+  partes.push('@media print{');
+  partes.push('  .pv-barra,.pv-fuente{display:none !important}');
+  partes.push('  .pv-lienzo{overflow:visible}');
+  partes.push('  .pv-controles,.pv-acciones{display:none !important}');
+  partes.push('  .pv-imp-panel{padding:0 !important}');
+  partes.push('  .pv-imp-vista{display:block !important;background:none !important;padding:0 !important;overflow:visible !important}');
+  partes.push('  .pv-hoja{box-shadow:none !important;width:100%;height:100vh;padding:.4in;box-sizing:border-box}');
+  partes.push('}');
   partes.push('</style></head><body>');
   partes.push('<div class="pv-barra">');
   partes.push('<span class="pv-zoom">');
@@ -12712,7 +12959,7 @@ function diagAmpDocumentoHTML(){
   partes.push('<button type="button" id="pvLimpiar" title="Borrar todas las anotaciones"><b>&#128465;</b> Limpiar</button>');
   partes.push('</span>');
   partes.push('<button type="button" id="pvCodigo" aria-expanded="false" title="Ver el c\u00f3digo fuente del diagrama"><b>&lt;/&gt;</b> C\u00f3digo</button>');
-  partes.push('<button type="button" id="pvImprimir" title="Imprimir esta ventana"><b>&#128438;</b> Imprimir</button>');
+  partes.push('<button type="button" id="pvImprimir" title="Imprimir o guardar como PDF, con tamaño de hoja y orientación"><b>&#128438;</b> Imprimir</button>');
   partes.push('</div>');
   partes.push('<div class="pv-lienzo" id="pvLienzo">');
   partes.push('<div class="pv-envoltorio" id="pvEnvoltorio">');
@@ -12721,6 +12968,31 @@ function diagAmpDocumentoHTML(){
   partes.push('</div>');
   partes.push('</div>');
   partes.push('<pre class="pv-fuente" id="pvFuente" hidden><code>' + X(fuente) + '</code></pre>');
+  partes.push('<div class="pv-imp-panel" id="pvImpPanel" hidden>');
+  partes.push('<div class="pv-controles">');
+  partes.push('<label>Tamaño de hoja <select id="pvPapel">');
+  partes.push('<option value="carta" selected>Carta — 8.5 × 11 in</option>');
+  partes.push('<option value="a4">A4 — 210 × 297 mm</option>');
+  partes.push('<option value="oficio">Oficio — 216 × 330 mm</option>');
+  partes.push('<option value="tabloide">Tabloide — 11 × 17 in</option>');
+  partes.push('</select></label>');
+  partes.push('<label>Orientación <select id="pvOrientacion">');
+  partes.push('<option value="vertical">Vertical</option>');
+  partes.push('<option value="horizontal">Horizontal</option>');
+  partes.push('</select></label>');
+  partes.push('<label>Tamaño en la hoja <select id="pvTamanoHoja">');
+  partes.push('<option value="ajustar" selected>Ajustar a toda la hoja</option>');
+  partes.push('<option value="grande">Grande</option>');
+  partes.push('<option value="mediano">Mediano</option>');
+  partes.push('<option value="chico">Chico</option>');
+  partes.push('</select></label>');
+  partes.push('</div>');
+  partes.push('<div class="pv-imp-vista" id="pvImpVista"></div>');
+  partes.push('<div class="pv-acciones">');
+  partes.push('<button type="button" id="pvImpVolver">Volver</button>');
+  partes.push('<button type="button" id="pvImpConfirmar">Imprimir</button>');
+  partes.push('</div>');
+  partes.push('</div>');
   partes.push('<script>' + diagAmpVentanaScript() + '<\/script>');
   partes.push('</body></html>');
   return partes.join("");
@@ -14435,6 +14707,85 @@ function pizarraEscribir(indice, firma, datos){
   return true;
 }
 
+/* "abrir en ventana nueva": a diferencia de diagAmpAbrirVentana (que arma un
+   documento independiente con su propio <script>, sin volver a tocarlo), acá
+   conviene REUSAR pizarraActivarFigura tal cual -- la pizarra tiene capas,
+   grupos, formas, texto y deshacer; reimplementar todo eso en un script aparte
+   sería duplicar como 400 líneas de lógica y desincronizarse con cualquier
+   cambio futuro. En vez de eso, se copia el <figure> (mismo data-pizarra y
+   data-pizarra-indice) dentro del documento de la ventana nueva y se activa
+   con la MISMA función, que sigue corriendo en este mismo realm de JS -- solo
+   que manipulando nodos que viven en otro `document`. pizarraEscribir()
+   localiza el bloque por índice+firma sobre fuenteActual (nunca por posición
+   en el DOM), así que "Listo" desde la ventana nueva funciona exactamente
+   igual que inline: escribe en fuenteActual y, por trasRellenar(), dispara el
+   repintado normal del documento principal -- la ventana no necesita
+   devolver el <figure> a mano ni la cierra ella misma. */
+var PIZARRA_VENT_VARS = DIAG_AMP_VARS_UI.concat(["--fondo", "--codigo-fondo"]);
+function pizarraVentanaDocumentoHTML(){
+  var cs = getComputedStyle(document.documentElement);
+  var raiz = PIZARRA_VENT_VARS.map(function(v){ return v + ":" + (cs.getPropertyValue(v).trim() || "initial") + ";"; }).join("");
+  var partes = [];
+  partes.push('<!doctype html><html><head><meta charset="utf-8">');
+  partes.push('<title>Pizarrón</title>');
+  partes.push('<style>');
+  partes.push(':root{' + raiz + '}');
+  partes.push('*{box-sizing:border-box}');
+  partes.push('html,body{margin:0;padding:0;min-height:100%}');
+  partes.push('body{font-family:var(--sans);font-size:15px;background:var(--papel);color:var(--texto);padding:1rem}');
+  partes.push('.pizarra-viewer{margin:0;padding:1rem;border:1px solid var(--borde);border-radius:.6rem;background:var(--papel)}');
+  partes.push('.pizarra-lienzo{position:relative;line-height:0}');
+  partes.push('.pizarra-svg{width:100%;height:auto;display:block;background:var(--codigo-fondo);border-radius:.4rem;touch-action:pan-y}');
+  partes.push('.pizarra-trazo,.pizarra-trazo-actual{fill:none;stroke-linecap:round;stroke-linejoin:round}');
+  partes.push('g.pizarra-trazo[data-tipo="texto"]{cursor:text;user-select:none}');
+  partes.push('g.pizarra-trazo[data-tipo="texto"] text{stroke:none;font-family:inherit;white-space:pre}');
+  partes.push('.pizarra-dibujando .pizarra-svg{touch-action:none;cursor:crosshair}');
+  partes.push('.pizarra-dibujando.pizarra-borrador .pizarra-svg{cursor:not-allowed}');
+  partes.push('.pizarra-dibujando.pizarra-borrador .pizarra-trazo{cursor:pointer}');
+  partes.push('.pizarra-seleccion-caja{fill:transparent;stroke:var(--acento);stroke-width:1.5;stroke-dasharray:6 4;cursor:move}');
+  partes.push('.pizarra-asa{fill:var(--papel);stroke:var(--acento);stroke-width:1.5;cursor:nwse-resize}');
+  partes.push('.pizarra-asa[data-asa="ne"],.pizarra-asa[data-asa="sw"]{cursor:nesw-resize}');
+  partes.push('.pizarra-boton-editar,.pizarra-boton-ventana{margin-top:.6rem;padding:.45rem 1rem;border:1px solid var(--borde);border-radius:.4rem;background:var(--papel);color:var(--texto);font-size:.88em;cursor:pointer}');
+  partes.push('.pizarra-boton-ventana{display:none}');
+  partes.push('.pizarra-barra{margin-top:.6rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}');
+  partes.push('.pizarra-barra input[type="color"]{width:2.2rem;height:2.2rem;padding:0;border:1px solid var(--borde);border-radius:.4rem;background:none;cursor:pointer}');
+  partes.push('.pizarra-barra input[type="range"]{width:7rem}');
+  partes.push('.pizarra-barra select{padding:.4rem .6rem;border:1px solid var(--borde);border-radius:.4rem;background:var(--papel);color:var(--texto);font-size:.85em;cursor:pointer}');
+  partes.push('.pizarra-barra button{padding:.4rem .8rem;border:1px solid var(--borde);border-radius:.4rem;background:var(--papel);color:var(--texto);font-size:.85em;cursor:pointer}');
+  partes.push('.pizarra-barra button.activo{background:var(--acento);color:#fff;border-color:var(--acento)}');
+  partes.push('.pizarra-barra button:disabled{opacity:.45;cursor:default}');
+  partes.push('.pizarra-barra .pizarra-boton-listo{margin-left:auto;border-color:var(--acento);color:var(--acento);font-weight:600}');
+  partes.push('.pizarra-capas{flex:0 0 100%;display:flex;flex-direction:column;gap:.3rem;margin-top:.3rem;padding:.5rem;border:1px solid var(--borde);border-radius:.4rem;background:var(--codigo-fondo);max-height:11rem;overflow-y:auto}');
+  partes.push('.pizarra-capa-fila{display:flex;align-items:center;gap:.3rem}');
+  partes.push('.pizarra-capa-fila.activa{background:color-mix(in srgb, var(--acento) 15%, transparent);border-radius:.3rem}');
+  partes.push('.pizarra-capa-fila button{padding:.25rem .5rem;border:1px solid var(--borde);border-radius:.3rem;background:var(--papel);color:var(--texto);font-size:.8em;cursor:pointer}');
+  partes.push('.pizarra-capa-fila button:disabled{opacity:.4;cursor:default}');
+  partes.push('.pizarra-capa-nombre{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}');
+  partes.push('.pizarra-capa-agregar{align-self:flex-start;padding:.3rem .7rem;border:1px dashed var(--borde);border-radius:.3rem;background:none;color:var(--texto);font-size:.82em;cursor:pointer}');
+  partes.push('.aviso-flotante{position:fixed;left:0;right:0;bottom:1.2rem;margin:0 auto;width:fit-content;z-index:120;display:flex;align-items:center;gap:.9rem;max-width:min(92vw,32rem);background:var(--texto);color:var(--fondo);font-family:var(--sans);font-size:.86rem;padding:.7em 1em;border-radius:.65em;box-shadow:0 8px 30px rgba(0,0,0,.3)}');
+  partes.push('.aviso-flotante[hidden]{display:none}');
+  partes.push('.aviso-flotante button{font:inherit;font-weight:650;cursor:pointer;white-space:nowrap;border:0;border-radius:.4em;padding:.35em .7em;background:var(--fondo);color:var(--texto)}');
+  partes.push('</style></head><body>');
+  partes.push('<div id="pzContenedor"></div>');
+  partes.push('<div class="aviso-flotante" id="aviso" hidden><span id="avisoTexto"></span><button type="button" id="avisoBoton" hidden></button></div>');
+  partes.push('</body></html>');
+  return partes.join("");
+}
+function pizarraAbrirVentana(fig){
+  if(fig.classList.contains("pizarra-dibujando")){ aviso("Termina o cancela este dibujo antes de abrirlo en una ventana nueva."); return; }
+  var vent = window.open("", "_blank", "width=1040,height=760,left=60,top=60");
+  if(!vent){ aviso("El navegador bloqueó la ventana nueva. Permití las ventanas emergentes para este sitio."); return; }
+  vent.document.write(pizarraVentanaDocumentoHTML());
+  vent.document.close();
+  var cont = vent.document.getElementById("pzContenedor");
+  cont.innerHTML = fig.outerHTML;
+  var nuevoFig = cont.querySelector(".pizarra-viewer");
+  nuevoFig.removeAttribute("id");
+  pizarraActivarFigura(nuevoFig);
+  var btn = nuevoFig.querySelector(".pizarra-boton-editar");
+  if(btn) btn.click();
+}
+
 /* dueño de un <figure> de pizarra de principio a fin: entrar y salir del modo
    dibujo, y la captura de trazos en si, todo por delegacion de eventos sobre
    el propio `fig` (sobrevive a que su innerHTML se reemplace al redibujar,
@@ -14450,6 +14801,27 @@ function pizarraActivarFigura(fig){
   var sel = { idxs: [], arrastre: null };   // seleccion (multiple, Ctrl agrega) de la herramienta "Seleccionar"
   var capasAbiertas = false;
   var textoDown = null;   // {pointerId, pt, clientX, clientY} -- tap pendiente de la herramienta "texto"
+  /* si `fig` vive en la ventana nueva (pizarraAbrirVentana), el aviso() y el
+     prompt() del documento principal no se ven (quedan detras de esa
+     ventana) -- se muestran en la ventana correcta segun de donde sea `fig`. */
+  function avisar(texto, etiqueta, accion){
+    var doc = fig.ownerDocument;
+    if(doc === document){ aviso(texto, etiqueta, accion); return; }
+    var caja = doc.getElementById("aviso"), boton = doc.getElementById("avisoBoton"), txt = doc.getElementById("avisoTexto");
+    if(!caja || !boton || !txt){ aviso(texto, etiqueta, accion); return; }
+    txt.textContent = texto;
+    if(etiqueta && accion){
+      boton.hidden = false; boton.textContent = etiqueta;
+      boton.onclick = function(){ caja.hidden = true; accion(); };
+    }else{
+      boton.hidden = true; boton.onclick = null;
+      setTimeout(function(){ caja.hidden = true; }, 3800);
+    }
+    caja.hidden = false;
+  }
+  function preguntar(mensaje, valorPrevio){
+    return (fig.ownerDocument.defaultView || window).prompt(mensaje, valorPrevio);
+  }
   function limpiarSeleccion(){
     sel.idxs = [];
     sel.arrastre = null;
@@ -14469,11 +14841,11 @@ function pizarraActivarFigura(fig){
   }
   function colocarTexto(pt){
     var fs = estado.grosor || 24;
-    var texto = window.prompt("Escribe el texto:", "");
+    var texto = preguntar("Escribe el texto:", "");
     if(texto === null) return;
     texto = texto.trim().slice(0, PIZARRA_TEXTO_MAX);
     if(!texto) return;
-    if(payload.datos.trazos.length >= PIZARRA_TRAZOS_MAX){ aviso("Esta pizarra ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos."); return; }
+    if(payload.datos.trazos.length >= PIZARRA_TRAZOS_MAX){ avisar("Esta pizarra ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos."); return; }
     var w = pizarraMedirAncho(texto, fs), lineas = texto.split("\n").length;
     var x1 = Math.round((pt.x + w) * 10) / 10, y1 = Math.round((pt.y + fs * 1.2 * lineas) * 10) / 10;
     payload.datos.trazos.push({ color: estado.color, grosor: fs, d: "M" + pt.x + " " + pt.y + " L" + x1 + " " + y1, capa: estado.capaActiva, grupo: null, tipo: "texto", texto: texto });
@@ -14485,7 +14857,8 @@ function pizarraActivarFigura(fig){
   }
 
   function vistaHTML(){
-    return pizarraLienzoHTML(payload.datos) + '<button type="button" class="pizarra-boton-editar no-print">✎ Dibujar</button>';
+    return pizarraLienzoHTML(payload.datos) + '<button type="button" class="pizarra-boton-editar no-print">✎ Dibujar</button>' +
+      '<button type="button" class="pizarra-boton-ventana no-print">⛶ Ventana nueva</button>';
   }
   function barraHTML(){
     var ocupa = payload.datos.ocupa || 100;
@@ -14548,6 +14921,13 @@ function pizarraActivarFigura(fig){
       fig.setAttribute("data-ocupa", payload.datos.ocupa && payload.datos.ocupa !== 100 ? String(payload.datos.ocupa) : "");
       if(!(payload.datos.ocupa && payload.datos.ocupa !== 100)) fig.removeAttribute("data-ocupa");
       trasRellenar();
+      /* trasRellenar() no repinta #doc (el caso inline no lo necesita: este
+         mismo fig.innerHTML de arriba ya se actualizó solo). Pero si `fig`
+         vive en la ventana nueva, el <figure> ORIGINAL del documento
+         principal es un clon aparte que se quedó intacto -- sin este
+         repintado explícito, el usuario vuelve a la pestaña principal y ve
+         la pizarra vieja hasta el próximo cambio que la repinte solo. */
+      if(fig.ownerDocument !== document) pintar(fuenteActual);
     }
   }
 
@@ -14555,6 +14935,8 @@ function pizarraActivarFigura(fig){
     var t = e.target, el;
     el = t.closest ? t.closest(".pizarra-boton-editar") : null;
     if(el){ entrarDibujo(); return; }
+    el = t.closest ? t.closest(".pizarra-boton-ventana") : null;
+    if(el){ pizarraAbrirVentana(fig); return; }
     el = t.closest ? t.closest(".pizarra-boton-borrador") : null;
     if(el){
       estado.borrador = !estado.borrador;
@@ -14611,7 +14993,7 @@ function pizarraActivarFigura(fig){
         redibujarTrazos();
       }
       else if(accion === "renombrar"){
-        var nuevo = window.prompt("Nombre de la capa:", payload.datos.capas[iCapa].nombre || "");
+        var nuevo = preguntar("Nombre de la capa:", payload.datos.capas[iCapa].nombre || "");
         if(nuevo !== null) payload.datos.capas[iCapa].nombre = nuevo.trim().slice(0, 40) || payload.datos.capas[iCapa].nombre;
       }
       else if(accion === "subir"){ pizarraCapaMover(payload.datos, iCapa, 1); redibujarTrazos(); }
@@ -14642,7 +15024,7 @@ function pizarraActivarFigura(fig){
     el = t.closest ? t.closest(".pizarra-boton-limpiar") : null;
     if(el){
       if(!payload.datos.trazos.length) return;
-      aviso("¿Borrar todos los trazos de esta pizarra?", "Borrar", function(){
+      avisar("¿Borrar todos los trazos de esta pizarra?", "Borrar", function(){
         payload.datos.trazos = [];
         sel.previoGesto = null;
         enCurso = null;
@@ -14658,7 +15040,7 @@ function pizarraActivarFigura(fig){
         payload.firma = gpxFirma(pizarraSerializar(payload.datos));
         salirDibujo(true);
       }else{
-        aviso("No pude guardar los trazos: el texto cambió mientras dibujabas. Vuelve a intentarlo.");
+        avisar("No pude guardar los trazos: el texto cambió mientras dibujabas. Vuelve a intentarlo.");
       }
       return;
     }
@@ -14715,7 +15097,7 @@ function pizarraActivarFigura(fig){
     var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
     var t = payload.datos.trazos[idx];
     if(!t || t.tipo !== "texto") return;
-    var nuevo = window.prompt("Editar texto:", t.texto);
+    var nuevo = preguntar("Editar texto:", t.texto);
     if(nuevo === null) return;
     nuevo = nuevo.trim().slice(0, PIZARRA_TEXTO_MAX);
     if(!nuevo){ payload.datos.trazos.splice(idx, 1); }
@@ -14808,7 +15190,7 @@ function pizarraActivarFigura(fig){
     if(payload.datos.trazos.length >= PIZARRA_TRAZOS_MAX){
       if(enCurso.path && enCurso.path.parentNode) enCurso.path.parentNode.removeChild(enCurso.path);
       enCurso = null;
-      aviso("Esta pizarra ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos.");
+      avisar("Esta pizarra ya tiene el máximo de " + PIZARRA_TRAZOS_MAX + " trazos.");
       return;
     }
     var i = payload.datos.trazos.length;
@@ -19752,6 +20134,11 @@ $("#diagAmpLienzo").addEventListener("pointermove", diagAmpPunteroMueveLienzo);
 $("#diagAmpLienzo").addEventListener("pointerup", diagAmpPunteroSubeLienzo);
 $("#diagAmpLienzo").addEventListener("pointercancel", diagAmpPunteroSubeLienzo);
 $("#diagAmpLienzo").addEventListener("wheel", diagAmpRuedaLienzo, { passive: false });
+$("#diagAmpLienzo").addEventListener("dblclick", function(e){
+  if(!DIAG_AMP || DIAG_AMP.lapiz) return;
+  e.preventDefault();
+  diagAmpZoomAjustarHacia(1.6, e.clientX, e.clientY);
+});
 $("#diagAmpGirar").addEventListener("click", diagAmpGirar);
 $("#diagAmpCodigo").addEventListener("click", diagAmpAlternarCodigo);
 $("#diagAmpLapiz").addEventListener("click", function(){ diagAmpLapizPoner(!DIAG_AMP.lapiz); });
@@ -19784,22 +20171,70 @@ function documentoNuevo(){
 $("#btnNuevo").addEventListener("click", documentoNuevo);
 $("#btnAbrir").addEventListener("click", function(){ $("#archivo").click(); });
 $("#btnImportarUrl").addEventListener("click", formImportarUrl);
+/* primeros bytes de .docx/.xlsx/.pptx (zip) y .doc/.xls/.ppt (OLE2/CFB) -- la
+   extensión permitida (.md/.txt/.html) es solo una convención del nombre de
+   archivo, no dice nada del contenido real. Sin esto, un Office renombrado a
+   mano (o elegido con "todos los archivos" en el diálogo del SO) pasa el
+   filtro de extensión y comoMarkdown() lo trata como texto plano: pantalla
+   llena de caracteres no imprimibles, el bug que motivó este chequeo. */
+function firmaBinariaConocida(buf){
+  var b = new Uint8Array(buf);
+  if(b.length >= 4 && b[0] === 0x50 && b[1] === 0x4B && (b[2] === 0x03 || b[2] === 0x05 || b[2] === 0x07)) return "zip";
+  if(b.length >= 8 && b[0] === 0xD0 && b[1] === 0xCF && b[2] === 0x11 && b[3] === 0xE0 &&
+     b[4] === 0xA1 && b[5] === 0xB1 && b[6] === 0x1A && b[7] === 0xE1) return "cfb";
+  return null;
+}
+/* se asume que la extensión ya se validó antes de llamar a esto (el input
+   "Abrir" y el drag&drop tienen mensajes distintos para "extensión no
+   admitida" -- este solo se ocupa del tope de tamaño, la firma binaria, y de
+   la lectura en sí). */
+function abrirArchivoValidado(f){
+  if(f.size > 20 * 1024 * 1024){
+    aviso("Ese archivo pesa " + (f.size / 1024 / 1024).toFixed(1) + " MB; elegí uno menor de 20 MB.");
+    return;
+  }
+  function leerComoTexto(){
+    if(!confirmarReemplazo()) return;
+    var fr = new FileReader();
+    fr.onload = function(){
+      var r = comoMarkdown(f.name, String(fr.result));
+      if(r.convertido && !r.texto.trim()){ aviso("Ese HTML no tiene texto para convertir"); return; }
+      fijarTexto(r.texto, r.nombre, {
+        origen: "local", version: 1, descargado: f.lastModified || Date.now(),
+        nombreDescarga: r.nombre, firmaDescarga: firma(r.texto)
+      });
+      if(r.convertido) aviso("Convertido de HTML a Markdown: revisá el resultado, sobre todo tablas y formato raro");
+    };
+    fr.onerror = function(){ aviso("No se pudo leer ese archivo"); };
+    fr.readAsText(f);
+  }
+  var frFirma = new FileReader();
+  frFirma.onload = function(){
+    var tipo = firmaBinariaConocida(frFirma.result);
+    if(tipo === "zip"){
+      aviso("Eso es un documento de Office moderno (.docx/.xlsx/.pptx) con la extensión cambiada. Abrilo con su programa original: MDx todavía no puede convertirlo.");
+      return;
+    }
+    if(tipo === "cfb"){
+      aviso("Eso es un documento antiguo de Office (.doc/.xls/.ppt) con la extensión cambiada. Guardalo como .docx/.xlsx/.pptx desde Word/LibreOffice y volvé a intentarlo.");
+      return;
+    }
+    leerComoTexto();
+  };
+  /* si ni la firma se puede leer, seguir igual: readAsText() en leerComoTexto()
+     va a fallar y avisar por su cuenta, no queda colgado ni en silencio. */
+  frFirma.onerror = leerComoTexto;
+  frFirma.readAsArrayBuffer(f.slice(0, 8));
+}
 $("#archivo").addEventListener("change", function(){
   var f = this.files && this.files[0];
   this.value = "";
   if(!f) return;
-  if(!confirmarReemplazo()) return;
-  var fr = new FileReader();
-  fr.onload = function(){
-    var r = comoMarkdown(f.name, String(fr.result));
-    if(r.convertido && !r.texto.trim()){ aviso("Ese HTML no tiene texto para convertir"); return; }
-    fijarTexto(r.texto, r.nombre, {
-      origen: "local", version: 1, descargado: f.lastModified || Date.now(),
-      nombreDescarga: r.nombre, firmaDescarga: firma(r.texto)
-    });
-    if(r.convertido) aviso("Convertido de HTML a Markdown: revisá el resultado, sobre todo tablas y formato raro");
-  };
-  fr.readAsText(f);
+  if(!/\.(md|markdown|mdown|mkd|txt|html?)$/i.test(f.name)){
+    aviso("Ese tipo de archivo no se puede abrir acá: elegí un .md, .txt o .html");
+    return;
+  }
+  abrirArchivoValidado(f);
 });
 
 /* el sistema operativo abre esta app (instalada) con un .md: "Abrir con" o
@@ -19904,19 +20339,11 @@ $("#gpxImportar").addEventListener("change", function(){
     e.preventDefault();
     if(ev !== "drop") return;
     var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    /* silencioso a propósito: este listener está en document y recibe
+       cualquier drop de la página (ej. una imagen soltada sobre la pizarra),
+       no solo los pensados para "abrir archivo" -- avisar acá sería ruido. */
     if(!f || !/\.(md|markdown|mdown|mkd|txt|html?)$/i.test(f.name)) return;
-    if(!confirmarReemplazo()) return;
-    var fr = new FileReader();
-    fr.onload = function(){
-      var r = comoMarkdown(f.name, String(fr.result));
-      if(r.convertido && !r.texto.trim()){ aviso("Ese HTML no tiene texto para convertir"); return; }
-      fijarTexto(r.texto, r.nombre, {
-        origen: "local", version: 1, descargado: f.lastModified || Date.now(),
-        nombreDescarga: r.nombre, firmaDescarga: firma(r.texto)
-      });
-      if(r.convertido) aviso("Convertido de HTML a Markdown: revisá el resultado, sobre todo tablas y formato raro");
-    };
-    fr.readAsText(f);
+    abrirArchivoValidado(f);
   });
 });
 
