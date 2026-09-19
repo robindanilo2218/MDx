@@ -1418,12 +1418,16 @@ figure.diagrama:focus-visible{outline:none}
 .diag-amp-cuerpo{display:flex; flex-direction:column; min-height:0}
 .diag-amp-lienzo{
   position:relative; flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center;
-  overflow:auto; background:var(--dia-fondo); border-radius:.5rem;
+  overflow:hidden; background:var(--dia-fondo); border-radius:.5rem; touch-action:none; cursor:grab;
 }
+.diag-amp-lienzo.arrastrando{cursor:grabbing}
 .diag-amp-lienzo[hidden]{display:none}
 .diag-amp-imp-panel[hidden]{display:none}
-.diag-amp-envoltorio{transition:transform .2s}
+.diag-amp-envoltorio{transition:transform .2s; transform-origin:center center}
+.diag-amp-envoltorio.sin-transicion{transition:none}
 .diag-amp-envoltorio svg{display:block; max-width:none; max-height:none}
+.diag-amp-zoom{display:inline-flex; align-items:center; gap:.25rem}
+.diag-amp-zoom-pct{font-size:12px; color:var(--tenue); min-width:3.4em; text-align:center; user-select:none}
 .diag-amp-lapiz-svg{
   position:absolute; inset:0; width:100%; height:100%; pointer-events:none; touch-action:none;
 }
@@ -2234,6 +2238,12 @@ math mo{font-family:inherit}
     <div class="dialogo-cabecera diag-amp-cabecera">
       <h2 id="tituloDiagAmp">Diagrama</h2>
       <div class="diag-amp-herramientas">
+        <span class="diag-amp-zoom">
+          <button type="button" id="diagAmpZoomMenos" title="Alejar"><b>&#8722;</b></button>
+          <span class="diag-amp-zoom-pct" id="diagAmpZoomPct">100%</span>
+          <button type="button" id="diagAmpZoomMas" title="Acercar"><b>&#43;</b></button>
+        </span>
+        <button type="button" id="diagAmpZoomFit" title="Encuadrar en la pantalla (deshace zoom y desplazamiento)"><b>&#10530;</b><span>Encuadrar</span></button>
         <button type="button" id="diagAmpGirar" title="Girar 90° (para aprovechar el ancho o el alto de la pantalla)"><b>&#8635;</b><span>Girar</span></button>
         <button type="button" id="diagAmpLapiz" aria-pressed="false" title="Anotar a mano libre (no se guarda en el documento)"><b>&#9998;</b><span>Anotar</span></button>
         <span class="diag-amp-colores" id="diagAmpColores" hidden>
@@ -12266,7 +12276,9 @@ function diagAmpIdsUnicos(html, sufijo){
 /* recalcula el tama\u00f1o del svg (a partir de su ancho/alto naturales) para que
    entre en el hueco disponible -- intercambiando ancho y alto del hueco
    cuando esta girado, ya que rotate() no cambia el flujo/layout, solo lo que
-   se ve. */
+   se ve. Ese tama\u00f1o de "ajuste" es la base sobre la que zoom/despazamiento
+   (diagAmpAplicarTransformacion) aplican su propio transform, asi que un
+   cambio de tama\u00f1o de ventana no pisa el zoom que el usuario ya puso. */
 function diagAmpAjustar(){
   if(!DIAG_AMP || $("#veloDiagrama").hidden) return;
   var env = $("#diagAmpEnvoltorio"), svg = env.querySelector("svg");
@@ -12280,16 +12292,109 @@ function diagAmpAjustar(){
     svg.style.width = (natW * escala) + "px";
     svg.style.height = (natH * escala) + "px";
   }
-  env.style.transform = DIAG_AMP.girado ? "rotate(90deg)" : "";
+  diagAmpAplicarTransformacion();
   $("#diagAmpLapizSvg").setAttribute("viewBox", "0 0 " + r.width + " " + r.height);
 }
 window.addEventListener("resize", function(){ if(DIAG_AMP) diagAmpAjustar(); });
+
+/* zoom (multiplicador sobre el tama\u00f1o de "ajuste") + desplazamiento, en px de
+   pantalla -- por eso translate() va primero en el transform: as\u00ed el arrastre
+   se siente igual este o no girado el diagrama. El desplazamiento se acota
+   para que el diagrama nunca se pueda arrastrar fuera de la vista del todo. */
+var DIAG_AMP_ZOOM_MIN = 1, DIAG_AMP_ZOOM_MAX = 6;
+function diagAmpAplicarTransformacion(){
+  if(!DIAG_AMP) return;
+  var env = $("#diagAmpEnvoltorio"), svg = env.querySelector("svg");
+  var lienzo = $("#diagAmpLienzo"), r = lienzo.getBoundingClientRect();
+  if(svg){
+    var anchoBase = parseFloat(svg.style.width) || 1, altoBase = parseFloat(svg.style.height) || 1;
+    var contW = anchoBase * DIAG_AMP.zoom, contH = altoBase * DIAG_AMP.zoom;
+    if(DIAG_AMP.girado){ var t = contW; contW = contH; contH = t; }
+    var maxPanX = Math.max(0, (contW - r.width) / 2), maxPanY = Math.max(0, (contH - r.height) / 2);
+    DIAG_AMP.panX = Math.max(-maxPanX, Math.min(maxPanX, DIAG_AMP.panX));
+    DIAG_AMP.panY = Math.max(-maxPanY, Math.min(maxPanY, DIAG_AMP.panY));
+  }
+  env.style.transform = "translate(" + DIAG_AMP.panX.toFixed(1) + "px," + DIAG_AMP.panY.toFixed(1) + "px) " +
+    (DIAG_AMP.girado ? "rotate(90deg) " : "") + "scale(" + DIAG_AMP.zoom.toFixed(3) + ")";
+  $("#diagAmpZoomPct").textContent = Math.round(DIAG_AMP.zoom * 100) + "%";
+}
+function diagAmpZoomAjustar(factor){
+  if(!DIAG_AMP) return;
+  DIAG_AMP.zoom = Math.max(DIAG_AMP_ZOOM_MIN, Math.min(DIAG_AMP_ZOOM_MAX, DIAG_AMP.zoom * factor));
+  diagAmpAplicarTransformacion();
+}
+function diagAmpEncuadrar(){
+  if(!DIAG_AMP) return;
+  DIAG_AMP.zoom = 1; DIAG_AMP.panX = 0; DIAG_AMP.panY = 0;
+  diagAmpAplicarTransformacion();
+}
+/* arrastrar para desplazar (un dedo/click) y pellizcar para hacer zoom (dos
+   dedos) -- un Map de pointerId => {x,y} porque touch manda varios pointerdown
+   sin soltar el anterior. Nunca arrastra mientras el lapiz esta activo: ese
+   modo ya usa los mismos gestos para dibujar. */
+var diagAmpPunteros = new Map();
+var diagAmpArrastre = null;
+function diagAmpDistanciaPunteros(){
+  var pts = Array.from(diagAmpPunteros.values());
+  return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+}
+function diagAmpPunteroBajaLienzo(e){
+  if(!DIAG_AMP || DIAG_AMP.lapiz) return;
+  $("#diagAmpLienzo").setPointerCapture(e.pointerId);
+  diagAmpPunteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  $("#diagAmpLienzo").classList.add("arrastrando");
+  $("#diagAmpEnvoltorio").classList.add("sin-transicion");
+  if(diagAmpPunteros.size === 1){
+    diagAmpArrastre = { tipo: "pan", x0: e.clientX, y0: e.clientY, panX0: DIAG_AMP.panX, panY0: DIAG_AMP.panY };
+  } else if(diagAmpPunteros.size === 2){
+    var pts = Array.from(diagAmpPunteros.values());
+    diagAmpArrastre = {
+      tipo: "pellizco", dist0: diagAmpDistanciaPunteros(), zoom0: DIAG_AMP.zoom,
+      panX0: DIAG_AMP.panX, panY0: DIAG_AMP.panY,
+      midX0: (pts[0].x + pts[1].x) / 2, midY0: (pts[0].y + pts[1].y) / 2
+    };
+  }
+}
+function diagAmpPunteroMueveLienzo(e){
+  if(!diagAmpPunteros.has(e.pointerId) || !diagAmpArrastre) return;
+  diagAmpPunteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if(diagAmpArrastre.tipo === "pan"){
+    DIAG_AMP.panX = diagAmpArrastre.panX0 + (e.clientX - diagAmpArrastre.x0);
+    DIAG_AMP.panY = diagAmpArrastre.panY0 + (e.clientY - diagAmpArrastre.y0);
+  } else if(diagAmpArrastre.tipo === "pellizco" && diagAmpPunteros.size === 2){
+    var pts = Array.from(diagAmpPunteros.values());
+    var factor = diagAmpDistanciaPunteros() / (diagAmpArrastre.dist0 || 1);
+    DIAG_AMP.zoom = Math.max(DIAG_AMP_ZOOM_MIN, Math.min(DIAG_AMP_ZOOM_MAX, diagAmpArrastre.zoom0 * factor));
+    var midX = (pts[0].x + pts[1].x) / 2, midY = (pts[0].y + pts[1].y) / 2;
+    DIAG_AMP.panX = diagAmpArrastre.panX0 + (midX - diagAmpArrastre.midX0);
+    DIAG_AMP.panY = diagAmpArrastre.panY0 + (midY - diagAmpArrastre.midY0);
+  }
+  diagAmpAplicarTransformacion();
+}
+function diagAmpPunteroSubeLienzo(e){
+  diagAmpPunteros.delete(e.pointerId);
+  if(diagAmpPunteros.size === 0){
+    diagAmpArrastre = null;
+    $("#diagAmpLienzo").classList.remove("arrastrando");
+    $("#diagAmpEnvoltorio").classList.remove("sin-transicion");
+  } else if(diagAmpPunteros.size === 1 && DIAG_AMP){
+    var restante = Array.from(diagAmpPunteros.values())[0];
+    diagAmpArrastre = { tipo: "pan", x0: restante.x, y0: restante.y, panX0: DIAG_AMP.panX, panY0: DIAG_AMP.panY };
+  }
+}
+function diagAmpRuedaLienzo(e){
+  if(!DIAG_AMP || DIAG_AMP.lapiz) return;
+  e.preventDefault();
+  diagAmpZoomAjustar(Math.pow(1.0015, -e.deltaY));
+}
 
 function abrirDiagramaAmpliado(fig){
   var svgOriginal = fig.querySelector("svg.diagrama-svg");
   if(!svgOriginal) return;
   var fuente = fig.querySelector(".diagrama-fuente code");
-  DIAG_AMP = { fig: fig, girado: false, lapiz: false, color: "#e5484d", borrador: false };
+  DIAG_AMP = { fig: fig, girado: false, lapiz: false, color: "#e5484d", borrador: false, zoom: 1, panX: 0, panY: 0 };
+  diagAmpPunteros.clear();
+  diagAmpArrastre = null;
   $("#diagAmpEnvoltorio").innerHTML = diagAmpIdsUnicos(svgOriginal.outerHTML, "-amp");
   $("#diagAmpEnvoltorio").style.transform = "";
   $("#diagAmpLapizSvg").innerHTML = "";
@@ -12396,11 +12501,22 @@ function diagAmpSoltarPuntero(){
 /* ventana nueva / imprimir: documento minimo con solo el svg del diagrama,
    sin las anotaciones a mano (son para mirar en pantalla, no para el papel)
    y sin ancho/alto fijos, para que ocupe toda la hoja o toda la ventana. */
+/* el diagrama pinta sus colores con var(--dia-*) (para seguir el tema
+   claro/oscuro del documento): la ventana nueva no tiene esas hojas de
+   estilo, asi que se copian los valores YA RESUELTOS de esas variables
+   (segun el tema activo en este momento) como :root propio de la ventana --
+   si no, fill/stroke con var() sin definir caen al negro/transparente por
+   defecto y el diagrama se ve desvestido de color. */
+var DIAG_AMP_VARS_TEMA = ["--dia-relleno","--dia-borde","--dia-texto","--dia-linea","--dia-fondo",
+  "--dia-tenue","--dia-grupo","--dia-grupo-borde","--dia-nota","--dia-nota-borde"];
 function diagAmpDocumentoHTML(){
   var svg = $("#diagAmpEnvoltorio svg");
   var titulo = $("#tituloDiagAmp").textContent || "Diagrama";
+  var cs = getComputedStyle(document.documentElement);
+  var raiz = DIAG_AMP_VARS_TEMA.map(function(v){ return v + ":" + (cs.getPropertyValue(v).trim() || "initial") + ";"; }).join("");
+  var fondo = cs.getPropertyValue("--dia-fondo").trim() || "#fff";
   return "<!doctype html><html><head><meta charset=\"utf-8\"><title>" + X(titulo) + "</title>" +
-    "<style>html,body{margin:0;padding:0;background:#fff}" +
+    "<style>:root{" + raiz + "}html,body{margin:0;padding:0;background:" + fondo + "}" +
     "body{display:flex;align-items:center;justify-content:center;min-height:100vh}" +
     "svg{max-width:100vw;max-height:100vh;width:auto;height:auto}</style></head><body>" +
     (svg ? svg.outerHTML.replace(/\s(width|height)="[^"]*"/g, "") : "") +
@@ -19425,6 +19541,14 @@ $("#posterImprimir").addEventListener("click", function(e){ if(e.target === this
 $("#posterImprimirBoton").addEventListener("click", gpxPosterConfirmarImprimir);
 $("#diagAmpCerrar").addEventListener("click", cerrarDiagramaAmpliado);
 $("#veloDiagrama").addEventListener("click", function(e){ if(e.target === this) cerrarDiagramaAmpliado(); });
+$("#diagAmpZoomMenos").addEventListener("click", function(){ diagAmpZoomAjustar(1 / 1.4); });
+$("#diagAmpZoomMas").addEventListener("click", function(){ diagAmpZoomAjustar(1.4); });
+$("#diagAmpZoomFit").addEventListener("click", diagAmpEncuadrar);
+$("#diagAmpLienzo").addEventListener("pointerdown", diagAmpPunteroBajaLienzo);
+$("#diagAmpLienzo").addEventListener("pointermove", diagAmpPunteroMueveLienzo);
+$("#diagAmpLienzo").addEventListener("pointerup", diagAmpPunteroSubeLienzo);
+$("#diagAmpLienzo").addEventListener("pointercancel", diagAmpPunteroSubeLienzo);
+$("#diagAmpLienzo").addEventListener("wheel", diagAmpRuedaLienzo, { passive: false });
 $("#diagAmpGirar").addEventListener("click", diagAmpGirar);
 $("#diagAmpCodigo").addEventListener("click", diagAmpAlternarCodigo);
 $("#diagAmpLapiz").addEventListener("click", function(){ diagAmpLapizPoner(!DIAG_AMP.lapiz); });
