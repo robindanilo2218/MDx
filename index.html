@@ -337,7 +337,7 @@ body.editando #ed{flex:1 1 auto; height:auto; min-height:0}
    ========================================================================== */
 /* el hueco de arriba deja pasar la barra flotante: como la barra crece cuando
    salen las pestañas, su alto se mide y se guarda en --alto-barra */
-.documento{max-width:var(--ancho); margin:0 auto;
+.documento{max-width:var(--ancho); margin:0 auto; position:relative;
   padding:max(4.5rem, calc(var(--alto-barra, 0px) + 1.4rem)) 1.5rem 7rem}
 /* el molde con el que se hace la imagen: el documento suelto, sin la altura ni
    el desplazamiento que le pone el editor */
@@ -1231,6 +1231,32 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
 .estado-submenu button:hover{ background:var(--acento-suave); border-color:var(--acento) }
 @media (prefers-reduced-motion:reduce){ .estado-submenu{ transition:none } }
 @media (max-width:600px){ .estado-doc{ left:.5rem; bottom:.5rem; font-size:.72rem; max-width:calc(100vw - 1rem) } }
+
+/* ---------- anotar sobre la vista normal (16.x) ----------
+   Una capa SVG que cubre exactamente #doc (no toda la pantalla: el menú y
+   #estadoDoc siguen recibiendo clics siempre), sin interceptar nada mientras
+   solo se lee -- pointer-events se activa unicamente con el modo Anotar
+   encendido. Los trazos se guardan aparte (CLAVE_ANOTAR + docActual.id), no
+   como texto insertado en el markdown. */
+.doc-notas-capa{ position:absolute; inset:0; z-index:2; pointer-events:none }
+.doc-notas-capa.activa{ pointer-events:auto; cursor:crosshair }
+.doc-notas-capa.borrador{ cursor:cell }
+.doc-nota-trazo, .doc-nota-trazo-actual{ fill:none; stroke-linecap:round; stroke-linejoin:round }
+.notas-barra{
+  position:fixed; top:.7rem; right:.7rem; z-index:56; display:flex; align-items:center; gap:.4rem;
+  background:var(--papel); border:1px solid var(--borde); border-radius:.7rem; padding:.35rem .5rem;
+  box-shadow:var(--sombra);
+}
+.notas-barra[hidden]{ display:none }
+.notas-barra input[type="color"]{ width:1.8rem; height:1.8rem; padding:0; border:1px solid var(--borde); border-radius:.4rem; background:none; cursor:pointer }
+.notas-barra input[type="range"]{ width:5rem }
+.notas-barra button{
+  font:inherit; font-size:1rem; line-height:1; cursor:pointer; color:var(--texto);
+  background:var(--papel); border:1px solid var(--borde); border-radius:.4rem; padding:.3em .5em;
+}
+.notas-barra button:hover{ background:var(--acento-suave); border-color:var(--acento) }
+.notas-barra button.activo{ background:var(--acento); border-color:var(--acento); color:#fff }
+body.editando #estadoAnotar, body.editando #estadoVerNotas, body.editando .notas-barra{ display:none }
 
 /* menú de los tres puntos: mismo patrón de fondo transparente que
    ".estado-doc .acciones" (cada fila es su propia pastilla, no hay panel
@@ -2308,6 +2334,8 @@ math mo{font-family:inherit}
     <button type="button" id="estadoPresentar" title="Presentar en pantalla completa, diapositiva a diapositiva"><span class="icono">&#9654;</span><span class="etiqueta">Presentar</span></button>
     <button type="button" id="estadoLeer" aria-pressed="false" title="Leer el documento en voz alta"><span class="icono" id="estadoLeerIco">&#128266;</span><span class="etiqueta" id="estadoLeerEtq">Leer</span></button>
     <button type="button" id="estadoEditar" title="Escribir aquí mismo, con el resultado al lado"><span class="icono">&#9998;</span><span class="etiqueta">Editar</span></button>
+    <button type="button" id="estadoAnotar" aria-pressed="false" title="Dibujar a mano alzada sobre este documento, sin tocar el texto: se guarda aparte, solo en este navegador"><span class="icono">&#128394;</span><span class="etiqueta">Anotar</span></button>
+    <button type="button" id="estadoVerNotas" aria-pressed="true" title="Mostrar u ocultar las anotaciones guardadas" hidden><span class="icono">&#128065;</span><span class="etiqueta">Anotaciones</span></button>
     <button type="button" id="estadoImprimir" title="Imprimir o guardar como PDF (Ctrl+P)"><span class="icono">&#128424;</span><span class="etiqueta">Imprimir</span></button>
     <div class="item">
       <button type="button" id="estadoDescargar" title="Descargar el documento: elige el formato" aria-haspopup="true"><span class="icono">&#10515;</span><span class="etiqueta">Descargar</span></button>
@@ -2331,6 +2359,13 @@ math mo{font-family:inherit}
   <div class="detalle">
     <span class="texto" id="estadoTexto" title="Ver los documentos abiertos aquí"></span>
   </div>
+</div>
+<div class="notas-barra no-print" id="notasBarra" hidden>
+  <input type="color" id="notasColor" value="#e11d48" title="Color de la anotación">
+  <input type="range" id="notasGrosor" min="1" max="16" value="4" title="Grosor del trazo">
+  <button type="button" id="notasBorrador" title="Borrador: toca un trazo para borrarlo">&#9003;</button>
+  <button type="button" id="notasDeshacer" title="Deshacer el último trazo">&#8630;</button>
+  <button type="button" id="notasLimpiar" title="Borrar todas las anotaciones de este documento">&#128465;</button>
 </div>
 <div class="aviso-flotante no-print" id="aviso" hidden>
   <span id="avisoTexto"></span>
@@ -11039,7 +11074,8 @@ var CLAVE_DOC = "mdcrgm.doc", CLAVE_NOMBRE = "mdcrgm.nombre",
     CLAVE_CONTADOR = "mdcrgm.n", CLAVE_NOTA = "mdcrgm.nota",
     CLAVE_ESPEJO = "mdcrgm.espejo", CLAVE_PESTANAS = "mdcrgm.pestanas",
     CLAVE_SESION = "mdcrgm.sesion", CLAVE_MISPUB = "mdcrgm.mispub",
-    CLAVE_LECTURA = "mdcrgm.leido.";
+    CLAVE_LECTURA = "mdcrgm.leido.",
+    CLAVE_ANOTAR = "mdcrgm.anotar.", CLAVE_ANOTAR_VER = "mdcrgm.anotarver.";
 
 var BIENVENIDA = elFuente ? elFuente.textContent : "";
 var fuenteActual = BIENVENIDA, textoBase = BIENVENIDA, nombreSugerido = "";
@@ -15319,6 +15355,7 @@ function pintar(md){
   prepararPizarra();
   prepararTresD();
   prepararPlegado();
+  prepararAnotaciones();
   contarCampos();
   calcularHojas();
   if($("#esquema") && !$("#esquema").hidden) pintarEsquema();
@@ -15947,6 +15984,220 @@ function barraDeLectura(){
   window.addEventListener("scroll", enScroll, { passive: true });
   if(elDoc) elDoc.addEventListener("scroll", enScroll, { passive: true });
   window.addEventListener("resize", actualizarBarraLectura);
+}
+
+/* ---------- anotar sobre la vista normal ----------
+   Dibujo libre encima de #doc, SIN tocar fuenteActual: vive aparte, en
+   localStorage por documento (CLAVE_ANOTAR + docActual.id), igual que la
+   posicion de lectura de arriba. Cada trazo se ancla a un bloque real del
+   documento por su "linea" (el mismo data-linea que ya usa el scroll
+   sincronizado, ver anclasDoc()/topEnDoc de mas arriba) en vez de a
+   coordenadas absolutas: asi sobrevive a que #doc se repinte entero en cada
+   pintar() (elDoc.replaceChildren) y a que el usuario haga scroll o cambie
+   el ancho de ventana. Si el bloque de esa linea desaparece (se borro o se
+   edito lo bastante arriba como para que cambien los numeros de linea), la
+   anotacion queda huerfana -- no se dibuja, pero el dato no se pierde, y
+   vuelve a aparecer si la edicion se deshace. Mapear una SELECCION de texto
+   existente a un rango exacto de la fuente es un problema aparte y mas duro,
+   sin resolver todavia (ver mdx-bloques-spec-v2.md); esto es solo trazo
+   libre, anclado a bloque completo. */
+var NOTAS_D_MAX = 4000, NOTAS_MAX = 300;
+var NOTAS = { docId: undefined, trazos: [], activo: false, color: "#e11d48", grosor: 4, borrador: false, enCurso: null };
+function notasClaveDoc(){ return (HAY_ALMACEN && docActual) ? docActual.id : null; }
+var NOTAS_FIRMA_LARGO = 40;
+function notaValida(t){
+  return t && typeof t === "object" &&
+    typeof t.linea === "number" && isFinite(t.linea) && t.linea >= 0 && t.linea % 1 === 0 &&
+    (t.firma === undefined || (typeof t.firma === "string" && t.firma.length <= NOTAS_FIRMA_LARGO)) &&
+    typeof t.d === "string" && t.d.length <= NOTAS_D_MAX && PIZARRA_RE_PATH.test(t.d) &&
+    typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
+    typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 40;
+}
+/* primeros NOTAS_FIRMA_LARGO caracteres del bloque anclado, guardados junto
+   al trazo: una linea reaparece con OTRO contenido en cuanto se inserta o se
+   borra algo mas arriba (el data-linea es un numero, no una identidad), y
+   sin esto la anotacion saltaria en silencio al bloque nuevo que herede ese
+   mismo numero. Ante la duda se prefiere esconder la nota (huerfana, el dato
+   no se pierde) a mostrarla pegada a un parrafo que no es el suyo. */
+function notaFirmaDe(el){
+  return el && el.textContent ? el.textContent.slice(0, NOTAS_FIRMA_LARGO) : "";
+}
+function notasCargar(id){
+  var crudo = id ? leer(CLAVE_ANOTAR + id) : null, arr;
+  if(!crudo) return [];
+  try{ arr = JSON.parse(crudo); }catch(e){ return []; }
+  return Array.isArray(arr) ? arr.filter(notaValida) : [];
+}
+var relojNotas = null;
+function notasGuardar(){
+  var id = notasClaveDoc();
+  if(!id) return;
+  clearTimeout(relojNotas);
+  relojNotas = setTimeout(function(){ escribir(CLAVE_ANOTAR + id, JSON.stringify(NOTAS.trazos)); }, 300);
+}
+function notasAsegurarDoc(){
+  var id = notasClaveDoc();
+  if(NOTAS.docId === id) return;
+  NOTAS.docId = id;
+  NOTAS.trazos = notasCargar(id);
+  NOTAS.activo = false;
+  NOTAS.enCurso = null;
+  var capaAntes = document.getElementById("docNotasCapa");
+  if(capaAntes) capaAntes.classList.remove("activa", "borrador");
+  var e = $("#estadoAnotar");
+  if(e){ e.setAttribute("aria-pressed", "false"); e.classList.remove("activo"); }
+}
+/* que bloque de #doc esta a la altura Y (relativa al propio elDoc): el
+   ultimo ancla cuyo borde superior no pasa de Y -- misma idea que
+   lineaEnAltura() pero sobre las cajas reales en pantalla en vez de topes
+   de linea del editor. */
+function notaAnclaEnY(y){
+  var anc = anclasDoc(), rDoc = elDoc.getBoundingClientRect(), i, mejor = null, top;
+  for(i = 0; i < anc.length; i++){
+    top = anc[i].el.getBoundingClientRect().top - rDoc.top;
+    if(top <= y + 0.5) mejor = anc[i]; else break;
+  }
+  return mejor;
+}
+function notaAnclaPorLinea(linea){
+  var anc = anclasDoc(), i;
+  for(i = 0; i < anc.length; i++) if(anc[i].linea === linea) return anc[i].el;
+  return null;
+}
+function notasMostrarActivo(){
+  var id = notasClaveDoc();
+  return !id || leer(CLAVE_ANOTAR_VER + id) !== "no";
+}
+function notasRedibujar(){
+  var capa = document.getElementById("docNotasCapa");
+  if(!capa) return;
+  var rDoc = elDoc.getBoundingClientRect(), i, t, el, r, dx, dy, dAbs, partes = [];
+  for(i = 0; i < NOTAS.trazos.length; i++){
+    t = NOTAS.trazos[i];
+    el = notaAnclaPorLinea(t.linea);
+    if(!el) continue;
+    if(t.firma !== undefined && notaFirmaDe(el) !== t.firma) continue;
+    r = el.getBoundingClientRect();
+    dx = r.left - rDoc.left; dy = r.top - rDoc.top;
+    dAbs = pizarraTransformarD(t.d, function(x){ return x + dx; }, function(y){ return y + dy; });
+    partes.push('<path class="doc-nota-trazo" data-i="' + i + '" d="' + escUI(dAbs) + '" stroke="' +
+      escUI(t.color) + '" stroke-width="' + t.grosor + '"></path>');
+  }
+  capa.innerHTML = partes.join("");
+  capa.classList.toggle("activa", NOTAS.activo);
+  capa.classList.toggle("borrador", NOTAS.activo && NOTAS.borrador);
+  capa.style.display = (NOTAS.activo || notasMostrarActivo()) ? "" : "none";
+}
+function actualizarBotonesAnotar(){
+  var v = $("#estadoVerNotas");
+  if(v) v.hidden = !NOTAS.trazos.length;
+  if(v) v.setAttribute("aria-pressed", notasMostrarActivo() ? "true" : "false");
+}
+function notasPointerDown(e){
+  if(!NOTAS.activo || !e.isPrimary) return;
+  var capa = e.currentTarget;
+  if(NOTAS.borrador){
+    var trazoEl = e.target.closest ? e.target.closest(".doc-nota-trazo") : null;
+    if(trazoEl){
+      var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
+      if(isFinite(idx) && NOTAS.trazos[idx]){
+        NOTAS.trazos.splice(idx, 1);
+        notasGuardar(); notasRedibujar(); actualizarBotonesAnotar();
+      }
+    }
+    return;
+  }
+  var rCapa = capa.getBoundingClientRect();
+  var ptAbs = { x: e.clientX - rCapa.left, y: e.clientY - rCapa.top };
+  var ancla = notaAnclaEnY(ptAbs.y);
+  var rAncla = ancla ? ancla.el.getBoundingClientRect() : rCapa;
+  var dx = rAncla.left - rCapa.left, dy = rAncla.top - rCapa.top;
+  var pt = { x: Math.round((ptAbs.x - dx) * 10) / 10, y: Math.round((ptAbs.y - dy) * 10) / 10 };
+  try{ capa.setPointerCapture(e.pointerId); }catch(err){}
+  var d0 = pizarraTrazoAPath([pt]);
+  capa.insertAdjacentHTML("beforeend",
+    '<path class="doc-nota-trazo-actual" d="' + escUI(d0) + '" stroke="' + escUI(NOTAS.color) + '" stroke-width="' + NOTAS.grosor + '"></path>');
+  NOTAS.enCurso = {
+    pointerId: e.pointerId, linea: ancla ? ancla.linea : 0, firma: notaFirmaDe(ancla ? ancla.el : null), dx: dx, dy: dy,
+    puntos: [pt], d: d0, path: capa.lastElementChild, capa: capa
+  };
+}
+function notasPointerMove(e){
+  var en = NOTAS.enCurso;
+  if(!en || e.pointerId !== en.pointerId) return;
+  var rCapa = en.capa.getBoundingClientRect();
+  var pt = { x: Math.round((e.clientX - rCapa.left - en.dx) * 10) / 10, y: Math.round((e.clientY - rCapa.top - en.dy) * 10) / 10 };
+  if(en.puntos.length >= 3000) return;
+  en.puntos.push(pt);
+  var d = pizarraTrazoApendice(en.d, en.puntos);
+  if(d.length > NOTAS_D_MAX){ en.puntos.pop(); return; }
+  en.d = d;
+  en.path.setAttribute("d", d);
+}
+function notasPointerUp(e){
+  var en = NOTAS.enCurso;
+  if(!en || e.pointerId !== en.pointerId) return;
+  NOTAS.enCurso = null;
+  if(en.path && en.path.parentNode) en.path.parentNode.removeChild(en.path);
+  if(NOTAS.trazos.length >= NOTAS_MAX){ aviso("Este documento ya tiene el máximo de " + NOTAS_MAX + " anotaciones."); return; }
+  NOTAS.trazos.push({ linea: en.linea, firma: en.firma, d: en.d, color: NOTAS.color, grosor: NOTAS.grosor });
+  notasGuardar(); notasRedibujar(); actualizarBotonesAnotar();
+}
+function prepararAnotaciones(){
+  notasAsegurarDoc();
+  var capa = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  capa.setAttribute("id", "docNotasCapa");
+  capa.setAttribute("class", "doc-notas-capa no-print");
+  capa.addEventListener("pointerdown", notasPointerDown);
+  capa.addEventListener("pointermove", notasPointerMove);
+  capa.addEventListener("pointerup", notasPointerUp);
+  capa.addEventListener("pointercancel", notasPointerUp);
+  elDoc.appendChild(capa);
+  notasRedibujar();
+  actualizarBotonesAnotar();
+}
+function notasActivar(on){
+  NOTAS.activo = on;
+  NOTAS.enCurso = null;
+  var b = $("#estadoAnotar"), barra = $("#notasBarra");
+  if(b){ b.setAttribute("aria-pressed", on ? "true" : "false"); b.classList.toggle("activo", on); }
+  if(barra) barra.hidden = !on;
+  notasRedibujar();
+}
+function prepararControlesAnotar(){
+  var b = $("#estadoAnotar");
+  if(b) b.addEventListener("click", function(){ notasActivar(!NOTAS.activo); });
+  var v = $("#estadoVerNotas");
+  if(v) v.addEventListener("click", function(){
+    var id = notasClaveDoc(), mostrar = !notasMostrarActivo();
+    if(id) escribir(CLAVE_ANOTAR_VER + id, mostrar ? "si" : "no");
+    notasRedibujar(); actualizarBotonesAnotar();
+  });
+  var color = $("#notasColor");
+  if(color) color.addEventListener("input", function(){ NOTAS.color = color.value; });
+  var grosor = $("#notasGrosor");
+  if(grosor) grosor.addEventListener("input", function(){ NOTAS.grosor = parseFloat(grosor.value) || 4; });
+  var borrador = $("#notasBorrador");
+  if(borrador) borrador.addEventListener("click", function(){
+    NOTAS.borrador = !NOTAS.borrador;
+    borrador.classList.toggle("activo", NOTAS.borrador);
+    notasRedibujar();
+  });
+  var deshacer = $("#notasDeshacer");
+  if(deshacer) deshacer.addEventListener("click", function(){
+    if(!NOTAS.trazos.length) return;
+    NOTAS.trazos.pop();
+    notasGuardar(); notasRedibujar(); actualizarBotonesAnotar();
+  });
+  var limpiar = $("#notasLimpiar");
+  if(limpiar) limpiar.addEventListener("click", function(){
+    if(!NOTAS.trazos.length) return;
+    aviso("¿Borrar todas las anotaciones de este documento?", "Borrar", function(){
+      NOTAS.trazos = [];
+      notasGuardar(); notasRedibujar(); actualizarBotonesAnotar();
+    });
+  });
+  window.addEventListener("resize", notasRedibujar);
 }
 
 /* ---------- scroll sincronizado ----------
@@ -20827,6 +21078,7 @@ prepararPresentacion();
 prepararPizarron();
 barraQueSeAparta();
 barraDeLectura();
+prepararControlesAnotar();
 medirAltoBarra();
 window.addEventListener("resize", medirAltoBarra);
 /* la barra cambia de alto sola: aparece el boton de rellenar, se parte en dos
