@@ -1238,7 +1238,7 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
    solo se lee -- pointer-events se activa unicamente con el modo Anotar
    encendido. Los trazos se guardan aparte (CLAVE_ANOTAR + docActual.id), no
    como texto insertado en el markdown. */
-.doc-notas-capa{ position:absolute; inset:0; z-index:2; pointer-events:none }
+.doc-notas-capa{ position:absolute; inset:0; width:100%; height:100%; z-index:2; pointer-events:none }
 .doc-notas-capa.activa{ pointer-events:auto; cursor:crosshair }
 .doc-notas-capa.borrador{ cursor:cell }
 .doc-nota-trazo, .doc-nota-trazo-actual{ fill:none; stroke-linecap:round; stroke-linejoin:round }
@@ -1319,7 +1319,10 @@ body.editando #estadoAnotar, body.editando #estadoVerNotas, body.editando .notas
 }
 .acciones-almacen button:hover{ background:var(--acento-suave); border-color:var(--acento) }
 .aviso-flotante{
-  position:fixed; left:0; right:0; bottom:1.2rem; margin:0 auto; width:fit-content; z-index:120;
+  /* por encima de .velo (z-index:10000): si no, un aviso() de confirmacion
+     disparado con un dialogo abierto (ej. "Limpiar" en el diagrama ampliado)
+     queda tapado y el clic en su boton cae sobre lo que hay debajo. */
+  position:fixed; left:0; right:0; bottom:1.2rem; margin:0 auto; width:fit-content; z-index:10050;
   display:flex; align-items:center; gap:.9rem; max-width:min(92vw,32rem);
   background:var(--texto); color:var(--fondo); font-family:var(--sans); font-size:.86rem;
   padding:.7em 1em; border-radius:.65em; box-shadow:0 8px 30px rgba(0,0,0,.3);
@@ -1440,8 +1443,9 @@ figure.diagrama:focus-visible{outline:none}
 .diag-amp-herramientas button span, .diag-amp-colores button span{display:inline}
 .diag-amp-colores{display:inline-flex; align-items:center; gap:.35rem}
 .diag-amp-colores[hidden]{display:none}
-.diag-amp-color{width:1.5rem; height:1.5rem; padding:0 !important; border-radius:50% !important; background:var(--c) !important; border:2px solid transparent !important}
-.diag-amp-color.activo{border-color:var(--texto) !important}
+.diag-amp-colores input[type="color"]{width:1.7rem; height:1.7rem; padding:0; border:1px solid var(--borde); border-radius:.4rem; background:none; cursor:pointer}
+.diag-amp-colores input[type="range"]{width:4.5rem}
+.diag-amp-trazo, .diag-amp-trazo-actual{fill:none; stroke-linecap:round; stroke-linejoin:round}
 .diag-amp-cuerpo{display:flex; flex-direction:column; min-height:0}
 .diag-amp-lienzo{
   position:relative; flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center;
@@ -1470,9 +1474,26 @@ figure.diagrama:focus-visible{outline:none}
   position:relative; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,.35);
   width:min(100%, 22rem); box-sizing:border-box; padding:.4in; flex:none;
   display:flex; align-items:center; justify-content:center;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
 }
+/* fondo de impresion: claro/oscuro se aplican como clase (no solo dentro de
+   @media print) para que la vista previa se vea IGUAL a lo que en verdad va
+   a salir impreso -- antes la hoja previa quedaba blanca a fuerza (arriba)
+   pero el contenido seguia usando el --dia-* del tema activo en pantalla,
+   mezcla que no correspondia ni con la pantalla ni con lo impreso. */
+.diag-amp-hoja.fondo-oscuro{background:#12171f}
 .diag-amp-hoja-contenido{display:flex; align-items:center; justify-content:center}
 .diag-amp-hoja-contenido svg{display:block; width:100%; height:100%}
+.diag-amp-hoja-contenido.fondo-claro{
+  --dia-relleno:#f2f6fd; --dia-borde:#2f5fb8; --dia-texto:#000; --dia-linea:#444;
+  --dia-fondo:#fff; --dia-tenue:#333; --dia-grupo:#f6f7f9; --dia-grupo-borde:#888;
+  --dia-nota:#fffbe6; --dia-nota-borde:#a88b1f;
+}
+.diag-amp-hoja-contenido.fondo-oscuro{
+  --dia-relleno:#1b2434; --dia-borde:#6ea8fe; --dia-texto:#e6edf3; --dia-linea:#8b98a9;
+  --dia-fondo:#12171f; --dia-tenue:#b6c2cf; --dia-grupo:#161d29; --dia-grupo-borde:#3d4757;
+  --dia-nota:#3a3111; --dia-nota-borde:#a98b1d;
+}
 @media print{
   body.diagrama-imprimir-abierto #doc{display:none !important}
   /* mismo mecanismo que #posterImprimir: el dialogo pasa de flotar sobre todo
@@ -2130,7 +2151,7 @@ math mo{font-family:inherit}
   </div>
 </div>
 
-<input type="file" id="archivo" accept=".md,.markdown,.mdown,.mkd,.txt,.html,.htm,text/markdown,text/plain,text/html" hidden>
+<input type="file" id="archivo" accept=".md,.markdown,.mdown,.mkd,.txt,.html,.htm,.pptx,.xlsx,.docx,.ppt,.xls,.doc,text/markdown,text/plain,text/html" hidden>
 <input type="file" id="respaldo" accept=".json,application/json,text/plain" hidden>
 <input type="file" id="gpxImportar" accept=".gpx,application/gpx+xml" hidden>
 
@@ -2273,13 +2294,17 @@ math mo{font-family:inherit}
         </span>
         <button type="button" id="diagAmpZoomFit" title="Encuadrar en la pantalla (deshace zoom y desplazamiento)"><b>&#10530;</b><span>Encuadrar</span></button>
         <button type="button" id="diagAmpGirar" title="Girar 90° (para aprovechar el ancho o el alto de la pantalla)"><b>&#8635;</b><span>Girar</span></button>
-        <button type="button" id="diagAmpLapiz" aria-pressed="false" title="Anotar a mano libre (no se guarda en el documento)"><b>&#9998;</b><span>Anotar</span></button>
+        <button type="button" id="diagAmpLapiz" aria-pressed="false" title="Anotar (queda en paralelo al diagrama, no se guarda en el documento)"><b>&#9998;</b><span>Anotar</span></button>
         <span class="diag-amp-colores" id="diagAmpColores" hidden>
-          <button type="button" class="diag-amp-color activo" data-color="#e5484d" style="--c:#e5484d" title="Rojo" aria-label="Rojo"></button>
-          <button type="button" class="diag-amp-color" data-color="#2f6fed" style="--c:#2f6fed" title="Azul" aria-label="Azul"></button>
-          <button type="button" class="diag-amp-color" data-color="#1a9e6b" style="--c:#1a9e6b" title="Verde" aria-label="Verde"></button>
-          <button type="button" class="diag-amp-color" data-color="#e8a20a" style="--c:#e8a20a" title="Amarillo" aria-label="Amarillo"></button>
+          <button type="button" class="notas-herr" data-herr="lapiz" aria-pressed="true" title="Lápiz: dibujo a mano alzada">&#9998;</button>
+          <button type="button" class="notas-herr" data-herr="linea" aria-pressed="false" title="Línea recta (Shift: ángulos de 45°)">&#65295;</button>
+          <button type="button" class="notas-herr" data-herr="circulo" aria-pressed="false" title="Círculo (Shift: proporción 1:1)">&#9675;</button>
+          <button type="button" class="notas-herr" data-herr="cuadrado" aria-pressed="false" title="Cuadrado (Shift: proporción 1:1)">&#9633;</button>
+          <button type="button" class="notas-herr" data-herr="triangulo" aria-pressed="false" title="Triángulo (Shift: proporción 1:1)">&#9651;</button>
+          <input type="color" id="diagAmpColorInput" value="#e5484d" title="Color de la anotación">
+          <input type="range" id="diagAmpGrosor" min="1" max="16" value="3" title="Grosor del trazo">
           <button type="button" id="diagAmpBorrador" aria-pressed="false" title="Borrador: toca un trazo para borrarlo"><b>&#9003;</b><span>Borrador</span></button>
+          <button type="button" id="diagAmpDeshacer" title="Deshacer el último trazo"><b>&#8630;</b><span>Deshacer</span></button>
           <button type="button" id="diagAmpLimpiar" title="Borrar todas las anotaciones"><b>&#128465;</b><span>Limpiar</span></button>
         </span>
         <button type="button" id="diagAmpCodigo" aria-expanded="false" title="Ver el código fuente del diagrama"><b>&lt;/&gt;</b><span>Código</span></button>
@@ -2316,6 +2341,12 @@ math mo{font-family:inherit}
               <option value="grande">Grande</option>
               <option value="mediano">Mediano</option>
               <option value="chico">Chico</option>
+            </select>
+          </label>
+          <label>Fondo
+            <select id="diagAmpImpFondo">
+              <option value="claro" selected>Blanco</option>
+              <option value="oscuro">Oscuro</option>
             </select>
           </label>
         </div>
@@ -2361,6 +2392,11 @@ math mo{font-family:inherit}
   </div>
 </div>
 <div class="notas-barra no-print" id="notasBarra" hidden>
+  <button type="button" class="notas-herr activo" data-herr="lapiz" title="Lápiz: dibujo a mano alzada">&#9998;</button>
+  <button type="button" class="notas-herr" data-herr="linea" title="Línea recta (Shift: ángulos de 45°)">&#65295;</button>
+  <button type="button" class="notas-herr" data-herr="circulo" title="Círculo (Shift: proporción 1:1)">&#9675;</button>
+  <button type="button" class="notas-herr" data-herr="cuadrado" title="Cuadrado (Shift: proporción 1:1)">&#9633;</button>
+  <button type="button" class="notas-herr" data-herr="triangulo" title="Triángulo (Shift: proporción 1:1)">&#9651;</button>
   <input type="color" id="notasColor" value="#e11d48" title="Color de la anotación">
   <input type="range" id="notasGrosor" min="1" max="16" value="4" title="Grosor del trazo">
   <button type="button" id="notasBorrador" title="Borrador: toca un trazo para borrarlo">&#9003;</button>
@@ -3321,16 +3357,35 @@ function colocarFlujo(G){
   var SEP = hayGrupos ? 46 : 38, SEP_GRUPO = 74;
   var SALTO = hayGrupos ? 88 : 66;
 
+  /* hueco entre cada capa y la siguiente: normalmente SALTO, pero una
+     etiqueta de enlace larga (envuelta en varias lineas, ver pintarEnlace)
+     no tiene donde mas ponerse que en ese mismo hueco -- si el hueco fijo
+     no le alcanza, se pisa con las cajas de al lado. Se mide cada etiqueta
+     igual que al pintarla (mismo partirTexto/anchoLineas) ANTES de fijar
+     el hueco, y se ensancha el que haga falta para que le entre. */
+  var saltoPorHueco = [];
+  for(var sh = 0; sh < capas.length - 1; sh++) saltoPorHueco[sh] = SALTO;
+  G.enlaces.forEach(function(e){
+    if(!e.texto || e.atras || e.a === e.b) return;
+    var ra = rango[e.a], rb = rango[e.b];
+    if(rb <= ra) return;
+    var ls = partirTexto(e.texto, 150, 11.5);
+    var necesita = (horizontal ? (anchoLineas(ls, 11.5) + 14) : (ls.length * 14 + 10)) + 6;
+    for(var rg = ra; rg < rb; rg++){
+      if(saltoPorHueco[rg] !== undefined && necesita > saltoPorHueco[rg]) saltoPorHueco[rg] = necesita;
+    }
+  });
+
   /* eje principal: una capa detras de otra */
   var avance = 0, ejes = [];
-  capas.forEach(function(capa){
+  capas.forEach(function(capa, rIdx){
     var grueso = 0;
     capa.forEach(function(id){
       var n = G.nodos[id];
       grueso = Math.max(grueso, horizontal ? n.w : n.h);
     });
     ejes.push(avance + grueso / 2);
-    avance += grueso + SALTO;
+    avance += grueso + (saltoPorHueco[rIdx] !== undefined ? saltoPorHueco[rIdx] : SALTO);
   });
 
   /* eje transversal: se reparten y luego se acercan a sus vecinos */
@@ -3421,6 +3476,24 @@ function colocarFlujo(G){
     if(!g.caja) return;
     mx1 = Math.min(mx1, g.caja.x1); mx2 = Math.max(mx2, g.caja.x2);
     my1 = Math.min(my1, g.caja.y1); my2 = Math.max(my2, g.caja.y2);
+  });
+  /* una etiqueta de enlace envuelta (ver pintarEnlace) puede ser mas ancha
+     que las propias cajas que conecta -- sin este margen, la caja general
+     del diagrama se queda del ancho de los nodos nomas y el <svg> recorta
+     el texto que sobresale a los lados (mismo motivo que el hueco de mas
+     arriba, pero en el eje transversal en vez de en el principal). Aproxima
+     donde cae la etiqueta con el punto medio entre los dos nodos: para un
+     enlace directo (sin saltar de rango) es donde realmente la dibuja
+     pintarEnlace. */
+  G.enlaces.forEach(function(e){
+    if(!e.texto || e.atras || e.a === e.b || e.cadena) return;
+    var a = G.nodos[e.a], b = G.nodos[e.b];
+    if(!a || !b || a.x === undefined || b.x === undefined) return;
+    var ls = partirTexto(e.texto, 150, 11.5);
+    var aw = anchoLineas(ls, 11.5) + 10, ah = ls.length * 14 + 4;
+    var midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2;
+    mx1 = Math.min(mx1, midX - aw / 2); mx2 = Math.max(mx2, midX + aw / 2);
+    my1 = Math.min(my1, midY - ah / 2); my2 = Math.max(my2, midY + ah / 2);
   });
   /* hueco para los lazos y para las flechas que vuelven atras, que se
      dibujan por fuera de las cajas */
@@ -11075,7 +11148,8 @@ var CLAVE_DOC = "mdcrgm.doc", CLAVE_NOMBRE = "mdcrgm.nombre",
     CLAVE_ESPEJO = "mdcrgm.espejo", CLAVE_PESTANAS = "mdcrgm.pestanas",
     CLAVE_SESION = "mdcrgm.sesion", CLAVE_MISPUB = "mdcrgm.mispub",
     CLAVE_LECTURA = "mdcrgm.leido.",
-    CLAVE_ANOTAR = "mdcrgm.anotar.", CLAVE_ANOTAR_VER = "mdcrgm.anotarver.";
+    CLAVE_ANOTAR = "mdcrgm.anotar.", CLAVE_ANOTAR_VER = "mdcrgm.anotarver.",
+    CLAVE_DIAGANOTAR = "mdcrgm.diaganotar.";
 
 var BIENVENIDA = elFuente ? elFuente.textContent : "";
 var fuenteActual = BIENVENIDA, textoBase = BIENVENIDA, nombreSugerido = "";
@@ -12203,9 +12277,24 @@ function marcarIdioma(meta){
    clones no llevan el atributo lang) para que la voz sea correcta tanto en
    la vista normal como dentro de Presentar.
    ========================================================================== */
-var LEER = null, LEER_VOCES_PROMESA = null;
+var LEER = null, LEER_VOCES_PROMESA = null, LEER_WAKELOCK = null;
 
 function leerDisponible(){ return typeof window.speechSynthesis !== "undefined"; }
+
+/* evita que la pantalla se apague sola mientras se lee (si el navegador lo
+   soporta); si no lo soporta, o el sistema apaga la pantalla igual (boton de
+   encendido, llamada entrante...), la pestaña queda oculta y el manejador de
+   visibilitychange de mas abajo retoma el bloque actual en vez de perderlo. */
+function leerPedirPantallaEncendida(){
+  if(!("wakeLock" in navigator) || document.hidden) return;
+  navigator.wakeLock.request("screen").then(function(wl){
+    LEER_WAKELOCK = wl;
+    wl.addEventListener("release", function(){ if(LEER_WAKELOCK === wl) LEER_WAKELOCK = null; });
+  }).catch(function(){ /* permiso denegado o pestaña ya oculta: seguimos sin bloqueo */ });
+}
+function leerSoltarPantallaEncendida(){
+  if(LEER_WAKELOCK){ LEER_WAKELOCK.release().catch(function(){}); LEER_WAKELOCK = null; }
+}
 
 function leerContenedorActivo(){
   var dia = $("#diapositivas");
@@ -12332,14 +12421,16 @@ function leerDetener(){
   if(leerDisponible()) speechSynthesis.cancel();
   if(LEER && LEER.actual) LEER.actual.el.classList.remove("leyendo-actual");
   LEER = null;
+  leerSoltarPantallaEncendida();
   leerActualizarBotones();
 }
 
-function leerSiguiente(){
+/* habla el bloque LEER.bloques[LEER.i] tal cual esta ahora -- separado de
+   leerSiguiente() para poder RETOMAR el mismo bloque desde su inicio cuando
+   la pantalla se oculta a medio decirlo (ver visibilitychange mas abajo),
+   en vez de perderlo o saltarlo. */
+function leerHablarBloqueActual(){
   if(!LEER) return;
-  if(LEER.actual) LEER.actual.el.classList.remove("leyendo-actual");
-  LEER.i++;
-  if(LEER.i >= LEER.bloques.length){ leerDetener(); return; }
   var b = LEER.bloques[LEER.i];
   LEER.actual = b;
   b.el.classList.add("leyendo-actual");
@@ -12347,9 +12438,28 @@ function leerSiguiente(){
   var u = new SpeechSynthesisUtterance(b.texto);
   u.lang = LEER.idioma;
   if(LEER.voz) u.voice = LEER.voz;
-  u.onend = leerSiguiente;
-  u.onerror = leerSiguiente; /* un bloque que falle no debe trabar toda la cola */
+  LEER.utterance = u;
+  /* ese "u" identifica el intento: si cancel() llega tarde (ya ocultando la
+     pantalla) y su onerror/onend dispara despues de que ya se retomo con un
+     utterance nuevo, esta guarda evita que la llamada vieja avance el indice
+     por encima del bloque que se acaba de volver a hablar. */
+  function fin(){ if(LEER && LEER.utterance === u) leerSiguiente(); }
+  u.onend = fin;
+  u.onerror = fin; /* un bloque que falle no debe trabar toda la cola */
   speechSynthesis.speak(u);
+}
+
+function leerSiguiente(){
+  if(!LEER) return;
+  /* pausado por ocultar pantalla: no avanzar aqui -- solo lo retoma el
+     manejador de visibilitychange al volver, y puede llegar mas de un aviso
+     de fin (onend Y onerror del mismo cancel()) mientras seguimos ocultos,
+     asi que esto tiene que poder ignorarse repetidas veces sin efecto. */
+  if(LEER.pausadoPorOcultar) return;
+  if(LEER.actual) LEER.actual.el.classList.remove("leyendo-actual");
+  LEER.i++;
+  if(LEER.i >= LEER.bloques.length){ leerDetener(); return; }
+  leerHablarBloqueActual();
 }
 
 function alternarLeerVoz(){
@@ -12360,12 +12470,26 @@ function alternarLeerVoz(){
   if(!bloques.length){ aviso("No hay texto para leer aquí."); return; }
   var idioma = leerIdioma();
   leerElegirVoz(idioma).then(function(voz){
-    LEER = { bloques: bloques, i: -1, voz: voz, idioma: idioma, actual: null };
+    LEER = { bloques: bloques, i: -1, voz: voz, idioma: idioma, actual: null, pausadoPorOcultar: false };
     leerActualizarBotones();
+    leerPedirPantallaEncendida();
     leerSiguiente();
   });
 }
-document.addEventListener("visibilitychange", function(){ if(document.hidden && LEER) leerDetener(); });
+document.addEventListener("visibilitychange", function(){
+  if(!LEER || !leerDisponible()) return;
+  if(document.hidden){
+    /* no se pierde el progreso: se marca para retomar el MISMO bloque
+       (no se sabe cuanto alcanzo a decirse) y se corta la voz -- una
+       pestaña oculta no puede confiar en que speechSynthesis siga viva. */
+    LEER.pausadoPorOcultar = true;
+    speechSynthesis.cancel();
+  } else if(LEER.pausadoPorOcultar){
+    LEER.pausadoPorOcultar = false;
+    leerPedirPantallaEncendida(); /* el bloqueo se suelta solo al ocultarse; se repite al volver */
+    leerHablarBloqueActual();
+  }
+});
 
 function prepararDiagramas(){
   Array.prototype.forEach.call(elDoc.querySelectorAll("figure.diagrama"), function(fig){
@@ -12388,8 +12512,125 @@ function prepararDiagramas(){
    c\u00f3digo fuente, abrirlo solo en una ventana nueva o imprimirlo/pasarlo a PDF
    sin el resto del documento alrededor.
    ========================================================================== */
-var DIAG_AMP = null;          // {fig, girado, lapiz, color, borrador}
-var diagAmpTrazoEnCurso = null;
+var DIAG_AMP = null;          // {fig, girado, lapiz, herramienta, color, grosor, borrador, indice, firma, trazos, enCurso}
+var DIAG_AMP_D_MAX = 4000, DIAG_AMP_MAX = 300, DIAG_AMP_FIRMA_LARGO = 80;
+/* misma idea de "indice + firma" que pizarraLocalizarBloqueVerificado (13.x):
+   el diagrama se identifica por su POSICION entre figure.diagrama (indice) y
+   por un resumen de su propio codigo fuente (firma, via gpxFirma) -- asi una
+   anotacion no reaparece pegada a OTRO diagrama si se inserta/borra uno mas
+   arriba, y sigue reconociendo al mismo diagrama aunque su fuente crezca un
+   poco (firma es solo un prefijo, igual que en notas/gpx). */
+function diagAmpIndiceDe(fig){
+  var figs = document.querySelectorAll("#doc figure.diagrama"), i;
+  for(i = 0; i < figs.length; i++) if(figs[i] === fig) return i;
+  return -1;
+}
+function diagAmpFirmaDe(fuenteEl){
+  return fuenteEl ? gpxFirma(fuenteEl.textContent).slice(0, DIAG_AMP_FIRMA_LARGO) : "";
+}
+function diagAmpFirmaCoincide(a, b){
+  a = a || ""; b = b || "";
+  return a === b || a.indexOf(b) === 0 || b.indexOf(a) === 0;
+}
+function diagAmpTrazoValido(t){
+  return t && typeof t === "object" &&
+    typeof t.d === "string" && t.d.length <= DIAG_AMP_D_MAX && PIZARRA_RE_PATH.test(t.d) &&
+    typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
+    typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 40;
+}
+function diagAmpClaveDoc(){ return notasClaveDoc(); }
+/* todas las anotaciones de diagramas de ESTE documento van bajo una sola
+   clave (un arreglo, un elemento por diagrama anotado) -- igual de simple
+   que CLAVE_ANOTAR pero sin reusar esa clave, porque el anclaje es distinto
+   (indice+firma de diagrama, no linea+firma de parrafo). */
+function diagAmpAnotarCargarTodo(){
+  var id = diagAmpClaveDoc();
+  var crudo = id ? leer(CLAVE_DIAGANOTAR + id) : null, arr;
+  if(!crudo) return [];
+  try{ arr = JSON.parse(crudo); }catch(e){ return []; }
+  return Array.isArray(arr) ? arr : [];
+}
+function diagAmpAnotarGuardarInmediato(){
+  if(!DIAG_AMP || DIAG_AMP.indice < 0) return;
+  var id = diagAmpClaveDoc();
+  if(!id) return;
+  /* refAncho/refAlto: la misma referencia que diagAmpAnotarReescalarA ya
+     mantiene al dia (no una medicion fresca) -- es la unica que garantiza
+     que coincide EXACTAMENTE con el espacio de coordenadas de los trazos
+     tal como estan ahora mismo en memoria. */
+  var todo = diagAmpAnotarCargarTodo().filter(function(e){ return e && e.indice !== DIAG_AMP.indice; });
+  if(DIAG_AMP.trazos.length){
+    todo.push({ indice: DIAG_AMP.indice, firma: DIAG_AMP.firma, refAncho: DIAG_AMP.refAncho, refAlto: DIAG_AMP.refAlto, trazos: DIAG_AMP.trazos });
+  }
+  if(todo.length) escribir(CLAVE_DIAGANOTAR + id, JSON.stringify(todo));
+  else borrar(CLAVE_DIAGANOTAR + id);
+}
+var diagAmpRelojGuardar = null;
+function diagAmpAnotarGuardar(){
+  clearTimeout(diagAmpRelojGuardar);
+  diagAmpRelojGuardar = setTimeout(diagAmpAnotarGuardarInmediato, 300);
+}
+/* el hueco disponible (diagAmpLienzo) cambia de tamano no solo al abrir --
+   tambien al girar, al mostrar/ocultar el codigo fuente, al redimensionar
+   la ventana, o al revelar esta misma barra de anotar (mas botones = la
+   cabecera puede pasar a 2 filas y encoger el lienzo debajo). El svg del
+   lapiz es solo screen-space (ver diagAmpAjustar): si su viewBox no se
+   actualiza en el mismo momento que estos trazos, quedan "flotando" en
+   coordenadas viejas -- visibles pero desalineadas del click real. Por
+   eso esta reescala se llama SIEMPRE que diagAmpAjustar cambia el tamano,
+   no solo al abrir, y por eso guarda su propia referencia (refAncho/Alto)
+   en vez de fiarse de la del disco. */
+function diagAmpAnotarReescalarA(nuevoAncho, nuevoAlto){
+  if(!DIAG_AMP) return;
+  var refA = DIAG_AMP.refAncho, refB = DIAG_AMP.refAlto;
+  if(DIAG_AMP.trazos.length && refA > 0 && refB > 0 &&
+     (Math.abs(refA - nuevoAncho) > .5 || Math.abs(refB - nuevoAlto) > .5)){
+    var sx = nuevoAncho / refA, sy = nuevoAlto / refB;
+    DIAG_AMP.trazos = DIAG_AMP.trazos.map(function(t){
+      return { d: pizarraTransformarD(t.d, function(x){ return x * sx; }, function(y){ return y * sy; }), color: t.color, grosor: t.grosor };
+    });
+    diagAmpAnotarRedibujar();
+    diagAmpAnotarGuardar();
+  }
+  DIAG_AMP.refAncho = nuevoAncho;
+  DIAG_AMP.refAlto = nuevoAlto;
+}
+/* al abrir: busca anotaciones guardadas para este diagrama y las deja en su
+   propia referencia de tamano (la que tenian al guardarse) -- el reescalado
+   al tamano ACTUAL del lienzo lo hace diagAmpAnotarReescalarA, la misma
+   funcion que despues sigue vigilando cualquier cambio de tamano. */
+function diagAmpAnotarAlAbrir(){
+  if(!DIAG_AMP) return;
+  var r = $("#diagAmpLienzo").getBoundingClientRect();
+  var todo = diagAmpAnotarCargarTodo(), i, e, encontrado = null;
+  for(i = 0; i < todo.length; i++){
+    e = todo[i];
+    if(e && e.indice === DIAG_AMP.indice && diagAmpFirmaCoincide(e.firma, DIAG_AMP.firma)){ encontrado = e; break; }
+  }
+  DIAG_AMP.trazos = (encontrado && Array.isArray(encontrado.trazos)) ? encontrado.trazos.filter(diagAmpTrazoValido) : [];
+  DIAG_AMP.refAncho = (encontrado && encontrado.refAncho > 0) ? encontrado.refAncho : r.width;
+  DIAG_AMP.refAlto = (encontrado && encontrado.refAlto > 0) ? encontrado.refAlto : r.height;
+  diagAmpAnotarReescalarA(r.width, r.height);
+  diagAmpAnotarRedibujar();
+}
+function diagAmpAnotarRedibujar(){
+  var svg = $("#diagAmpLapizSvg");
+  if(!svg || !DIAG_AMP) return;
+  var i, t, partes = [];
+  for(i = 0; i < DIAG_AMP.trazos.length; i++){
+    t = DIAG_AMP.trazos[i];
+    partes.push('<path class="diag-amp-trazo" data-i="' + i + '" d="' + escUI(t.d) + '" stroke="' +
+      escUI(t.color) + '" stroke-width="' + t.grosor + '"></path>');
+  }
+  svg.innerHTML = partes.join("");
+}
+function diagAmpActualizarBotonesHerramienta(){
+  if(!DIAG_AMP) return;
+  var btns = document.querySelectorAll("#diagAmpColores .notas-herr"), i;
+  for(i = 0; i < btns.length; i++){
+    btns[i].setAttribute("aria-pressed", String(!DIAG_AMP.borrador && btns[i].getAttribute("data-herr") === DIAG_AMP.herramienta));
+  }
+}
 
 /* dos copias del mismo diagrama (la chica en el documento y esta ampliada)
    no pueden compartir los id= de sus <marker> (flechas, circulos...): aunque
@@ -12424,6 +12665,7 @@ function diagAmpAjustar(){
   }
   diagAmpAplicarTransformacion();
   $("#diagAmpLapizSvg").setAttribute("viewBox", "0 0 " + r.width + " " + r.height);
+  diagAmpAnotarReescalarA(r.width, r.height);
 }
 window.addEventListener("resize", function(){ if(DIAG_AMP) diagAmpAjustar(); });
 
@@ -12547,7 +12789,11 @@ function abrirDiagramaAmpliado(fig){
   var svgOriginal = fig.querySelector("svg.diagrama-svg");
   if(!svgOriginal) return;
   var fuente = fig.querySelector(".diagrama-fuente code");
-  DIAG_AMP = { fig: fig, girado: false, lapiz: false, color: "#e5484d", borrador: false, zoom: 1, panX: 0, panY: 0 };
+  DIAG_AMP = {
+    fig: fig, girado: false, lapiz: false, herramienta: "lapiz", color: "#e5484d", grosor: 3, borrador: false,
+    zoom: 1, panX: 0, panY: 0, indice: diagAmpIndiceDe(fig), firma: diagAmpFirmaDe(fuente),
+    trazos: [], enCurso: null, refAncho: 0, refAlto: 0
+  };
   diagAmpPunteros.clear();
   diagAmpArrastre = null;
   $("#diagAmpEnvoltorio").innerHTML = diagAmpIdsUnicos(svgOriginal.outerHTML, "-amp");
@@ -12561,17 +12807,22 @@ function abrirDiagramaAmpliado(fig){
   $("#diagAmpLapiz").setAttribute("aria-pressed", "false");
   $("#diagAmpBorrador").setAttribute("aria-pressed", "false");
   $("#diagAmpColores").hidden = true;
+  $("#diagAmpColorInput").value = DIAG_AMP.color;
+  $("#diagAmpGrosor").value = DIAG_AMP.grosor;
+  diagAmpActualizarBotonesHerramienta();
   $("#diagAmpImpPanel").hidden = true;
   $("#diagAmpImpVista").innerHTML = "";
   $("#diagAmpLienzo").hidden = false;
   $("#veloDiagrama").hidden = false;
-  requestAnimationFrame(diagAmpAjustar);
+  requestAnimationFrame(function(){ diagAmpAjustar(); diagAmpAnotarAlAbrir(); });
   $("#diagAmpCerrar").focus();
 }
 
 function cerrarDiagramaAmpliado(){
   if(!DIAG_AMP) return;
   var fig = DIAG_AMP.fig;
+  clearTimeout(diagAmpRelojGuardar);
+  diagAmpAnotarGuardarInmediato();
   $("#veloDiagrama").hidden = true;
   $("#diagAmpEnvoltorio").innerHTML = "";
   $("#diagAmpLapizSvg").innerHTML = "";
@@ -12599,14 +12850,10 @@ function diagAmpLapizPoner(activo){
   $("#diagAmpLapizSvg").classList.toggle("activo", activo);
   $("#diagAmpLapiz").setAttribute("aria-pressed", String(activo));
   $("#diagAmpColores").hidden = !activo;
-}
-
-function diagAmpColor(c){
-  if(!DIAG_AMP) return;
-  DIAG_AMP.color = c;
-  Array.prototype.forEach.call(document.querySelectorAll("#diagAmpColores .diag-amp-color"), function(b){
-    b.classList.toggle("activo", b.getAttribute("data-color") === c);
-  });
+  /* mostrar/ocultar esta barra puede pasar la cabecera a 2 filas (mas
+     botones que antes) y encoger el lienzo debajo -- sin este reajuste el
+     viewBox del svg del lapiz queda desalineado del tamano real. */
+  requestAnimationFrame(diagAmpAjustar);
 }
 
 function diagAmpBorradorPoner(activo){
@@ -12614,43 +12861,83 @@ function diagAmpBorradorPoner(activo){
   DIAG_AMP.borrador = activo;
   $("#diagAmpBorrador").setAttribute("aria-pressed", String(activo));
   $("#diagAmpLapizSvg").classList.toggle("borrador", activo);
+  diagAmpActualizarBotonesHerramienta();
 }
 
 function diagAmpLimpiar(){
-  $("#diagAmpLapizSvg").innerHTML = "";
+  if(!DIAG_AMP || !DIAG_AMP.trazos.length) return;
+  aviso("\u00bfBorrar todas las anotaciones de este diagrama?", "Borrar", function(){
+    if(!DIAG_AMP) return;
+    DIAG_AMP.trazos = [];
+    diagAmpAnotarGuardar(); diagAmpAnotarRedibujar();
+  });
 }
 
+function diagAmpDeshacer(){
+  if(!DIAG_AMP || !DIAG_AMP.trazos.length) return;
+  DIAG_AMP.trazos.pop();
+  diagAmpAnotarGuardar(); diagAmpAnotarRedibujar();
+}
+
+/* mismo motor de figuras que notasPointerDown/Move/Up (pizarraFormaAPath +
+   snaps con Shift): lo unico que cambia entre anotar el documento y anotar
+   un diagrama ampliado es el anclaje -- aqui, en paralelo al diagrama entero
+   (indice+firma), no a una linea de texto. */
 function diagAmpPunteroAbajo(e){
-  if(!DIAG_AMP || !DIAG_AMP.lapiz) return;
+  if(!DIAG_AMP || !DIAG_AMP.lapiz || !e.isPrimary) return;
   var svg = $("#diagAmpLapizSvg"), r = svg.getBoundingClientRect();
-  var x = e.clientX - r.left, y = e.clientY - r.top;
+  var pt = { x: Math.round((e.clientX - r.left) * 10) / 10, y: Math.round((e.clientY - r.top) * 10) / 10 };
   if(DIAG_AMP.borrador){
-    var t = e.target.closest ? e.target.closest(".diag-amp-trazo") : null;
-    if(t && t.parentNode === svg) t.parentNode.removeChild(t);
+    var trazoEl = e.target.closest ? e.target.closest(".diag-amp-trazo") : null;
+    if(trazoEl){
+      var idx = parseInt(trazoEl.getAttribute("data-i"), 10);
+      if(isFinite(idx) && DIAG_AMP.trazos[idx]){
+        DIAG_AMP.trazos.splice(idx, 1);
+        diagAmpAnotarGuardar(); diagAmpAnotarRedibujar();
+      }
+    }
     return;
   }
-  var p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  p.setAttribute("class", "diag-amp-trazo");
-  p.setAttribute("fill", "none");
-  p.setAttribute("stroke", DIAG_AMP.color);
-  p.setAttribute("stroke-width", "3");
-  p.setAttribute("stroke-linecap", "round");
-  p.setAttribute("stroke-linejoin", "round");
-  var d = "M" + x.toFixed(1) + "," + y.toFixed(1);
-  p.setAttribute("d", d);
-  svg.appendChild(p);
-  diagAmpTrazoEnCurso = { el: p, d: d };
-  if(svg.setPointerCapture && e.pointerId != null) svg.setPointerCapture(e.pointerId);
+  try{ svg.setPointerCapture(e.pointerId); }catch(err){}
+  var herramienta = DIAG_AMP.herramienta || "lapiz";
+  var d0 = herramienta === "lapiz" ? pizarraTrazoAPath([pt]) : pizarraFormaAPath(herramienta, pt.x, pt.y, pt.x, pt.y);
+  svg.insertAdjacentHTML("beforeend",
+    '<path class="diag-amp-trazo-actual" d="' + escUI(d0) + '" stroke="' + escUI(DIAG_AMP.color) + '" stroke-width="' + DIAG_AMP.grosor + '"></path>');
+  DIAG_AMP.enCurso = {
+    pointerId: e.pointerId, herramienta: herramienta, x0: pt.x, y0: pt.y, puntos: [pt], d: d0, tope: false,
+    path: svg.lastElementChild
+  };
 }
 function diagAmpPunteroMueve(e){
-  if(!diagAmpTrazoEnCurso) return;
+  var en = DIAG_AMP && DIAG_AMP.enCurso;
+  if(!en || e.pointerId !== en.pointerId || en.tope) return;
   var svg = $("#diagAmpLapizSvg"), r = svg.getBoundingClientRect();
-  var x = e.clientX - r.left, y = e.clientY - r.top;
-  diagAmpTrazoEnCurso.d += " L" + x.toFixed(1) + "," + y.toFixed(1);
-  diagAmpTrazoEnCurso.el.setAttribute("d", diagAmpTrazoEnCurso.d);
+  var pt = { x: Math.round((e.clientX - r.left) * 10) / 10, y: Math.round((e.clientY - r.top) * 10) / 10 };
+  var d;
+  if(en.herramienta === "lapiz"){
+    if(en.puntos.length >= 3000) return;
+    en.puntos.push(pt);
+    d = pizarraTrazoApendice(en.d, en.puntos);
+    if(d.length > DIAG_AMP_D_MAX){ en.puntos.pop(); en.tope = true; return; }
+  }else{
+    var destino = pt;
+    if(e.shiftKey){
+      destino = en.herramienta === "linea" ? pizarraSnapAngulo(en.x0, en.y0, pt.x, pt.y) : pizarraSnapCuadrado(en.x0, en.y0, pt.x, pt.y);
+    }
+    d = pizarraFormaAPath(en.herramienta, en.x0, en.y0, destino.x, destino.y);
+    if(d.length > DIAG_AMP_D_MAX) return;
+  }
+  en.d = d;
+  en.path.setAttribute("d", d);
 }
-function diagAmpSoltarPuntero(){
-  diagAmpTrazoEnCurso = null;
+function diagAmpSoltarPuntero(e){
+  var en = DIAG_AMP && DIAG_AMP.enCurso;
+  if(!en || (e && e.pointerId !== undefined && e.pointerId !== en.pointerId)) return;
+  DIAG_AMP.enCurso = null;
+  if(en.path && en.path.parentNode) en.path.parentNode.removeChild(en.path);
+  if(DIAG_AMP.trazos.length >= DIAG_AMP_MAX){ aviso("Este diagrama ya tiene el m\u00e1ximo de " + DIAG_AMP_MAX + " anotaciones."); return; }
+  DIAG_AMP.trazos.push({ d: en.d, color: DIAG_AMP.color, grosor: DIAG_AMP.grosor });
+  diagAmpAnotarGuardar(); diagAmpAnotarRedibujar();
 }
 
 /* ventana nueva: documento aparte con SU PROPIA copia de las herramientas
@@ -12876,10 +13163,11 @@ function diagAmpVentanaScript(){
     '    var dims = papelDims(document.getElementById("pvPapel").value);',
     '    var w = horizontal ? dims.h : dims.w, h = horizontal ? dims.w : dims.h;',
     '    var pct = TAMANOS[document.getElementById("pvTamanoHoja").value] || 100;',
+    '    var fondo = document.getElementById("pvImpFondo") && document.getElementById("pvImpFondo").value === "oscuro" ? "oscuro" : "claro";',
     '    var svgLimpio = idsUnicos(svg.outerHTML, "-imp").replace(/\\s(width|height)="[^"]*"/g, "");',
     '    document.getElementById("pvImpVista").innerHTML =',
-    '      \'<div class="pv-hoja" style="aspect-ratio:\' + w + "/" + h + \'">\' +',
-    '        \'<div class="pv-hoja-contenido" style="width:\' + pct + "%;height:" + pct + \'%">\' + svgLimpio + "</div>" +',
+    '      \'<div class="pv-hoja\' + (fondo === "oscuro" ? " fondo-oscuro" : "") + \'" style="aspect-ratio:\' + w + "/" + h + \'">\' +',
+    '        \'<div class="pv-hoja-contenido fondo-\' + fondo + \'" style="width:\' + pct + "%;height:" + pct + \'%">\' + svgLimpio + "</div>" +',
     '      "</div>";',
     '  }',
     '  function abrirImprimir(){',
@@ -12918,6 +13206,7 @@ function diagAmpVentanaScript(){
     '  document.getElementById("pvPapel").addEventListener("change", impActualizar);',
     '  document.getElementById("pvOrientacion").addEventListener("change", impActualizar);',
     '  document.getElementById("pvTamanoHoja").addEventListener("change", impActualizar);',
+    '  document.getElementById("pvImpFondo").addEventListener("change", impActualizar);',
     '  document.getElementById("pvImpVolver").addEventListener("click", volverImprimir);',
     '  document.getElementById("pvImpConfirmar").addEventListener("click", confirmarImprimir);',
     '})();'
@@ -12963,9 +13252,12 @@ function diagAmpDocumentoHTML(){
   partes.push('.pv-controles select{font:inherit;padding:.3em .5em;border:1px solid var(--borde);border-radius:.4em;background:var(--papel);color:var(--texto)}');
   partes.push('.pv-controles label{display:inline-flex;align-items:center;gap:.4em}');
   partes.push('.pv-imp-vista{flex:1;min-height:0;overflow:auto;background:#666;padding:1.5rem;display:flex;align-items:center;justify-content:center;border-radius:.5rem}');
-  partes.push('.pv-hoja{position:relative;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.35);width:min(100%,22rem);box-sizing:border-box;padding:.4in;flex:none;display:flex;align-items:center;justify-content:center}');
+  partes.push('.pv-hoja{position:relative;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.35);width:min(100%,22rem);box-sizing:border-box;padding:.4in;flex:none;display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}');
+  partes.push('.pv-hoja.fondo-oscuro{background:#12171f}');
   partes.push('.pv-hoja-contenido{display:flex;align-items:center;justify-content:center}');
   partes.push('.pv-hoja-contenido svg{display:block;width:100%;height:100%}');
+  partes.push('.pv-hoja-contenido.fondo-claro{--dia-relleno:#f2f6fd;--dia-borde:#2f5fb8;--dia-texto:#000;--dia-linea:#444;--dia-fondo:#fff;--dia-tenue:#333;--dia-grupo:#f6f7f9;--dia-grupo-borde:#888;--dia-nota:#fffbe6;--dia-nota-borde:#a88b1f}');
+  partes.push('.pv-hoja-contenido.fondo-oscuro{--dia-relleno:#1b2434;--dia-borde:#6ea8fe;--dia-texto:#e6edf3;--dia-linea:#8b98a9;--dia-fondo:#12171f;--dia-tenue:#b6c2cf;--dia-grupo:#161d29;--dia-grupo-borde:#3d4757;--dia-nota:#3a3111;--dia-nota-borde:#a98b1d}');
   partes.push('.pv-acciones{display:flex;gap:.6rem;justify-content:flex-end}');
   partes.push('.pv-acciones button{font:inherit;cursor:pointer;padding:.55em 1.1em;border-radius:.5em;border:1px solid var(--borde);background:var(--acento);color:#fff}');
   partes.push('@media print{');
@@ -13022,6 +13314,10 @@ function diagAmpDocumentoHTML(){
   partes.push('<option value="mediano">Mediano</option>');
   partes.push('<option value="chico">Chico</option>');
   partes.push('</select></label>');
+  partes.push('<label>Fondo <select id="pvImpFondo">');
+  partes.push('<option value="claro" selected>Blanco</option>');
+  partes.push('<option value="oscuro">Oscuro</option>');
+  partes.push('</select></label>');
   partes.push('</div>');
   partes.push('<div class="pv-imp-vista" id="pvImpVista"></div>');
   partes.push('<div class="pv-acciones">');
@@ -13076,10 +13372,11 @@ function diagAmpImpActualizar(){
   var dims = diagAmpPapelDims($("#diagAmpPapel").value);
   var w = horizontal ? dims.h : dims.w, h = horizontal ? dims.w : dims.h;
   var pct = DIAG_AMP_TAMANOS[$("#diagAmpTamanoHoja").value] || 100;
+  var fondo = $("#diagAmpImpFondo") && $("#diagAmpImpFondo").value === "oscuro" ? "oscuro" : "claro";
   var svgLimpio = diagAmpIdsUnicos(svg.outerHTML, "-imp").replace(/\s(width|height)="[^"]*"/g, "");
   $("#diagAmpImpVista").innerHTML =
-    '<div class="diag-amp-hoja" style="aspect-ratio:' + w + "/" + h + '">' +
-      '<div class="diag-amp-hoja-contenido" style="width:' + pct + "%; height:" + pct + '%">' + svgLimpio + "</div>" +
+    '<div class="diag-amp-hoja' + (fondo === "oscuro" ? " fondo-oscuro" : "") + '" style="aspect-ratio:' + w + "/" + h + '">' +
+      '<div class="diag-amp-hoja-contenido fondo-' + fondo + '" style="width:' + pct + "%; height:" + pct + '%">' + svgLimpio + "</div>" +
     "</div>";
 }
 function diagAmpImpConfirmar(){
@@ -14798,7 +15095,7 @@ function pizarraVentanaDocumentoHTML(){
   partes.push('.pizarra-capa-fila button:disabled{opacity:.4;cursor:default}');
   partes.push('.pizarra-capa-nombre{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}');
   partes.push('.pizarra-capa-agregar{align-self:flex-start;padding:.3rem .7rem;border:1px dashed var(--borde);border-radius:.3rem;background:none;color:var(--texto);font-size:.82em;cursor:pointer}');
-  partes.push('.aviso-flotante{position:fixed;left:0;right:0;bottom:1.2rem;margin:0 auto;width:fit-content;z-index:120;display:flex;align-items:center;gap:.9rem;max-width:min(92vw,32rem);background:var(--texto);color:var(--fondo);font-family:var(--sans);font-size:.86rem;padding:.7em 1em;border-radius:.65em;box-shadow:0 8px 30px rgba(0,0,0,.3)}');
+  partes.push('.aviso-flotante{position:fixed;left:0;right:0;bottom:1.2rem;margin:0 auto;width:fit-content;z-index:10050;display:flex;align-items:center;gap:.9rem;max-width:min(92vw,32rem);background:var(--texto);color:var(--fondo);font-family:var(--sans);font-size:.86rem;padding:.7em 1em;border-radius:.65em;box-shadow:0 8px 30px rgba(0,0,0,.3)}');
   partes.push('.aviso-flotante[hidden]{display:none}');
   partes.push('.aviso-flotante button{font:inherit;font-weight:650;cursor:pointer;white-space:nowrap;border:0;border-radius:.4em;padding:.35em .7em;background:var(--fondo);color:var(--texto)}');
   partes.push('</style></head><body>');
@@ -16002,7 +16299,7 @@ function barraDeLectura(){
    sin resolver todavia (ver mdx-bloques-spec-v2.md); esto es solo trazo
    libre, anclado a bloque completo. */
 var NOTAS_D_MAX = 4000, NOTAS_MAX = 300;
-var NOTAS = { docId: undefined, trazos: [], activo: false, color: "#e11d48", grosor: 4, borrador: false, enCurso: null };
+var NOTAS = { docId: undefined, trazos: [], activo: false, color: "#e11d48", grosor: 4, borrador: false, herramienta: "lapiz", enCurso: null };
 function notasClaveDoc(){ return (HAY_ALMACEN && docActual) ? docActual.id : null; }
 var NOTAS_FIRMA_LARGO = 40;
 function notaValida(t){
@@ -16114,23 +16411,39 @@ function notasPointerDown(e){
   var dx = rAncla.left - rCapa.left, dy = rAncla.top - rCapa.top;
   var pt = { x: Math.round((ptAbs.x - dx) * 10) / 10, y: Math.round((ptAbs.y - dy) * 10) / 10 };
   try{ capa.setPointerCapture(e.pointerId); }catch(err){}
-  var d0 = pizarraTrazoAPath([pt]);
+  /* misma herramienta y el mismo pizarraFormaAPath del pizarrón (13.x): lo
+     que cambia entre anotar sobre el documento y dibujar en la pizarra no es
+     el motor de figuras, es solo el anclaje (aqui, a una linea del texto). */
+  var herramienta = NOTAS.herramienta || "lapiz";
+  var d0 = herramienta === "lapiz" ? pizarraTrazoAPath([pt]) : pizarraFormaAPath(herramienta, pt.x, pt.y, pt.x, pt.y);
   capa.insertAdjacentHTML("beforeend",
     '<path class="doc-nota-trazo-actual" d="' + escUI(d0) + '" stroke="' + escUI(NOTAS.color) + '" stroke-width="' + NOTAS.grosor + '"></path>');
   NOTAS.enCurso = {
-    pointerId: e.pointerId, linea: ancla ? ancla.linea : 0, firma: notaFirmaDe(ancla ? ancla.el : null), dx: dx, dy: dy,
-    puntos: [pt], d: d0, path: capa.lastElementChild, capa: capa
+    pointerId: e.pointerId, herramienta: herramienta, linea: ancla ? ancla.linea : 0, firma: notaFirmaDe(ancla ? ancla.el : null),
+    dx: dx, dy: dy, x0: pt.x, y0: pt.y, puntos: [pt], d: d0, tope: false, path: capa.lastElementChild, capa: capa
   };
 }
 function notasPointerMove(e){
   var en = NOTAS.enCurso;
-  if(!en || e.pointerId !== en.pointerId) return;
+  if(!en || e.pointerId !== en.pointerId || en.tope) return;
   var rCapa = en.capa.getBoundingClientRect();
   var pt = { x: Math.round((e.clientX - rCapa.left - en.dx) * 10) / 10, y: Math.round((e.clientY - rCapa.top - en.dy) * 10) / 10 };
-  if(en.puntos.length >= 3000) return;
-  en.puntos.push(pt);
-  var d = pizarraTrazoApendice(en.d, en.puntos);
-  if(d.length > NOTAS_D_MAX){ en.puntos.pop(); return; }
+  var d;
+  if(en.herramienta === "lapiz"){
+    if(en.puntos.length >= 3000) return;
+    en.puntos.push(pt);
+    d = pizarraTrazoApendice(en.d, en.puntos);
+    if(d.length > NOTAS_D_MAX){ en.puntos.pop(); en.tope = true; return; }
+  }else{
+    /* Shift: igual que en el pizarrón -- ángulos de 45° para "／ Línea",
+       caja 1:1 para el resto de sellos de figura (seccion 12.11/12.15). */
+    var destino = pt;
+    if(e.shiftKey){
+      destino = en.herramienta === "linea" ? pizarraSnapAngulo(en.x0, en.y0, pt.x, pt.y) : pizarraSnapCuadrado(en.x0, en.y0, pt.x, pt.y);
+    }
+    d = pizarraFormaAPath(en.herramienta, en.x0, en.y0, destino.x, destino.y);
+    if(d.length > NOTAS_D_MAX) return;
+  }
   en.d = d;
   en.path.setAttribute("d", d);
 }
@@ -16162,7 +16475,23 @@ function notasActivar(on){
   var b = $("#estadoAnotar"), barra = $("#notasBarra");
   if(b){ b.setAttribute("aria-pressed", on ? "true" : "false"); b.classList.toggle("activo", on); }
   if(barra) barra.hidden = !on;
+  if(on && !notasMostrarActivo()){
+    var id = notasClaveDoc();
+    if(id) escribir(CLAVE_ANOTAR_VER + id, "si");
+  }
   notasRedibujar();
+  actualizarBotonesAnotar();
+}
+/* refleja NOTAS.herramienta/borrador en los botones -- un solo lugar para
+   que elegir una figura, activar el borrador, o volver de el, siempre
+   dejen resaltado exactamente un boton (o ninguno figura mientras se borra). */
+function notasActualizarBotonesHerramienta(){
+  var btns = document.querySelectorAll("#notasBarra .notas-herr"), i;
+  for(i = 0; i < btns.length; i++){
+    btns[i].classList.toggle("activo", !NOTAS.borrador && btns[i].getAttribute("data-herr") === NOTAS.herramienta);
+  }
+  var borrador = $("#notasBorrador");
+  if(borrador) borrador.classList.toggle("activo", NOTAS.borrador);
 }
 function prepararControlesAnotar(){
   var b = $("#estadoAnotar");
@@ -16173,6 +16502,16 @@ function prepararControlesAnotar(){
     if(id) escribir(CLAVE_ANOTAR_VER + id, mostrar ? "si" : "no");
     notasRedibujar(); actualizarBotonesAnotar();
   });
+  var herrBtns = document.querySelectorAll("#notasBarra .notas-herr"), i;
+  for(i = 0; i < herrBtns.length; i++){
+    (function(btn){
+      btn.addEventListener("click", function(){
+        NOTAS.herramienta = btn.getAttribute("data-herr");
+        NOTAS.borrador = false;
+        notasActualizarBotonesHerramienta();
+      });
+    })(herrBtns[i]);
+  }
   var color = $("#notasColor");
   if(color) color.addEventListener("input", function(){ NOTAS.color = color.value; });
   var grosor = $("#notasGrosor");
@@ -16180,7 +16519,7 @@ function prepararControlesAnotar(){
   var borrador = $("#notasBorrador");
   if(borrador) borrador.addEventListener("click", function(){
     NOTAS.borrador = !NOTAS.borrador;
-    borrador.classList.toggle("activo", NOTAS.borrador);
+    notasActualizarBotonesHerramienta();
     notasRedibujar();
   });
   var deshacer = $("#notasDeshacer");
@@ -20394,17 +20733,28 @@ $("#diagAmpGirar").addEventListener("click", diagAmpGirar);
 $("#diagAmpCodigo").addEventListener("click", diagAmpAlternarCodigo);
 $("#diagAmpLapiz").addEventListener("click", function(){ diagAmpLapizPoner(!DIAG_AMP.lapiz); });
 $("#diagAmpBorrador").addEventListener("click", function(){ diagAmpBorradorPoner(!DIAG_AMP.borrador); });
+$("#diagAmpDeshacer").addEventListener("click", diagAmpDeshacer);
 $("#diagAmpLimpiar").addEventListener("click", diagAmpLimpiar);
 $("#diagAmpVentana").addEventListener("click", diagAmpAbrirVentana);
 $("#diagAmpImprimir").addEventListener("click", diagAmpImprimir);
 $("#diagAmpPapel").addEventListener("change", diagAmpImpActualizar);
 $("#diagAmpOrientacion").addEventListener("change", diagAmpImpActualizar);
 $("#diagAmpTamanoHoja").addEventListener("change", diagAmpImpActualizar);
+$("#diagAmpImpFondo").addEventListener("change", diagAmpImpActualizar);
 $("#diagAmpImpVolver").addEventListener("click", diagAmpImpVolver);
 $("#diagAmpImpConfirmar").addEventListener("click", diagAmpImpConfirmar);
-Array.prototype.forEach.call(document.querySelectorAll("#diagAmpColores .diag-amp-color"), function(b){
-  b.addEventListener("click", function(){ diagAmpColor(b.getAttribute("data-color")); });
+Array.prototype.forEach.call(document.querySelectorAll("#diagAmpColores .notas-herr"), function(b){
+  b.addEventListener("click", function(){
+    if(!DIAG_AMP) return;
+    DIAG_AMP.herramienta = b.getAttribute("data-herr");
+    DIAG_AMP.borrador = false;
+    $("#diagAmpBorrador").setAttribute("aria-pressed", "false");
+    $("#diagAmpLapizSvg").classList.remove("borrador");
+    diagAmpActualizarBotonesHerramienta();
+  });
 });
+$("#diagAmpColorInput").addEventListener("input", function(){ if(DIAG_AMP) DIAG_AMP.color = $("#diagAmpColorInput").value; });
+$("#diagAmpGrosor").addEventListener("input", function(){ if(DIAG_AMP) DIAG_AMP.grosor = parseFloat($("#diagAmpGrosor").value) || 3; });
 $("#diagAmpLapizSvg").addEventListener("pointerdown", diagAmpPunteroAbajo);
 $("#diagAmpLapizSvg").addEventListener("pointermove", diagAmpPunteroMueve);
 $("#diagAmpLapizSvg").addEventListener("pointerup", diagAmpSoltarPuntero);
@@ -20435,54 +20785,479 @@ function firmaBinariaConocida(buf){
      b[4] === 0xA1 && b[5] === 0xB1 && b[6] === 0x1A && b[7] === 0xE1) return "cfb";
   return null;
 }
+/* --- lector ZIP compartido: .docx/.xlsx/.pptx son ZIP+XML (formato OOXML), así
+   que un solo lector de directorio central alcanza para los tres. Lee el End Of
+   Central Directory desde el final del archivo (buscando su firma hacia atrás,
+   porque el comentario del zip tiene largo variable), camina las entradas del
+   directorio central, y para inflar cada una usa DecompressionStream('deflate-raw'),
+   nativo del navegador -- no es una librería. No soporta ZIP64 (>4GB o >65535
+   entradas): un .docx/.xlsx/.pptx real jamás lo necesita, así que si aparece se
+   rechaza con un motivo claro en vez de leer offsets con el tamaño equivocado. */
+function zipIndice(buf){
+  var b = new Uint8Array(buf);
+  var dv = new DataView(buf);
+  if(b.length < 22) return { ok: false, motivo: "archivo demasiado chico para ser un zip" };
+  var maxComentario = Math.min(b.length - 22, 65535);
+  var finEocd = -1;
+  for(var p = b.length - 22; p >= b.length - 22 - maxComentario && p >= 0; p--){
+    if(dv.getUint32(p, true) === 0x06054b50 && p + 22 + dv.getUint16(p + 20, true) === b.length){
+      finEocd = p;
+      break;
+    }
+  }
+  if(finEocd === -1) return { ok: false, motivo: "no se encontró el final de directorio central (no es un zip válido)" };
+  var totalEntradas = dv.getUint16(finEocd + 10, true);
+  var tamCd = dv.getUint32(finEocd + 12, true);
+  var offCd = dv.getUint32(finEocd + 16, true);
+  if(totalEntradas === 0xFFFF || tamCd === 0xFFFFFFFF || offCd === 0xFFFFFFFF){
+    return { ok: false, motivo: "zip64 no soportado" };
+  }
+  var entradas = [], decodificador = new TextDecoder("utf-8"), p2 = offCd;
+  for(var i = 0; i < totalEntradas; i++){
+    if(p2 + 46 > b.length || dv.getUint32(p2, true) !== 0x02014b50){
+      return { ok: false, motivo: "directorio central corrupto (firma de entrada inválida)" };
+    }
+    var metodo = dv.getUint16(p2 + 10, true);
+    var comprimido = dv.getUint32(p2 + 20, true);
+    var original = dv.getUint32(p2 + 24, true);
+    var largoNombre = dv.getUint16(p2 + 28, true);
+    var largoExtra = dv.getUint16(p2 + 30, true);
+    var largoComentEntrada = dv.getUint16(p2 + 32, true);
+    var offsetLocal = dv.getUint32(p2 + 42, true);
+    if(comprimido === 0xFFFFFFFF || original === 0xFFFFFFFF || offsetLocal === 0xFFFFFFFF){
+      return { ok: false, motivo: "zip64 no soportado" };
+    }
+    var nombre = decodificador.decode(b.subarray(p2 + 46, p2 + 46 + largoNombre));
+    if(nombre.charAt(nombre.length - 1) !== "/"){
+      entradas.push({ nombre: nombre, metodo: metodo, comprimido: comprimido, original: original, offsetLocal: offsetLocal });
+    }
+    p2 += 46 + largoNombre + largoExtra + largoComentEntrada;
+  }
+  return { ok: true, entradas: entradas };
+}
+async function zipLeerBytes(buf, entrada){
+  var b = new Uint8Array(buf), dv = new DataView(buf), p = entrada.offsetLocal;
+  if(p + 30 > b.length || dv.getUint32(p, true) !== 0x04034b50){
+    throw new Error("cabecera local inválida para " + entrada.nombre);
+  }
+  /* el largo de nombre/extra de la cabecera LOCAL puede diferir del que trae el
+     directorio central para la misma entrada -- hay que leerlo de acá, no reusar
+     el del directorio central. */
+  var largoNombreLocal = dv.getUint16(p + 26, true);
+  var largoExtraLocal = dv.getUint16(p + 28, true);
+  var inicioDatos = p + 30 + largoNombreLocal + largoExtraLocal;
+  var datos = b.subarray(inicioDatos, inicioDatos + entrada.comprimido);
+  if(entrada.metodo === 0) return new Uint8Array(datos);
+  if(entrada.metodo === 8){
+    var ds = new DecompressionStream("deflate-raw");
+    var escritor = ds.writable.getWriter();
+    escritor.write(datos);
+    escritor.close();
+    return new Uint8Array(await new Response(ds.readable).arrayBuffer());
+  }
+  throw new Error("método de compresión no soportado (" + entrada.metodo + ") en " + entrada.nombre);
+}
+async function zipLeerTexto(buf, indice, nombre){
+  var entrada = indice.entradas.filter(function(e){ return e.nombre === nombre; })[0];
+  if(!entrada) return null;
+  return new TextDecoder("utf-8").decode(await zipLeerBytes(buf, entrada));
+}
+function zipTipoOoxml(indice){
+  var nombres = indice.entradas.map(function(e){ return e.nombre; });
+  if(nombres.some(function(n){ return n.indexOf("ppt/") === 0; })) return "pptx";
+  if(nombres.some(function(n){ return n.indexOf("xl/") === 0; })) return "xlsx";
+  if(nombres.some(function(n){ return n.indexOf("word/") === 0; })) return "docx";
+  return null;
+}
+
+/* --- importador .pptx (PresentationML/DrawingML): texto, negrita/cursiva,
+   viñetas, imágenes e imagen de fondo por diapositiva (herencia diapositiva →
+   layout → master, primera con relleno resoluble gana). NO convierte tablas,
+   gráficos ni SmartArt (```graphicFrame```): son formatos XML propios enormes
+   (el de gráficos referencia otra parte del zip con series de datos; SmartArt
+   trae su propio layout+datos+dibujo) -- intentarlos a medias daría resultados
+   peores que omitirlos con aviso. Tampoco resuelve colores de acento del tema
+   (accent1-6) ni fondos por referencia indexada (`<p:bgRef>`): requeriría leer
+   y resolver theme1.xml completo por muy poco beneficio real; si eso pasa, esa
+   diapositiva simplemente no lleva !fondo: explícito (usa el tema de MDx). */
+var NS_R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+function pptxRid(el){ return (el.getAttributeNS && el.getAttributeNS(NS_R, "id")) || el.getAttribute("r:id"); }
+function pptxRembed(el){ return (el.getAttributeNS && el.getAttributeNS(NS_R, "embed")) || el.getAttribute("r:embed"); }
+function pptxAtributo(el, nombreLocal){
+  var ats = el.attributes, i, ln;
+  for(i = 0; i < ats.length; i++){
+    ln = ats[i].localName || ats[i].name.replace(/^.*:/, "");
+    if(ln === nombreLocal) return ats[i].value;
+  }
+  return null;
+}
+/* por localName, no por nombre calificado: mismo motivo que parseGPX() con
+   namespaces de extensiones -- tolera cualquier prefijo que use el productor
+   del archivo, aunque en la práctica casi siempre es a:/p:/r:. */
+function pptxHijos(el, nombreLocal){
+  var out = [], hijos = el.childNodes, i, ln;
+  for(i = 0; i < hijos.length; i++){
+    if(hijos[i].nodeType !== 1) continue;
+    ln = hijos[i].localName || hijos[i].tagName || "";
+    if(ln.replace(/^.*:/, "") === nombreLocal) out.push(hijos[i]);
+  }
+  return out;
+}
+function bytesABase64(bytes){
+  var CHUNK = 0x8000, binario = "", i;
+  for(i = 0; i < bytes.length; i += CHUNK) binario += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  return btoa(binario);
+}
+function pptxResolverRuta(parteOrigen, destino){
+  var base = parteOrigen.split("/"); base.pop();
+  var partes = base.concat(destino.split("/")), out = [], i, p;
+  for(i = 0; i < partes.length; i++){
+    p = partes[i];
+    if(p === "" || p === ".") continue;
+    if(p === ".."){ out.pop(); continue; }
+    out.push(p);
+  }
+  return out.join("/");
+}
+async function xmlDe(buf, indice, nombre){
+  var texto = await zipLeerTexto(buf, indice, nombre);
+  if(texto === null) return null;
+  var doc = new DOMParser().parseFromString(texto, "application/xml");
+  if(doc.getElementsByTagName("parsererror").length) return null;
+  return doc;
+}
+/* devuelve { porId: {rId: rutaResuelta}, porTipo: {"slideLayout": [ruta,...], ...} }
+   -- porTipo usa el ULTIMO segmento de la URI de tipo de relación (ver
+   ECMA-376 parte 2), asi se encuentra "el layout de esta diapositiva" sin que
+   la diapositiva lo referencie por r:id explicito en su propio XML. */
+async function pptxRels(buf, indice, parteOrigen){
+  var carpeta = parteOrigen.split("/"); var archivo = carpeta.pop();
+  var relsPath = carpeta.concat(["_rels", archivo + ".rels"]).join("/");
+  var porId = {}, porTipo = {};
+  var doc = await xmlDe(buf, indice, relsPath);
+  if(!doc) return { porId: porId, porTipo: porTipo };
+  var rels = doc.getElementsByTagName("Relationship"), i;
+  for(i = 0; i < rels.length; i++){
+    var id = rels[i].getAttribute("Id"), destino = rels[i].getAttribute("Target");
+    var tipoUri = rels[i].getAttribute("Type") || "", modo = rels[i].getAttribute("TargetMode");
+    if(!id || !destino) continue;
+    var rutaFinal = modo === "External" ? destino : pptxResolverRuta(parteOrigen, destino);
+    porId[id] = rutaFinal;
+    var tipo = tipoUri.split("/").pop();
+    if(!porTipo[tipo]) porTipo[tipo] = [];
+    porTipo[tipo].push(rutaFinal);
+  }
+  return { porId: porId, porTipo: porTipo };
+}
+/* solo resuelve srgbClr (color explícito) y un puñado fijo de schemeClr de uso
+   frecuente en fondos (bg1/bg2/tx1/tx2/dk1/dk2/lt1/lt2); accentN/hlink no
+   tienen un valor universal sin leer el tema -- ver nota al inicio del módulo. */
+var PPTX_ESQUEMA_FALLBACK = { bg1: "#FFFFFF", tx1: "#000000", bg2: "#E7E6E6", tx2: "#44546A", dk1: "#000000", lt1: "#FFFFFF", dk2: "#44546A", lt2: "#E7E6E6" };
+function pptxColorDe(el){
+  var srgb = pptxHijos(el, "srgbClr")[0];
+  if(srgb) return "#" + (pptxAtributo(srgb, "val") || "000000").toUpperCase();
+  var esquema = pptxHijos(el, "schemeClr")[0];
+  if(esquema) return PPTX_ESQUEMA_FALLBACK[(pptxAtributo(esquema, "val") || "").toLowerCase()] || null;
+  var sys = pptxHijos(el, "sysClr")[0];
+  if(sys) return "#" + (pptxAtributo(sys, "lastClr") || "000000").toUpperCase();
+  return null;
+}
+var PPTX_MIME_POR_EXT = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff" };
+function pptxMimePorNombre(ruta){
+  return PPTX_MIME_POR_EXT[(ruta.split(".").pop() || "").toLowerCase()] || null;
+}
+/* bgPr = relleno explícito (lo único que se resuelve); bgRef = referencia
+   indexada al tema (no se resuelve, ver nota al inicio del módulo) */
+async function pptxFondoDesdeBg(bgEl, buf, indice, relsPorId){
+  var bgPr = pptxHijos(bgEl, "bgPr")[0];
+  if(!bgPr) return null;
+  var solido = pptxHijos(bgPr, "solidFill")[0];
+  if(solido){
+    var color = pptxColorDe(solido);
+    return color ? "!fondo:" + color + "\n" : null;
+  }
+  var grad = pptxHijos(bgPr, "gradFill")[0];
+  if(grad){
+    var lst = pptxHijos(grad, "gsLst")[0];
+    var paradas = lst ? pptxHijos(lst, "gs") : [];
+    if(paradas.length < 2) return null;
+    var c0 = pptxColorDe(paradas[0]), c1 = pptxColorDe(paradas[paradas.length - 1]);
+    if(!c0 || !c1) return null;
+    var lin = pptxHijos(grad, "lin")[0];
+    var angOoxml = lin ? parseInt(pptxAtributo(lin, "ang") || "0", 10) : 0;
+    /* angulo OOXML: 0=este, sentido horario, en 60000-avos de grado. CSS
+       linear-gradient: 0deg=norte, sentido horario. De ahi el +90. */
+    var angCss = Math.round(((angOoxml / 60000) + 90) % 360);
+    return "!fondo:degradado(" + c0 + ", " + c1 + ", " + angCss + "deg)\n";
+  }
+  var blip = pptxHijos(bgPr, "blipFill")[0];
+  if(blip){
+    var blipEl = pptxHijos(blip, "blip")[0];
+    var rId = blipEl && pptxRembed(blipEl);
+    var ruta = rId && relsPorId[rId];
+    if(!ruta) return null;
+    var entrada = indice.entradas.filter(function(e){ return e.nombre === ruta; })[0];
+    var mime = entrada && pptxMimePorNombre(ruta);
+    if(!entrada || !mime) return null; /* incluye .emf/.wmf: ningun navegador los decodifica en <img>/<image> */
+    var bytes;
+    try{ bytes = await zipLeerBytes(buf, entrada); }catch(e){ return null; }
+    if(bytes.length > 8 * 1024 * 1024) return null; /* mismo tope que imagenes pegadas */
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1" preserveAspectRatio="none">' +
+      '<image href="data:' + mime + ';base64,' + bytesABase64(bytes) + '" width="1" height="1"/></svg>';
+    return "```svg fondo\n" + svg + "\n```\n";
+  }
+  return null;
+}
+/* herencia diapositiva -> layout -> master (spec 15.4): la primera que tenga
+   un <p:bg> CON relleno resoluble gana; si una capa declara <p:bg> pero no se
+   puede resolver (bgRef, o un tipo de relleno no soportado), se sigue
+   probando con la siguiente capa en vez de rendirse. */
+async function pptxFondoDeSlide(buf, indice, slideDoc, slideRels){
+  var cSld = pptxHijos(slideDoc.documentElement, "cSld")[0];
+  var bg = cSld && pptxHijos(cSld, "bg")[0];
+  if(bg){
+    var r = await pptxFondoDesdeBg(bg, buf, indice, slideRels.porId);
+    if(r) return r;
+  }
+  var layoutRuta = slideRels.porTipo.slideLayout && slideRels.porTipo.slideLayout[0];
+  if(!layoutRuta) return null;
+  var layoutDoc = await xmlDe(buf, indice, layoutRuta);
+  if(!layoutDoc) return null;
+  var layoutRels = await pptxRels(buf, indice, layoutRuta);
+  var cSldL = pptxHijos(layoutDoc.documentElement, "cSld")[0];
+  var bgL = cSldL && pptxHijos(cSldL, "bg")[0];
+  if(bgL){
+    var rl = await pptxFondoDesdeBg(bgL, buf, indice, layoutRels.porId);
+    if(rl) return rl;
+  }
+  var masterRuta = layoutRels.porTipo.slideMaster && layoutRels.porTipo.slideMaster[0];
+  if(!masterRuta) return null;
+  var masterDoc = await xmlDe(buf, indice, masterRuta);
+  if(!masterDoc) return null;
+  var masterRels = await pptxRels(buf, indice, masterRuta);
+  var cSldM = pptxHijos(masterDoc.documentElement, "cSld")[0];
+  var bgM = cSldM && pptxHijos(cSldM, "bg")[0];
+  return bgM ? await pptxFondoDesdeBg(bgM, buf, indice, masterRels.porId) : null;
+}
+function pptxEsTitulo(spEl){
+  var nvSpPr = pptxHijos(spEl, "nvSpPr")[0];
+  var nvPr = nvSpPr && pptxHijos(nvSpPr, "nvPr")[0];
+  var ph = nvPr && pptxHijos(nvPr, "ph")[0];
+  if(!ph) return false;
+  var tipo = pptxAtributo(ph, "type") || "";
+  return tipo === "title" || tipo === "ctrTitle";
+}
+function pptxEsBullet(pEl){
+  var pPr = pptxHijos(pEl, "pPr")[0];
+  if(!pPr) return false;
+  if(pptxHijos(pPr, "buNone").length) return false;
+  return pptxHijos(pPr, "buChar").length > 0 || pptxHijos(pPr, "buAutoNum").length > 0;
+}
+function pptxParrafoTexto(pEl){
+  var runs = pptxHijos(pEl, "r"), texto = "", i;
+  for(i = 0; i < runs.length; i++){
+    var rPr = pptxHijos(runs[i], "rPr")[0];
+    var tEl = pptxHijos(runs[i], "t")[0];
+    var t = tEl ? tEl.textContent : "";
+    if(!t) continue;
+    if(rPr && pptxAtributo(rPr, "b") === "1") t = "**" + t + "**";
+    if(rPr && pptxAtributo(rPr, "i") === "1") t = "*" + t + "*";
+    texto += t;
+  }
+  return texto;
+}
+function pptxFormaAMarkdown(spEl){
+  var txBody = pptxHijos(spEl, "txBody")[0];
+  if(!txBody) return "";
+  var parrafos = pptxHijos(txBody, "p"), out = [], i, prevBullet = false, esTitulo = pptxEsTitulo(spEl);
+  for(i = 0; i < parrafos.length; i++){
+    var texto = pptxParrafoTexto(parrafos[i]);
+    if(!texto.trim()) continue;
+    var bullet = !esTitulo && pptxEsBullet(parrafos[i]);
+    var linea = esTitulo ? "# " + texto : (bullet ? "- " + texto : texto);
+    if(out.length && !(bullet && prevBullet)) out.push("");
+    out.push(linea);
+    prevBullet = bullet;
+  }
+  return out.join("\n");
+}
+/* "" = no habia imagen que insertar (no cuenta como omitida); null = habia
+   imagen pero no se pudo incluir (formato no soportado o >8MB: SI cuenta como
+   omitida, para poder avisarle al usuario cuantas faltaron) */
+async function pptxImagenAMarkdown(buf, indice, picEl, relsPorId){
+  var blipFill = pptxHijos(picEl, "blipFill")[0];
+  var blip = blipFill && pptxHijos(blipFill, "blip")[0];
+  var rId = blip && pptxRembed(blip);
+  var ruta = rId && relsPorId[rId];
+  if(!ruta) return "";
+  var entrada = indice.entradas.filter(function(e){ return e.nombre === ruta; })[0];
+  if(!entrada) return "";
+  var mime = pptxMimePorNombre(ruta);
+  if(!mime) return null;
+  var bytes;
+  try{ bytes = await zipLeerBytes(buf, entrada); }catch(e){ return null; }
+  if(bytes.length > 8 * 1024 * 1024) return null;
+  return "![Imagen](data:" + mime + ";base64," + bytesABase64(bytes) + ")";
+}
+async function pptxDiapositivaAMarkdown(buf, indice, slideParte){
+  var slideDoc = await xmlDe(buf, indice, slideParte);
+  if(!slideDoc) return { markdown: "", imagenesOmitidas: 0 };
+  var slideRels = await pptxRels(buf, indice, slideParte);
+  var fondo = await pptxFondoDeSlide(buf, indice, slideDoc, slideRels);
+  var cSld = pptxHijos(slideDoc.documentElement, "cSld")[0];
+  var spTree = cSld && pptxHijos(cSld, "spTree")[0];
+  var partes = [], imagenesOmitidas = 0;
+  if(spTree){
+    var hijos = spTree.childNodes, i;
+    for(i = 0; i < hijos.length; i++){
+      var n = hijos[i];
+      if(n.nodeType !== 1) continue;
+      var ln = (n.localName || n.tagName || "").replace(/^.*:/, "");
+      if(ln === "sp"){
+        var md = pptxFormaAMarkdown(n);
+        if(md) partes.push(md);
+      } else if(ln === "pic"){
+        var img = await pptxImagenAMarkdown(buf, indice, n, slideRels.porId);
+        if(img === null) imagenesOmitidas++;
+        else if(img) partes.push(img);
+      }
+      /* graphicFrame (tablas/graficos/SmartArt) y grpSp (formas agrupadas):
+         sin convertir, ver nota al inicio del modulo */
+    }
+  }
+  var cuerpo = partes.join("\n\n");
+  return { markdown: (fondo || "") + (fondo && cuerpo ? "\n" : "") + cuerpo, imagenesOmitidas: imagenesOmitidas };
+}
+async function pptxAMarkdown(buf, indicePrevio){
+  var indice = indicePrevio || zipIndice(buf);
+  if(!indice.ok) return { ok: false, motivo: indice.motivo };
+  var presDoc = await xmlDe(buf, indice, "ppt/presentation.xml");
+  if(!presDoc) return { ok: false, motivo: "no se pudo leer ppt/presentation.xml" };
+  var presRels = await pptxRels(buf, indice, "ppt/presentation.xml");
+  var sldIdLst = pptxHijos(presDoc.documentElement, "sldIdLst")[0];
+  var sldIds = sldIdLst ? pptxHijos(sldIdLst, "sldId") : [];
+  if(!sldIds.length) return { ok: false, motivo: "el .pptx no tiene diapositivas" };
+  var diapositivas = [], imagenesOmitidasTotal = 0, i;
+  for(i = 0; i < sldIds.length; i++){
+    var rId = pptxRid(sldIds[i]);
+    var ruta = rId && presRels.porId[rId];
+    if(!ruta) continue;
+    var r = await pptxDiapositivaAMarkdown(buf, indice, ruta);
+    diapositivas.push(r.markdown);
+    imagenesOmitidasTotal += r.imagenesOmitidas;
+  }
+  if(!diapositivas.length) return { ok: false, motivo: "no se pudo leer ninguna diapositiva" };
+  return { ok: true, markdown: diapositivas.join("\n\n---\n\n"), imagenesOmitidas: imagenesOmitidasTotal, totalDiapositivas: diapositivas.length };
+}
+
 /* se asume que la extensión ya se validó antes de llamar a esto (el input
    "Abrir" y el drag&drop tienen mensajes distintos para "extensión no
    admitida" -- este solo se ocupa del tope de tamaño, la firma binaria, y de
    la lectura en sí). */
-function abrirArchivoValidado(f){
-  if(f.size > 20 * 1024 * 1024){
+function leerArchivoComoTexto(f){
+  if(!confirmarReemplazo()) return;
+  var fr = new FileReader();
+  fr.onload = function(){
+    var r = comoMarkdown(f.name, String(fr.result));
+    if(r.convertido && !r.texto.trim()){ aviso("Ese HTML no tiene texto para convertir"); return; }
+    fijarTexto(r.texto, r.nombre, {
+      origen: "local", version: 1, descargado: f.lastModified || Date.now(),
+      nombreDescarga: r.nombre, firmaDescarga: firma(r.texto)
+    });
+    if(r.convertido) aviso("Convertido de HTML a Markdown: revisá el resultado, sobre todo tablas y formato raro");
+  };
+  fr.onerror = function(){ aviso("No se pudo leer ese archivo"); };
+  fr.readAsText(f);
+}
+/* primitiva compartida: identifica qué es f antes de decidir qué hacer con
+   él (input "Abrir", drag&drop y launchQueue comparten esta detección; cada
+   consumidor decide qué hacer con cada resultado). Para "pptx" devuelve
+   también el buffer y el índice ZIP ya leídos, para no releer ni reparsear
+   el archivo en abrirArchivoValidado. */
+async function detectarTipoArchivo(f){
+  if(f.size > 20 * 1024 * 1024) return { tipo: "muyGrande" };
+  var primerosBytes;
+  try{ primerosBytes = await f.slice(0, 8).arrayBuffer(); }
+  catch(e){ return { tipo: "texto" }; /* si ni la firma se puede leer, seguir igual: readAsText() va a fallar y avisar por su cuenta */ }
+  var firma = firmaBinariaConocida(primerosBytes);
+  if(firma === "cfb") return { tipo: "cfb" };
+  if(firma === "zip"){
+    var buf;
+    try{ buf = await f.arrayBuffer(); }
+    catch(e){ return { tipo: "zipDesconocido" }; }
+    var indice = zipIndice(buf);
+    var subtipo = indice.ok ? zipTipoOoxml(indice) : null;
+    if(subtipo === "pptx") return { tipo: "pptx", buf: buf, indice: indice };
+    if(subtipo === "xlsx") return { tipo: "xlsx" };
+    if(subtipo === "docx") return { tipo: "docx" };
+    return { tipo: "zipDesconocido" };
+  }
+  return { tipo: "texto" };
+}
+/* predicado simple para launchQueue (apertura vía "Abrir con" del sistema
+   operativo, más abajo): sin esto, launchQueue se saltaba por completo la
+   detección de firma y un .docx renombrado a .md abierto así volvía a
+   mostrar caracteres no imprimibles pese a toda esta protección. No
+   distingue pptx de xlsx/docx porque el launcher solo se registra para .md:
+   llegar acá con un Office moderno ya es el caso de "extensión cambiada". */
+async function archivoEsTextoSeguro(f, avisar){
+  if(avisar === undefined) avisar = true;
+  var d = await detectarTipoArchivo(f);
+  if(d.tipo === "muyGrande"){
+    if(avisar) aviso("Ese archivo pesa " + (f.size / 1024 / 1024).toFixed(1) + " MB; elegí uno menor de 20 MB.");
+    return false;
+  }
+  if(d.tipo === "cfb"){
+    if(avisar) aviso("Eso es un documento antiguo de Office (.doc/.xls/.ppt) con la extensión cambiada. Guardalo como .docx/.xlsx/.pptx desde Word/LibreOffice y volvé a intentarlo.");
+    return false;
+  }
+  if(d.tipo === "pptx" || d.tipo === "xlsx" || d.tipo === "docx" || d.tipo === "zipDesconocido"){
+    if(!avisar) return false; /* uso en lote silencioso: no hace falta avisar por cada uno */
+    var nombreFormato = d.tipo === "pptx" ? ".pptx" : d.tipo === "xlsx" ? ".xlsx" : d.tipo === "docx" ? ".docx" : ".docx/.xlsx/.pptx";
+    aviso("Eso es un documento de Office moderno (" + nombreFormato + ") con la extensión cambiada. Abrilo con su programa original: MDx todavía no puede convertirlo.");
+    return false;
+  }
+  return true;
+}
+async function abrirArchivoValidado(f){
+  var d = await detectarTipoArchivo(f);
+  if(d.tipo === "muyGrande"){
     aviso("Ese archivo pesa " + (f.size / 1024 / 1024).toFixed(1) + " MB; elegí uno menor de 20 MB.");
     return;
   }
-  function leerComoTexto(){
-    if(!confirmarReemplazo()) return;
-    var fr = new FileReader();
-    fr.onload = function(){
-      var r = comoMarkdown(f.name, String(fr.result));
-      if(r.convertido && !r.texto.trim()){ aviso("Ese HTML no tiene texto para convertir"); return; }
-      fijarTexto(r.texto, r.nombre, {
-        origen: "local", version: 1, descargado: f.lastModified || Date.now(),
-        nombreDescarga: r.nombre, firmaDescarga: firma(r.texto)
-      });
-      if(r.convertido) aviso("Convertido de HTML a Markdown: revisá el resultado, sobre todo tablas y formato raro");
-    };
-    fr.onerror = function(){ aviso("No se pudo leer ese archivo"); };
-    fr.readAsText(f);
+  if(d.tipo === "cfb"){
+    aviso("Eso es un documento antiguo de Office (.doc/.xls/.ppt). Guardalo como .docx/.xlsx/.pptx desde Word/LibreOffice y volvé a intentarlo.");
+    return;
   }
-  var frFirma = new FileReader();
-  frFirma.onload = function(){
-    var tipo = firmaBinariaConocida(frFirma.result);
-    if(tipo === "zip"){
-      aviso("Eso es un documento de Office moderno (.docx/.xlsx/.pptx) con la extensión cambiada. Abrilo con su programa original: MDx todavía no puede convertirlo.");
-      return;
-    }
-    if(tipo === "cfb"){
-      aviso("Eso es un documento antiguo de Office (.doc/.xls/.ppt) con la extensión cambiada. Guardalo como .docx/.xlsx/.pptx desde Word/LibreOffice y volvé a intentarlo.");
-      return;
-    }
-    leerComoTexto();
-  };
-  /* si ni la firma se puede leer, seguir igual: readAsText() en leerComoTexto()
-     va a fallar y avisar por su cuenta, no queda colgado ni en silencio. */
-  frFirma.onerror = leerComoTexto;
-  frFirma.readAsArrayBuffer(f.slice(0, 8));
+  if(d.tipo === "xlsx" || d.tipo === "docx" || d.tipo === "zipDesconocido"){
+    var nombreFormato = d.tipo === "xlsx" ? ".xlsx" : d.tipo === "docx" ? ".docx" : ".docx/.xlsx/.pptx";
+    aviso("Eso es un documento de Office moderno (" + nombreFormato + "): MDx todavía no puede convertirlo.");
+    return;
+  }
+  if(d.tipo === "pptx"){
+    if(!confirmarReemplazo()) return;
+    var r;
+    try{ r = await pptxAMarkdown(d.buf, d.indice); }
+    catch(e){ aviso("No se pudo convertir esa presentación"); return; }
+    if(!r.ok){ aviso("No se pudo convertir esa presentación: " + r.motivo); return; }
+    var nombreMd = f.name.replace(/\.pptx$/i, "") + ".md";
+    fijarTexto(r.markdown, nombreMd, {
+      origen: "local", version: 1, descargado: f.lastModified || Date.now(),
+      nombreDescarga: nombreMd, firmaDescarga: firma(r.markdown)
+    });
+    aviso("Convertido de .pptx a Markdown: " + r.totalDiapositivas + " diapositiva" + (r.totalDiapositivas === 1 ? "" : "s") +
+      (r.imagenesOmitidas ? ", " + r.imagenesOmitidas + " imagen" + (r.imagenesOmitidas === 1 ? "" : "es") + " sin poder incluir" : "") +
+      ". No se convierten tablas, gráficos, SmartArt ni fondos de tema: revisá el resultado.");
+    return;
+  }
+  leerArchivoComoTexto(f);
 }
 $("#archivo").addEventListener("change", function(){
   var f = this.files && this.files[0];
   this.value = "";
   if(!f) return;
-  if(!/\.(md|markdown|mdown|mkd|txt|html?)$/i.test(f.name)){
-    aviso("Ese tipo de archivo no se puede abrir acá: elegí un .md, .txt o .html");
+  if(!/\.(md|markdown|mdown|mkd|txt|html?|pptx?|xlsx?|docx?)$/i.test(f.name)){
+    aviso("Ese tipo de archivo no se puede abrir acá: elegí un .md, .txt, .html o un documento de Office (.docx/.xlsx/.pptx/.doc/.xls/.ppt)");
     return;
   }
   abrirArchivoValidado(f);
@@ -20498,29 +21273,38 @@ if(window.launchQueue && window.launchQueue.setConsumer){
     if(!confirmarReemplazo()) return;
     Promise.all(manijas.map(function(m){ return m.getFile(); })).then(function(archivos){
       var primero = archivos[0];
-      var fr = new FileReader();
-      fr.onload = function(){
-        var texto = String(fr.result);
-        fijarTexto(texto, primero.name, {
-          origen: "local", version: 1, descargado: primero.lastModified || Date.now(),
-          nombreDescarga: primero.name, firmaDescarga: firma(texto)
-        });
-        /* si abrieron varios de golpe, el resto queda en Recientes sin perderse */
-        if(HAY_ALMACEN && archivos.length > 1){
-          archivos.slice(1).forEach(function(f){
-            var fr2 = new FileReader();
-            fr2.onload = function(){
-              var t2 = String(fr2.result);
-              guardarRegistro(crearDoc(t2, {
-                nombre: f.name, origen: "local", version: 1, descargado: f.lastModified || Date.now(),
-                nombreDescarga: f.name, firmaDescarga: firma(t2)
-              })).then(function(){ cargarRecientes(); });
-            };
-            fr2.readAsText(f);
+      archivoEsTextoSeguro(primero).then(function(esSeguro){
+        if(!esSeguro) return;
+        var fr = new FileReader();
+        fr.onload = function(){
+          var texto = String(fr.result);
+          fijarTexto(texto, primero.name, {
+            origen: "local", version: 1, descargado: primero.lastModified || Date.now(),
+            nombreDescarga: primero.name, firmaDescarga: firma(texto)
           });
-        }
-      };
-      fr.readAsText(primero);
+          /* si abrieron varios de golpe, el resto queda en Recientes sin perderse
+             (los que tengan firma binaria conocida se saltan en silencio: es un
+             guardado de fondo, no la acción principal, avisar por cada uno sería
+             ruido). */
+          if(HAY_ALMACEN && archivos.length > 1){
+            archivos.slice(1).forEach(function(f){
+              archivoEsTextoSeguro(f, false).then(function(seguroResto){
+                if(!seguroResto) return;
+                var fr2 = new FileReader();
+                fr2.onload = function(){
+                  var t2 = String(fr2.result);
+                  guardarRegistro(crearDoc(t2, {
+                    nombre: f.name, origen: "local", version: 1, descargado: f.lastModified || Date.now(),
+                    nombreDescarga: f.name, firmaDescarga: firma(t2)
+                  })).then(function(){ cargarRecientes(); });
+                };
+                fr2.readAsText(f);
+              });
+            });
+          }
+        };
+        fr.readAsText(primero);
+      });
     })["catch"](function(){ aviso("No se pudo abrir ese archivo"); });
   });
 }
@@ -20593,7 +21377,7 @@ $("#gpxImportar").addEventListener("change", function(){
     /* silencioso a propósito: este listener está en document y recibe
        cualquier drop de la página (ej. una imagen soltada sobre la pizarra),
        no solo los pensados para "abrir archivo" -- avisar acá sería ruido. */
-    if(!f || !/\.(md|markdown|mdown|mkd|txt|html?)$/i.test(f.name)) return;
+    if(!f || !/\.(md|markdown|mdown|mkd|txt|html?|pptx?|xlsx?|docx?)$/i.test(f.name)) return;
     abrirArchivoValidado(f);
   });
 });
