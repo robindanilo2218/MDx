@@ -585,10 +585,11 @@ body.rellenando .casilla{ outline:2px solid var(--acento-suave); outline-offset:
 #diapositivas.dia-lapiz-activo .dia-pie .dia-solo-lapiz{ display:inline-flex }
 #diapositivas .dia-pie #diaLapiz{ margin-left:auto }
 #diapositivas .dia-pie .dia-lapiz-colores{ align-items:center; gap:.35rem }
-#diapositivas .dia-pie .dia-color{
-  width:1.4rem; height:1.4rem; padding:0; border-radius:50%; border:2px solid transparent;
+#diapositivas .dia-pie .dia-lapiz-colores button[aria-pressed="true"]{
+  background:var(--dia-acento); border-color:var(--dia-acento); color:var(--dia-acento-texto);
 }
-#diapositivas .dia-pie .dia-color.activo{ border-color:var(--dia-texto) }
+#diapositivas .dia-pie .dia-lapiz-colores input[type="color"]{ width:1.6rem; height:1.6rem; padding:0; border:1px solid var(--dia-borde); border-radius:.4rem; background:none; cursor:pointer }
+#diapositivas .dia-pie .dia-lapiz-colores input[type="range"]{ width:4.5rem }
 
 /* vista de miniaturas dentro de Presentar (reemplaza #diaCuerpo mientras esta abierta).
    align-self:flex-start la ancla arriba en vez de heredar el centrado vertical
@@ -1239,7 +1240,7 @@ dd{margin:.2em 0 .2em 1.4em; color:var(--tenue)}
    encendido. Los trazos se guardan aparte (CLAVE_ANOTAR + docActual.id), no
    como texto insertado en el markdown. */
 .doc-notas-capa{ position:absolute; inset:0; width:100%; height:100%; z-index:2; pointer-events:none }
-.doc-notas-capa.activa{ pointer-events:auto; cursor:crosshair }
+.doc-notas-capa.activa{ pointer-events:auto; cursor:crosshair; touch-action:none }
 .doc-notas-capa.borrador{ cursor:cell }
 .doc-nota-trazo, .doc-nota-trazo-actual{ fill:none; stroke-linecap:round; stroke-linejoin:round }
 .notas-barra{
@@ -2108,12 +2109,17 @@ math mo{font-family:inherit}
     <button type="button" id="diaLapiz" aria-pressed="false" title="Lápiz (L)"><b>&#9998;</b><span>Lápiz</span></button>
     <button type="button" id="diaPizarron" title="Abrir un pizarrón en blanco sin salir de Presentar"><b>&#9633;</b><span>Pizarrón</span></button>
     <span class="dia-lapiz-colores dia-solo-lapiz" id="diaLapizColores">
-      <button type="button" class="dia-color activo" data-color="#1a73e8" style="background:#1a73e8" title="Azul" aria-label="Azul" aria-pressed="true"></button>
-      <button type="button" class="dia-color" data-color="#e5484d" style="background:#e5484d" title="Rojo" aria-label="Rojo" aria-pressed="false"></button>
-      <button type="button" class="dia-color" data-color="#2fae4e" style="background:#2fae4e" title="Verde" aria-label="Verde" aria-pressed="false"></button>
-      <button type="button" class="dia-color" data-color="#f5a623" style="background:#f5a623" title="Naranja" aria-label="Naranja" aria-pressed="false"></button>
+      <button type="button" class="notas-herr" data-herr="lapiz" aria-pressed="true" title="Lápiz: dibujo a mano alzada">&#9998;</button>
+      <button type="button" class="notas-herr" data-herr="linea" aria-pressed="false" title="Línea recta (Shift: ángulos de 45°)">&#65295;</button>
+      <button type="button" class="notas-herr" data-herr="circulo" aria-pressed="false" title="Círculo (Shift: proporción 1:1)">&#9675;</button>
+      <button type="button" class="notas-herr" data-herr="cuadrado" aria-pressed="false" title="Cuadrado (Shift: proporción 1:1)">&#9633;</button>
+      <button type="button" class="notas-herr" data-herr="triangulo" aria-pressed="false" title="Triángulo (Shift: proporción 1:1)">&#9651;</button>
+      <button type="button" class="notas-herr" data-herr="texto" aria-pressed="false" title="Texto: caja de texto libre">&#128730;</button>
+      <input type="color" id="diaLapizColorInput" value="#1a73e8" title="Color del trazo">
+      <input type="range" id="diaLapizGrosor" min="1" max="16" value="4" title="Grosor del trazo">
     </span>
     <button type="button" id="diaBorrador" class="dia-solo-lapiz" aria-pressed="false" title="Borrador (B)"><b>&#9003;</b><span>Borrador</span></button>
+    <button type="button" id="diaDeshacer" class="dia-solo-lapiz" title="Deshacer el último trazo"><b>&#8630;</b><span>Deshacer</span></button>
     <button type="button" id="diaLimpiar" class="dia-solo-lapiz" title="Limpiar (C)"><b>&#128465;</b><span>Limpiar</span></button>
     <button type="button" id="diaGuardarAnotaciones" title="Añade lo dibujado como bloque al documento"><b>&#128190;</b><span>Guardar anotaciones</span></button>
     <button type="button" id="diaSalir" title="Salir (Esc)"><b>&#10005;</b><span>Salir</span></button>
@@ -2301,6 +2307,7 @@ math mo{font-family:inherit}
           <button type="button" class="notas-herr" data-herr="circulo" aria-pressed="false" title="Círculo (Shift: proporción 1:1)">&#9675;</button>
           <button type="button" class="notas-herr" data-herr="cuadrado" aria-pressed="false" title="Cuadrado (Shift: proporción 1:1)">&#9633;</button>
           <button type="button" class="notas-herr" data-herr="triangulo" aria-pressed="false" title="Triángulo (Shift: proporción 1:1)">&#9651;</button>
+          <button type="button" class="notas-herr" data-herr="texto" aria-pressed="false" title="Texto: caja de texto libre">&#128730;</button>
           <input type="color" id="diagAmpColorInput" value="#e5484d" title="Color de la anotación">
           <input type="range" id="diagAmpGrosor" min="1" max="16" value="3" title="Grosor del trazo">
           <button type="button" id="diagAmpBorrador" aria-pressed="false" title="Borrador: toca un trazo para borrarlo"><b>&#9003;</b><span>Borrador</span></button>
@@ -2397,6 +2404,7 @@ math mo{font-family:inherit}
   <button type="button" class="notas-herr" data-herr="circulo" title="Círculo (Shift: proporción 1:1)">&#9675;</button>
   <button type="button" class="notas-herr" data-herr="cuadrado" title="Cuadrado (Shift: proporción 1:1)">&#9633;</button>
   <button type="button" class="notas-herr" data-herr="triangulo" title="Triángulo (Shift: proporción 1:1)">&#9651;</button>
+  <button type="button" class="notas-herr" data-herr="texto" title="Texto: caja de texto libre">&#128730;</button>
   <input type="color" id="notasColor" value="#e11d48" title="Color de la anotación">
   <input type="range" id="notasGrosor" min="1" max="16" value="4" title="Grosor del trazo">
   <button type="button" id="notasBorrador" title="Borrador: toca un trazo para borrarlo">&#9003;</button>
@@ -2406,6 +2414,11 @@ math mo{font-family:inherit}
 <div class="aviso-flotante no-print" id="aviso" hidden>
   <span id="avisoTexto"></span>
   <button type="button" id="avisoBoton" hidden></button>
+</div>
+<div class="aviso-flotante no-print" id="diaAvisoLimpiar" hidden>
+  <span>¿Borrar el dibujo de esta diapositiva o de todas?</span>
+  <button type="button" id="diaAvisoLimpiarEsta">Esta diapositiva</button>
+  <button type="button" id="diaAvisoLimpiarTodas">Todas</button>
 </div>
 
 <noscript><p style="max-width:40rem;margin:4rem auto;padding:0 1.5rem;font-family:sans-serif">Esta página necesita JavaScript para convertir el Markdown en HTML.</p></noscript>
@@ -8764,7 +8777,7 @@ function pizarraMedirAncho(texto, fontSize){
 /* fontSize se lee SIEMPRE de la caja actual (y1-y0), nunca de t.grosor: asi
    un texto escalado junto con el resto de una seleccion (que transforma su
    "d" como cualquier otro trazo) crece o encoge sin ningun calculo aparte. */
-function pizarraTextoHTML(t, idx){
+function pizarraTextoHTML(t, idx, clase){
   var c = pizarraTextoCaja(t.d);
   var fs = Math.max(6, Math.round((c.y1 - c.y0) * 10) / 10);
   var lineas = String(t.texto || "").split("\n"), partes = [], i;
@@ -8773,8 +8786,13 @@ function pizarraTextoHTML(t, idx){
      sobre ningun glyph -- fill="transparent" en el rect (NO "none": eso no
      recibe eventos) hace que toda la caja sea "clickeable" para seleccionar/
      borrar/mover, igual que un trazo comun. Un solo elemento con ese data-i
-     tambien evita ambiguedad en querySelector('[data-i="N"]') durante mover. */
-  partes.push('<g class="pizarra-trazo" data-i="' + idx + '" data-tipo="texto">');
+     tambien evita ambiguedad en querySelector('[data-i="N"]') durante mover.
+     "clase" es una clase EXTRA opcional, ademas de "pizarra-trazo" (nunca en
+     su lugar: asi el <g> sigue heredando el cursor:text/user-select:none de
+     abajo): NOTAS/DIAG_AMP reusan este mismo render pero borran por click
+     buscando SU propia clase de trazo (".doc-nota-trazo"/".diag-amp-trazo"),
+     no la generica de pizarra. */
+  partes.push('<g class="pizarra-trazo' + (clase ? " " + clase : "") + '" data-i="' + idx + '" data-tipo="texto">');
   partes.push('<rect x="' + c.x0 + '" y="' + c.y0 + '" width="' + Math.max(1, c.x1 - c.x0) + '" height="' + Math.max(1, c.y1 - c.y0) + '" fill="transparent"></rect>');
   partes.push('<text x="' + c.x0 + '" y="' + c.y0 + '" dominant-baseline="hanging" style="fill:' + escUI(t.color) + '; font-size:' + fs + 'px">');
   for(i = 0; i < lineas.length; i++){
@@ -10129,6 +10147,508 @@ function dibujarLadder(codigo, parametros){
   }
 }
 
+/* ==========================================================================
+   BLOQUE ```unifilar -- esquemas electricos unifilares de potencia
+   (industrial: motores, contactores, interruptores/breakers, bornes, fusibles,
+   cables), pensado para lo que PDFx extrae de manuales EPLAN reales. Sintaxis
+   en la seccion 16 del spec (mdx-bloques-spec-v2.md), resumida aqui:
+
+     fuente <fases...> <voltaje> [frecuencia]
+     componente <tag> <tipo> ["descripcion"] [atributo=valor|valor-suelto ...]
+     cable <numero> <color> <calibre> <origen> <destino>
+     cruce <tag> pagina=N linea=M
+
+   Cada extremo de un `cable` es TAG:terminal, o el nombre pelado de una fase
+   declarada en `fuente` (sin ":"), o la palabra "fuente" a secas. `tipo`
+   valido: interruptor, contactor, motor, borne, fusible, sensor, plc --
+   cualquier otro se dibuja igual (con un simbolo generico "?"), sin romper
+   el bloque: PDFx puede mandar un tipo nuevo antes de que este archivo lo
+   conozca.
+
+   SIMULACION (transitoria, mismo patron que estadoSim de GPX -- nunca se
+   escribe al Markdown, ver el comentario grande de gpxActivarFigura mas
+   abajo): por defecto TODO sale gris (sin tension). El boton "Simular"
+   activa el modo interactivo; con el activo, clicar un interruptor/fusible
+   (o un contactor sin bobina cableada ni condicion, ver mas abajo) alterna
+   su "cerrado" y se recalcula la propagacion desde cada `fuente`.
+
+   Simplificaciones deliberadas de esta primera version -- ver el informe
+   que acompaña este cambio para el detalle; quedan a confirmar con como
+   PDFx este generando el DSL en la practica:
+
+   1) Cada componente es UN solo nodo del grafo: cualquiera de sus terminales
+      que aparezca en un `cable` llega al mismo nodo (no se modela que
+      terminal esta unido a que otro terminal DENTRO del propio componente).
+      Unica excepcion: en un `contactor`, un terminal literal "A1"/"A2"/
+      "bobina"/"coil" (sin importar mayusculas) apunta a un nodo aparte (su
+      bobina), para poder cablear el circuito de mando por separado del
+      circuito de fuerza.
+   2) `interruptor` y `fusible` reciben un empalme IMPLICITO a todas las
+      fases de la PRIMERA `fuente` del bloque -- en un unifilar real son
+      casi siempre lo que cuelga directo del barraje entrante, así que no
+      hace falta dibujar ese cable a mano. Si el documento tiene mas de una
+      linea `fuente`, solo la primera alimenta este empalme implicito (varias
+      fuentes independientes en el mismo bloque son un caso raro, no resuelto
+      aqui).
+   3) Un `contactor` conduce en su circuito de fuerza solo si su bobina esta
+      energizada. Esa energizacion se decide, en este orden:
+        a) si el componente trae el atributo `condicion=<expresion>` (mismo
+           lenguaje que ```verdad: Y/O/NO/NO-Y/NI/O-EXCLUSIVA, una variable
+           por cada TAG de este bloque, saneado a identificador valido) se
+           evalua con evaluarLogica();
+        b) si no, y su nodo "bobina" tiene algun cable, se energiza por
+           continuidad normal (la misma propagacion BFS) igual que cualquier
+           otro tramo;
+        c) si no tiene ni condicion ni bobina cableada, se comporta como un
+           interruptor mas: se abre/cierra a mano con un clic.
+      `condicion=` NO esta en el DSL que me pasaron -- es una extension mia
+      para cubrir "usa evaluarLogica sobre sus contactos auxiliares si los
+      hay"; confirmar con PDFx si hace falta o si siempre van a cablear la
+      bobina de verdad con A1/A2.
+   4) `motor`, `borne`, `sensor`, `plc` y cualquier tipo desconocido nunca
+      bloquean: son carga o simple paso, jamas cortan la continuidad.
+   5) Un extremo de `cable` que apunta a un TAG no declarado en este mismo
+      bloque (la otra punta sigue en otra pagina) se dibuja como un cabo
+      suelto con su nombre al lado, sin intentar resolver el grafo entre
+      bloques distintos -- eso es fase futura (igual que `cruce`, que es
+      solo documentacion y no participa en la simulacion).
+   6) Un `condicion=` ciclico entre dos contactores (p.ej. un enclavamiento
+      mutuo "NO el otro") puede no converger a un unico estado estable: se
+      limita a 6 rondas de relajacion y se deja el ultimo valor calculado,
+      nunca se cuelga el navegador.
+   ========================================================================== */
+var UNIFILAR_TIPOS = { interruptor: 1, contactor: 1, motor: 1, borne: 1, fusible: 1, sensor: 1, plc: 1 };
+var UNIFILAR_BOXW = 144, UNIFILAR_BOXH = 96, UNIFILAR_GAPX = 180, UNIFILAR_GAPY = 156,
+    UNIFILAR_MARGEN = 40, UNIFILAR_BUSY = 46;
+
+function unifilarNodoDeToken(tok){
+  var p = tok.lastIndexOf(":");
+  if(p > 0) return { tag: tok.slice(0, p), terminal: tok.slice(p + 1) };
+  return { tag: tok, terminal: null };
+}
+function unifilarTextoNodo(nodoTok){
+  return nodoTok.terminal !== null ? nodoTok.tag + ":" + nodoTok.terminal : nodoTok.tag;
+}
+
+/* ---------- parser: lineas independientes, tolerante (una linea rara se
+   ignora con un aviso, no tira el resto del bloque -- igual espiritu que
+   ladderParsear con las filas, mas simple porque aqui cada linea es
+   autocontenida, no hay estado de "tramo abierto" que arrastrar) ---------- */
+function unifilarParsear(codigo){
+  var lineas = String(codigo || "").replace(/\r\n?/g, "\n").split("\n");
+  var datos = { fuentes: [], componentes: [], cables: [], cruces: [], avisos: [] };
+  var tagsVistos = {}, i, L, n, m;
+  for(i = 0; i < lineas.length; i++){
+    L = lineas[i].trim();
+    n = i + 1;
+    if(!L || L.charAt(0) === "#") continue;
+    if((m = /^fuente\s+(.+)$/i.exec(L))){
+      var tk = m[1].trim().split(/\s+/).filter(Boolean);
+      var frecuencia = "";
+      if(tk.length > 1 && /hz$/i.test(tk[tk.length - 1])) frecuencia = tk.pop();
+      var voltaje = "";
+      if(tk.length > 1 && /^[\d.]+[a-z]*$/i.test(tk[tk.length - 1]) && /v/i.test(tk[tk.length - 1])) voltaje = tk.pop();
+      if(!tk.length){ datos.avisos.push('línea ' + n + ': falta indicar las fases en "fuente"'); continue; }
+      datos.fuentes.push({ fases: tk, voltaje: voltaje, frecuencia: frecuencia, numLinea: n });
+      continue;
+    }
+    if((m = /^componente\s+(\S+)\s+(\S+)([\s\S]*)$/i.exec(L))){
+      var tag = m[1], tipo = m[2].toLowerCase(), resto = m[3] || "";
+      var descripcion = "", mDesc = /^\s*"([^"]*)"([\s\S]*)$/.exec(resto);
+      if(mDesc){ descripcion = mDesc[1]; resto = mDesc[2]; }
+      var atributos = [], sueltos = [];
+      resto.trim().split(/\s+/).filter(Boolean).forEach(function(tok){
+        var ma = /^([A-Za-z_][A-Za-z0-9_]*)=(.+)$/.exec(tok);
+        if(ma) atributos.push({ clave: ma[1].toLowerCase(), valor: ma[2] });
+        else sueltos.push(tok);
+      });
+      if(tagsVistos[tag]){ datos.avisos.push('línea ' + n + ': la etiqueta "' + tag + '" ya se había usado, se ignora esta repetida'); continue; }
+      tagsVistos[tag] = true;
+      datos.componentes.push({
+        tag: tag, tipo: tipo, conocido: !!UNIFILAR_TIPOS[tipo],
+        descripcion: descripcion, atributos: atributos, sueltos: sueltos, numLinea: n
+      });
+      continue;
+    }
+    if((m = /^cable\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/i.exec(L))){
+      datos.cables.push({
+        numero: m[1], color: m[2], calibre: m[3],
+        origen: unifilarNodoDeToken(m[4]), destino: unifilarNodoDeToken(m[5]), numLinea: n
+      });
+      continue;
+    }
+    if((m = /^cruce\s+(\S+)\s+(.+)$/i.exec(L))){
+      var tagC = m[1], pagina = "", lineaC = "";
+      m[2].trim().split(/\s+/).forEach(function(tok){
+        var mc = /^(pagina|linea)=(.+)$/i.exec(tok);
+        if(mc){ if(mc[1].toLowerCase() === "pagina") pagina = mc[2]; else lineaC = mc[2]; }
+      });
+      datos.cruces.push({ tag: tagC, pagina: pagina, linea: lineaC, numLinea: n });
+      continue;
+    }
+    datos.avisos.push('línea ' + n + ': no reconozco "' + L + '" (se esperaba fuente/componente/cable/cruce), se ignora');
+  }
+  if(!datos.fuentes.length && !datos.componentes.length && !datos.cables.length){
+    throw new Error("este bloque no tiene ninguna línea que reconozca (fuente/componente/cable/cruce)");
+  }
+  return datos;
+}
+
+/* ---------- grafo de continuidad ---------- */
+function unifilarIndice(datos){
+  var porTag = {}, i;
+  for(i = 0; i < datos.componentes.length; i++) porTag[datos.componentes[i].tag] = datos.componentes[i];
+  return porTag;
+}
+function unifilarFasesDeclaradas(datos){
+  var fases = {}, i, j;
+  for(i = 0; i < datos.fuentes.length; i++)
+    for(j = 0; j < datos.fuentes[i].fases.length; j++) fases[datos.fuentes[i].fases[j]] = true;
+  return fases;
+}
+function unifilarEsBobina(terminal){
+  return !!terminal && /^(a1|a2|bobina|coil)$/i.test(terminal);
+}
+/* id de nodo del grafo para un extremo de cable -- ver el punto 1 y 5 del
+   comentario grande de arriba. */
+function unifilarNodoId(nodoTok, porTag, fases){
+  if(nodoTok.terminal === null){
+    if(fases[nodoTok.tag]) return "fase:" + nodoTok.tag;
+    if(nodoTok.tag.toLowerCase() === "fuente") return "fuente-generica";
+    if(porTag[nodoTok.tag]) return "cmp:" + nodoTok.tag;
+    return "cabo:" + nodoTok.tag;
+  }
+  var comp = porTag[nodoTok.tag];
+  if(!comp) return "cabo:" + nodoTok.tag + ":" + nodoTok.terminal;
+  if(comp.tipo === "contactor" && unifilarEsBobina(nodoTok.terminal)) return "bobina:" + nodoTok.tag;
+  return "cmp:" + nodoTok.tag;
+}
+function unifilarConstruirGrafo(datos){
+  var porTag = unifilarIndice(datos), fases = unifilarFasesDeclaradas(datos);
+  var nodos = {}, aristas = [];
+  function nodo(id){ if(!nodos[id]) nodos[id] = { id: id, vecinos: [] }; return nodos[id]; }
+  function arista(a, b, cable){
+    var ar = { id: aristas.length, a: a, b: b, cable: cable || null };
+    aristas.push(ar);
+    nodo(a).vecinos.push({ hacia: b, arista: ar });
+    nodo(b).vecinos.push({ hacia: a, arista: ar });
+    return ar;
+  }
+  var primeraFuente = datos.fuentes[0] || null;
+  nodo("fuente-generica");
+  if(primeraFuente){
+    primeraFuente.fases.forEach(function(f){ nodo("fase:" + f); arista("fuente-generica", "fase:" + f, null); });
+  }
+  datos.componentes.forEach(function(c){
+    nodo("cmp:" + c.tag);
+    if(primeraFuente && (c.tipo === "interruptor" || c.tipo === "fusible")){
+      primeraFuente.fases.forEach(function(f){ arista("cmp:" + c.tag, "fase:" + f, null); });
+    }
+  });
+  datos.cables.forEach(function(cable){
+    var a = unifilarNodoId(cable.origen, porTag, fases);
+    var b = unifilarNodoId(cable.destino, porTag, fases);
+    var ar = arista(a, b, cable);
+    cable._aristaId = ar.id;
+  });
+  return { nodos: nodos, aristas: aristas, porTag: porTag };
+}
+/* niveles de PURA conectividad (sin importar si un interruptor esta abierto):
+   solo para decidir donde dibujar cada componente, asi la posicion no salta
+   cada vez que se hace clic en algo durante la simulacion. */
+function unifilarNiveles(grafo){
+  var nivel = {}, cola = [];
+  Object.keys(grafo.nodos).forEach(function(id){
+    if(id.indexOf("fase:") === 0 || id === "fuente-generica"){ nivel[id] = 0; cola.push(id); }
+  });
+  var cabeza = 0;
+  while(cabeza < cola.length){
+    var actual = cola[cabeza++];
+    grafo.nodos[actual].vecinos.forEach(function(v){
+      if(nivel[v.hacia] === undefined){ nivel[v.hacia] = nivel[actual] + 1; cola.push(v.hacia); }
+    });
+  }
+  return nivel;
+}
+function unifilarVar(tag){ return "V" + String(tag).replace(/[^A-Za-z0-9_]/g, "_"); }
+function unifilarBobinaEsManual(c, grafo){
+  if(c.atributos.some(function(a){ return a.clave === "condicion"; })) return false;
+  var nb = grafo.nodos["bobina:" + c.tag];
+  return !(nb && nb.vecinos.length);
+}
+function unifilarConduce(id, grafo, cerrados, bobina){
+  if(id.indexOf("cmp:") !== 0) return true;   /* fase, cabo, bobina, fuente-generica: siempre de paso */
+  var tag = id.slice(4), c = grafo.porTag[tag];
+  if(!c) return true;
+  if(c.tipo === "interruptor" || c.tipo === "fusible") return !!cerrados[tag];
+  if(c.tipo === "contactor") return !!bobina[tag];
+  return true;   /* motor, borne, sensor, plc, tipo desconocido: nunca bloquean (punto 4) */
+}
+function unifilarBFS(grafo, cerrados, bobina){
+  var energNodo = {}, energArista = {}, cola = [], vistos = {};
+  Object.keys(grafo.nodos).forEach(function(id){
+    if(id.indexOf("fase:") === 0){ energNodo[id] = true; vistos[id] = true; cola.push(id); }
+  });
+  var cabeza = 0;
+  while(cabeza < cola.length){
+    var actual = cola[cabeza++];
+    if(!unifilarConduce(actual, grafo, cerrados, bobina)) continue;
+    grafo.nodos[actual].vecinos.forEach(function(v){
+      energArista[v.arista.id] = true;
+      energNodo[v.hacia] = true;
+      if(!vistos[v.hacia]){ vistos[v.hacia] = true; cola.push(v.hacia); }
+    });
+  }
+  return { nodo: energNodo, arista: energArista };
+}
+function unifilarBobinaEnergizada(c, datos, grafo, energNodo, cerrados){
+  var cond = null, i;
+  for(i = 0; i < c.atributos.length; i++){ if(c.atributos[i].clave === "condicion"){ cond = c.atributos[i].valor; break; } }
+  if(cond){
+    var valores = {};
+    datos.componentes.forEach(function(o){ valores[unifilarVar(o.tag)] = !!energNodo["cmp:" + o.tag]; });
+    try{ return !!evaluarLogica(cond, valores); }catch(e){ return false; }
+  }
+  var idBobina = "bobina:" + c.tag;
+  if(grafo.nodos[idBobina] && grafo.nodos[idBobina].vecinos.length) return !!energNodo[idBobina];
+  return !!cerrados[c.tag];   /* sin condicion ni bobina cableada: se porta como un interruptor mas (punto 3c) */
+}
+/* relajacion de punto fijo acotada -- ver el punto 6 del comentario grande:
+   la bobina de un contactor puede depender del estado de OTRO contactor (un
+   contacto auxiliar en su circuito de mando, o un condicion= que lo nombre),
+   asi que una sola pasada de BFS no siempre alcanza. */
+function unifilarPropagar(grafo, datos, cerrados){
+  var bobina = {}, res = { nodo: {}, arista: {} }, ronda;
+  for(ronda = 0; ronda < 6; ronda++){
+    res = unifilarBFS(grafo, cerrados, bobina);
+    var cambio = false;
+    datos.componentes.forEach(function(c){
+      if(c.tipo !== "contactor") return;
+      var antes = !!bobina[c.tag], despues = unifilarBobinaEnergizada(c, datos, grafo, res.nodo, cerrados);
+      if(despues !== antes) cambio = true;
+      bobina[c.tag] = despues;
+    });
+    if(!cambio) break;
+  }
+  return { nodo: res.nodo, arista: res.arista, bobina: bobina };
+}
+
+/* ---------- layout (solo geometria, no sabe nada de energizado) ---------- */
+function unifilarPosiciones(datos, niveles){
+  var filas = {}, maxFila = -1;
+  datos.componentes.forEach(function(c){
+    var niv = niveles["cmp:" + c.tag];
+    if(niv === undefined) return;
+    var fila = niv - 1;
+    if(fila > maxFila) maxFila = fila;
+    (filas[fila] = filas[fila] || []).push(c);
+  });
+  var sinConexion = datos.componentes.filter(function(c){ return niveles["cmp:" + c.tag] === undefined; });
+  var filaExtra = maxFila < 0 ? 0 : maxFila + 2;
+  if(sinConexion.length) filas[filaExtra] = sinConexion;
+  var filasUsadas = Object.keys(filas).map(Number);
+  var maxColumnas = 1;
+  filasUsadas.forEach(function(fk){ if(filas[fk].length > maxColumnas) maxColumnas = filas[fk].length; });
+  var maxFilaTotal = filasUsadas.length ? Math.max.apply(null, filasUsadas) : 0;
+  var pos = {};
+  filasUsadas.forEach(function(fila){
+    var lista = filas[fila], n = lista.length;
+    lista.forEach(function(c, idx){
+      pos[c.tag] = {
+        fila: fila,
+        cx: UNIFILAR_MARGEN + UNIFILAR_GAPX * (idx + 0.5) + ((maxColumnas - n) * UNIFILAR_GAPX) / 2,
+        cy: UNIFILAR_BUSY + UNIFILAR_MARGEN + fila * UNIFILAR_GAPY + UNIFILAR_GAPY / 2
+      };
+    });
+  });
+  var anchoTotal = Math.max(UNIFILAR_MARGEN * 2 + maxColumnas * UNIFILAR_GAPX, 300);
+  var altoTotal = UNIFILAR_BUSY + UNIFILAR_MARGEN * 2 + (maxFilaTotal + 1) * UNIFILAR_GAPY;
+  return { pos: pos, anchoTotal: anchoTotal, altoTotal: altoTotal, sinConexionHay: !!sinConexion.length, filaExtra: filaExtra };
+}
+function unifilarAncla(id, pos, busX){
+  if(id.indexOf("fase:") === 0){
+    var f = id.slice(5);
+    return busX[f] !== undefined ? { x: busX[f], y: UNIFILAR_BUSY } : null;
+  }
+  if(id === "fuente-generica"){
+    var xs = Object.keys(busX).map(function(k){ return busX[k]; });
+    if(!xs.length) return null;
+    return { x: xs.reduce(function(a, b){ return a + b; }, 0) / xs.length, y: UNIFILAR_BUSY };
+  }
+  if(id.indexOf("bobina:") === 0){
+    var tag = id.slice(7), p = pos[tag];
+    return p ? { x: p.cx + 46, y: p.cy - 4 } : null;
+  }
+  if(id.indexOf("cmp:") === 0){
+    var tag2 = id.slice(4), p2 = pos[tag2];
+    return p2 ? { x: p2.cx, y: p2.cy } : null;
+  }
+  return null;   /* "cabo:..." -- no tiene caja propia, se dibuja como cabo suelto */
+}
+
+/* ---------- glifos por tipo de componente (estilo generico IEC, no un
+   calco del simbolo exacto del PDF -- ver el punto 2 del pedido) ---------- */
+function unifilarGlyphInterruptor(cx, cy, cerrado){
+  var y0 = cy;
+  var partes = [
+    '<line class="unifilar-cable-interno" x1="' + r2(cx - 16) + '" y1="' + r2(y0) + '" x2="' + r2(cx - 9) + '" y2="' + r2(y0) + '"></line>',
+    '<line class="unifilar-cable-interno" x1="' + r2(cx + 9) + '" y1="' + r2(y0) + '" x2="' + r2(cx + 16) + '" y2="' + r2(y0) + '"></line>',
+    '<circle class="unifilar-pin" cx="' + r2(cx - 9) + '" cy="' + r2(y0) + '" r="2.4"></circle>',
+    '<circle class="unifilar-pin" cx="' + r2(cx + 9) + '" cy="' + r2(y0) + '" r="2.4"></circle>'
+  ];
+  var xf = cerrado ? cx + 9 : cx + 4, yf = cerrado ? y0 : y0 - 13;
+  partes.push('<line class="unifilar-cuchilla' + (cerrado ? " unifilar-energizado" : "") + '" x1="' + r2(cx - 9) + '" y1="' + r2(y0) + '" x2="' + r2(xf) + '" y2="' + r2(yf) + '"></line>');
+  return partes.join("");
+}
+function unifilarCajaGlyph(c, cx, cyGlifo, cerrado, bobinaOn){
+  var partes = [];
+  if(c.tipo === "interruptor" || c.tipo === "fusible"){
+    partes.push(unifilarGlyphInterruptor(cx, cyGlifo, cerrado));
+    if(c.tipo === "fusible") partes.push('<rect class="unifilar-simbolo" x="' + r2(cx - 5) + '" y="' + r2(cyGlifo - 9) + '" width="10" height="18" rx="2"></rect>');
+  }else if(c.tipo === "contactor"){
+    var i;
+    for(i = -1; i <= 1; i++){
+      partes.push('<line class="unifilar-cable-interno' + (cerrado ? " unifilar-energizado" : "") + '" x1="' + r2(cx + i * 11 - 18) + '" y1="' + r2(cyGlifo - 12) + '" x2="' + r2(cx + i * 11 - 18) + '" y2="' + r2(cyGlifo + 4) + '"></line>');
+    }
+    partes.push('<circle class="unifilar-bobina' + (bobinaOn ? " unifilar-energizado" : "") + '" cx="' + r2(cx + 46) + '" cy="' + r2(cyGlifo - 4) + '" r="9"></circle>');
+    partes.push('<text class="unifilar-letra-chica" x="' + r2(cx + 46) + '" y="' + r2(cyGlifo - 4) + '" text-anchor="middle" dominant-baseline="middle">B</text>');
+  }else if(c.tipo === "motor"){
+    partes.push('<circle class="unifilar-simbolo' + (cerrado ? " unifilar-energizado" : "") + '" cx="' + r2(cx) + '" cy="' + r2(cyGlifo) + '" r="16"></circle>');
+    partes.push('<text class="unifilar-letra" x="' + r2(cx) + '" y="' + r2(cyGlifo) + '" text-anchor="middle" dominant-baseline="middle">M</text>');
+  }else if(c.tipo === "borne"){
+    partes.push('<circle class="unifilar-pin unifilar-pin-grande' + (cerrado ? " unifilar-energizado" : "") + '" cx="' + r2(cx) + '" cy="' + r2(cyGlifo) + '" r="6"></circle>');
+  }else if(c.tipo === "sensor"){
+    partes.push('<polygon class="unifilar-simbolo' + (cerrado ? " unifilar-energizado" : "") + '" points="' +
+      r2(cx) + "," + r2(cyGlifo - 17) + " " + r2(cx + 13) + "," + r2(cyGlifo) + " " +
+      r2(cx) + "," + r2(cyGlifo + 17) + " " + r2(cx - 13) + "," + r2(cyGlifo) + '"></polygon>');
+    partes.push('<text class="unifilar-letra-chica" x="' + r2(cx) + '" y="' + r2(cyGlifo) + '" text-anchor="middle" dominant-baseline="middle">S</text>');
+  }else if(c.tipo === "plc"){
+    partes.push('<rect class="unifilar-simbolo' + (cerrado ? " unifilar-energizado" : "") + '" x="' + r2(cx - 19) + '" y="' + r2(cyGlifo - 11) + '" width="38" height="22" rx="2"></rect>');
+    partes.push('<text class="unifilar-letra-chica" x="' + r2(cx) + '" y="' + r2(cyGlifo) + '" text-anchor="middle" dominant-baseline="middle">PLC</text>');
+  }else{
+    partes.push('<rect class="unifilar-simbolo unifilar-desconocido" x="' + r2(cx - 16) + '" y="' + r2(cyGlifo - 12) + '" width="32" height="24" rx="3"></rect>');
+    partes.push('<text class="unifilar-letra" x="' + r2(cx) + '" y="' + r2(cyGlifo) + '" text-anchor="middle" dominant-baseline="middle">?</text>');
+  }
+  return partes.join("");
+}
+function unifilarTextoAtributos(c){
+  var partes = c.sueltos.slice();
+  c.atributos.forEach(function(a){ if(a.clave !== "condicion") partes.push(a.clave + "=" + a.valor); });
+  return partes.join(" · ");
+}
+function unifilarRecorta(s, max){
+  s = String(s || "");
+  return s.length > max ? s.slice(0, max - 1) + "…" : s;
+}
+function unifilarCajaHTML(c, cx, cy, reached, bobinaMap, clicable){
+  var bobinaOn = !!bobinaMap[c.tag];
+  var x = cx - UNIFILAR_BOXW / 2, y = cy - UNIFILAR_BOXH / 2;
+  var cls = "unifilar-caja" + (reached ? " unifilar-energizado" : "") + (clicable ? " unifilar-clicable" : "");
+  var partes = ['<g class="' + cls + '"' +
+    (clicable ? ' data-unifilar-tag="' + escUI(c.tag) + '" tabindex="0" role="button" aria-pressed="' + (!!(clicable && bobinaOn)) + '"' : "") + ">"];
+  partes.push('<rect class="unifilar-caja-borde" x="' + r2(x) + '" y="' + r2(y) + '" width="' + UNIFILAR_BOXW + '" height="' + UNIFILAR_BOXH + '" rx="8"></rect>');
+  partes.push(unifilarCajaGlyph(c, cx, y + 26, reached, bobinaOn));
+  var claseTipo = "unifilar-tipo" + (c.conocido ? "" : " unifilar-tipo-desconocido");
+  partes.push('<text class="unifilar-tag" x="' + r2(cx) + '" y="' + r2(y + 50) + '" text-anchor="middle">' + X(c.tag) + "</text>");
+  partes.push('<text class="' + claseTipo + '" x="' + r2(cx) + '" y="' + r2(y + 62) + '" text-anchor="middle">' + X(c.tipo) + (c.conocido ? "" : " (¿?)") + "</text>");
+  if(c.descripcion) partes.push('<text class="unifilar-desc" x="' + r2(cx) + '" y="' + r2(y + 76) + '" text-anchor="middle">' + X(unifilarRecorta(c.descripcion, 22)) + "</text>");
+  var attrsTxt = unifilarTextoAtributos(c);
+  if(attrsTxt) partes.push('<text class="unifilar-attrs" x="' + r2(cx) + '" y="' + r2(y + 90) + '" text-anchor="middle">' + X(unifilarRecorta(attrsTxt, 26)) + "</text>");
+  partes.push("</g>");
+  return partes.join("");
+}
+function unifilarLineaCable(a, b, on, cable){
+  var cls = "unifilar-cable" + (on ? " unifilar-energizado" : "");
+  return '<line class="' + cls + '" x1="' + r2(a.x) + '" y1="' + r2(a.y) + '" x2="' + r2(b.x) + '" y2="' + r2(b.y) + '"></line>' +
+    '<text class="unifilar-num-cable" x="' + r2((a.x + b.x) / 2) + '" y="' + r2((a.y + b.y) / 2 - 4) + '" text-anchor="middle">' + X(cable.numero) + "</text>";
+}
+function unifilarCaboSuelto(ancla, tokenAjeno, on, cable){
+  var x2 = ancla.x, y2 = ancla.y + 34;
+  var cls = "unifilar-cable unifilar-cable-cabo" + (on ? " unifilar-energizado" : "");
+  return '<line class="' + cls + '" x1="' + r2(ancla.x) + '" y1="' + r2(ancla.y) + '" x2="' + r2(x2) + '" y2="' + r2(y2) + '"></line>' +
+    '<circle class="unifilar-cabo-punto' + (on ? " unifilar-energizado" : "") + '" cx="' + r2(x2) + '" cy="' + r2(y2) + '" r="3.5"></circle>' +
+    '<text class="unifilar-cabo-texto" x="' + r2(x2 + 8) + '" y="' + r2(y2 + 4) + '">' + X(tokenAjeno) + "</text>" +
+    '<text class="unifilar-num-cable" x="' + r2(ancla.x + 8) + '" y="' + r2(ancla.y + 14) + '">' + X(cable.numero) + "</text>";
+}
+function unifilarBusHTML(datos, busX, simulando){
+  if(!datos.fuentes.length || !Object.keys(busX).length) return "";
+  var f = datos.fuentes[0];
+  var xs = f.fases.map(function(fa){ return busX[fa]; }).filter(function(x){ return x !== undefined; });
+  if(!xs.length) return "";
+  var xMin = Math.min.apply(null, xs) - 20, xMax = Math.max.apply(null, xs) + 20;
+  var cls = "unifilar-bus" + (simulando ? " unifilar-energizado" : "");
+  var partes = ['<line class="' + cls + '" x1="' + r2(xMin) + '" y1="' + UNIFILAR_BUSY + '" x2="' + r2(xMax) + '" y2="' + UNIFILAR_BUSY + '"></line>'];
+  f.fases.forEach(function(fa){
+    if(busX[fa] === undefined) return;
+    partes.push('<circle class="unifilar-pin unifilar-pin-grande' + (simulando ? " unifilar-energizado" : "") + '" cx="' + r2(busX[fa]) + '" cy="' + UNIFILAR_BUSY + '" r="3.5"></circle>');
+    partes.push('<text class="unifilar-fase" x="' + r2(busX[fa]) + '" y="' + r2(UNIFILAR_BUSY - 10) + '" text-anchor="middle">' + X(fa) + "</text>");
+  });
+  var etiqueta = [f.voltaje, f.frecuencia].filter(Boolean).join(" · ");
+  if(etiqueta) partes.push('<text class="unifilar-fuente-etiqueta" x="' + r2((xMin + xMax) / 2) + '" y="' + r2(UNIFILAR_BUSY - 24) + '" text-anchor="middle">' + X(etiqueta) + "</text>");
+  return partes.join("");
+}
+function unifilarRenderSVG(datos, grafo, niveles, estado){
+  var layout = unifilarPosiciones(datos, niveles);
+  var pos = layout.pos, busX = {};
+  if(datos.fuentes.length){
+    var f = datos.fuentes[0], n = f.fases.length;
+    var anchoUtil = Math.max(layout.anchoTotal - 2 * UNIFILAR_MARGEN, 80);
+    f.fases.forEach(function(fa, i){ busX[fa] = UNIFILAR_MARGEN + ((i + 0.5) / n) * anchoUtil; });
+  }
+  var prop = estado.simulando ? unifilarPropagar(grafo, datos, estado.cerrados) : { nodo: {}, arista: {}, bobina: {} };
+  var porTag = grafo.porTag, fases = unifilarFasesDeclaradas(datos);
+  var lineas = [], cajas = [];
+  datos.cables.forEach(function(cable){
+    var idA = unifilarNodoId(cable.origen, porTag, fases);
+    var idB = unifilarNodoId(cable.destino, porTag, fases);
+    var a = unifilarAncla(idA, pos, busX), b = unifilarAncla(idB, pos, busX);
+    var on = cable._aristaId !== undefined && !!prop.arista[cable._aristaId];
+    if(a && b) lineas.push(unifilarLineaCable(a, b, on, cable));
+    else if(a) lineas.push(unifilarCaboSuelto(a, unifilarTextoNodo(cable.destino), on, cable));
+    else if(b) lineas.push(unifilarCaboSuelto(b, unifilarTextoNodo(cable.origen), on, cable));
+  });
+  datos.componentes.forEach(function(c){
+    var p = pos[c.tag];
+    if(!p) return;
+    var clicable = !!estado.simulando && (c.tipo === "interruptor" || c.tipo === "fusible" ||
+      (c.tipo === "contactor" && unifilarBobinaEsManual(c, grafo)));
+    cajas.push(unifilarCajaHTML(c, p.cx, p.cy, !!prop.nodo["cmp:" + c.tag], prop.bobina, clicable));
+  });
+  var busHTML = unifilarBusHTML(datos, busX, !!estado.simulando);
+  var cls = "unifilar-svg" + (estado.simulando ? " unifilar-simulando" : "");
+  return '<svg class="' + cls + '" viewBox="0 0 ' + r2(layout.anchoTotal) + " " + r2(layout.altoTotal) +
+    '" role="img" aria-label="Esquema unifilar">' + busHTML + lineas.join("") + cajas.join("") + "</svg>";
+}
+function unifilarCrucesHTML(datos){
+  if(!datos.cruces.length) return "";
+  var porTag = unifilarIndice(datos);
+  var items = datos.cruces.map(function(c){
+    return "<li>" + X(c.tag) + (porTag[c.tag] ? "" : " (no está en este bloque)") +
+      " → pág. " + X(c.pagina || "?") + ", línea " + X(c.linea || "?") + "</li>";
+  });
+  return '<figcaption class="unifilar-cruces"><strong>Referencias cruzadas:</strong><ul>' + items.join("") + "</ul></figcaption>";
+}
+function dibujarUnifilar(codigo){
+  try{
+    var datos = unifilarParsear(codigo);
+    var grafo = unifilarConstruirGrafo(datos);
+    var niveles = unifilarNiveles(grafo);
+    var svg = unifilarRenderSVG(datos, grafo, niveles, { simulando: false, cerrados: {} });
+    var avisos = datos.avisos.length
+      ? '<div class="unifilar-avisos"><strong>' + datos.avisos.length + (datos.avisos.length === 1 ? " aviso" : " avisos") +
+        "</strong> (se dibuja lo demás):<ul>" + datos.avisos.map(function(m){ return "<li>" + X(m) + "</li>"; }).join("") + "</ul></div>"
+      : "";
+    return '<figure class="unifilar-viewer no-romper" translate="no" data-unifilar="' + escUI(codigo) + '">' +
+      '<div class="unifilar-toolbar"><button type="button" class="unifilar-boton-simular" aria-pressed="false">&#9654; Simular</button>' +
+      '<span class="unifilar-leyenda"><span class="unifilar-leyenda-punto"></span>sin tensión' +
+      '<span class="unifilar-leyenda-punto unifilar-energizado"></span>con tensión</span></div>' +
+      '<div class="unifilar-svg-caja">' + svg + "</div>" +
+      unifilarCrucesHTML(datos) + avisos + "</figure>";
+  }catch(e){
+    return '<div class="unifilar-error"><strong>No se pudo dibujar el esquema unifilar.</strong><p>' + X(e.message) + "</p></div>";
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 function mdAHtml(fuente){
   var Z = String.fromCharCode(0);        // marca interna, invisible
@@ -10619,6 +11139,10 @@ function mdAHtml(fuente){
         }
         if(etiqueta === "ladder"){
           apunta(dibujarLadder(codigo, gpxParametros(parametrosGpx)));
+          continue;
+        }
+        if(etiqueta === "unifilar"){
+          apunta(dibujarUnifilar(codigo));
           continue;
         }
         if(etiqueta === "mermaid" || etiqueta === "diagrama" || etiqueta === "grafico" || etiqueta === "gr\u00e1fico"){
@@ -11149,7 +11673,7 @@ var CLAVE_DOC = "mdcrgm.doc", CLAVE_NOMBRE = "mdcrgm.nombre",
     CLAVE_SESION = "mdcrgm.sesion", CLAVE_MISPUB = "mdcrgm.mispub",
     CLAVE_LECTURA = "mdcrgm.leido.",
     CLAVE_ANOTAR = "mdcrgm.anotar.", CLAVE_ANOTAR_VER = "mdcrgm.anotarver.",
-    CLAVE_DIAGANOTAR = "mdcrgm.diaganotar.";
+    CLAVE_DIAGANOTAR = "mdcrgm.diaganotar.", CLAVE_DIANOTAR = "mdcrgm.dianotar.";
 
 var BIENVENIDA = elFuente ? elFuente.textContent : "";
 var fuenteActual = BIENVENIDA, textoBase = BIENVENIDA, nombreSugerido = "";
@@ -12533,8 +13057,14 @@ function diagAmpFirmaCoincide(a, b){
   return a === b || a.indexOf(b) === 0 || b.indexOf(a) === 0;
 }
 function diagAmpTrazoValido(t){
-  return t && typeof t === "object" &&
-    typeof t.d === "string" && t.d.length <= DIAG_AMP_D_MAX && PIZARRA_RE_PATH.test(t.d) &&
+  if(!t || typeof t !== "object") return false;
+  if(t.tipo === "texto"){
+    return typeof t.texto === "string" && t.texto.length > 0 && t.texto.length <= PIZARRA_TEXTO_MAX &&
+      typeof t.d === "string" && t.d.length <= 200 && PIZARRA_RE_PATH.test(t.d) &&
+      typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
+      typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 40;
+  }
+  return typeof t.d === "string" && t.d.length <= DIAG_AMP_D_MAX && PIZARRA_RE_PATH.test(t.d) &&
     typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
     typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 40;
 }
@@ -12619,6 +13149,7 @@ function diagAmpAnotarRedibujar(){
   var i, t, partes = [];
   for(i = 0; i < DIAG_AMP.trazos.length; i++){
     t = DIAG_AMP.trazos[i];
+    if(t.tipo === "texto"){ partes.push(pizarraTextoHTML(t, i, "diag-amp-trazo")); continue; }
     partes.push('<path class="diag-amp-trazo" data-i="' + i + '" d="' + escUI(t.d) + '" stroke="' +
       escUI(t.color) + '" stroke-width="' + t.grosor + '"></path>');
   }
@@ -12792,7 +13323,7 @@ function abrirDiagramaAmpliado(fig){
   DIAG_AMP = {
     fig: fig, girado: false, lapiz: false, herramienta: "lapiz", color: "#e5484d", grosor: 3, borrador: false,
     zoom: 1, panX: 0, panY: 0, indice: diagAmpIndiceDe(fig), firma: diagAmpFirmaDe(fuente),
-    trazos: [], enCurso: null, refAncho: 0, refAlto: 0
+    trazos: [], enCurso: null, textoDown: null, refAncho: 0, refAlto: 0
   };
   diagAmpPunteros.clear();
   diagAmpArrastre = null;
@@ -12900,6 +13431,10 @@ function diagAmpPunteroAbajo(e){
   }
   try{ svg.setPointerCapture(e.pointerId); }catch(err){}
   var herramienta = DIAG_AMP.herramienta || "lapiz";
+  if(herramienta === "texto"){
+    DIAG_AMP.textoDown = { pointerId: e.pointerId, pt: pt, clientX: e.clientX, clientY: e.clientY };
+    return;
+  }
   var d0 = herramienta === "lapiz" ? pizarraTrazoAPath([pt]) : pizarraFormaAPath(herramienta, pt.x, pt.y, pt.x, pt.y);
   svg.insertAdjacentHTML("beforeend",
     '<path class="diag-amp-trazo-actual" d="' + escUI(d0) + '" stroke="' + escUI(DIAG_AMP.color) + '" stroke-width="' + DIAG_AMP.grosor + '"></path>');
@@ -12907,6 +13442,23 @@ function diagAmpPunteroAbajo(e){
     pointerId: e.pointerId, herramienta: herramienta, x0: pt.x, y0: pt.y, puntos: [pt], d: d0, tope: false,
     path: svg.lastElementChild
   };
+}
+/* mismo patron que pizarronColocarTexto (12.14): un tap (no un arrastre) con
+   la herramienta "texto" activa pide el texto por prompt() y lo guarda como
+   un trazo mas -- el "d" es solo la caja "M x0 y0 L x1 y1", nada especial en
+   el resto del motor de guardado/deshacer/borrador. */
+function diagAmpColocarTexto(pt){
+  var fs = DIAG_AMP.grosor || 16;
+  var texto = window.prompt("Escribe el texto:", "");
+  if(texto === null) return;
+  texto = texto.trim().slice(0, PIZARRA_TEXTO_MAX);
+  if(!texto) return;
+  if(DIAG_AMP.trazos.length >= DIAG_AMP_MAX){ aviso("Este diagrama ya tiene el máximo de " + DIAG_AMP_MAX + " anotaciones."); return; }
+  var w = pizarraMedirAncho(texto, fs), lineas = texto.split("\n").length;
+  var x1 = Math.round((pt.x + w) * 10) / 10, y1 = Math.round((pt.y + fs * 1.2 * lineas) * 10) / 10;
+  var trazo = { color: DIAG_AMP.color, grosor: fs, d: "M" + pt.x + " " + pt.y + " L" + x1 + " " + y1, tipo: "texto", texto: texto };
+  DIAG_AMP.trazos.push(trazo);
+  diagAmpAnotarGuardar(); diagAmpAnotarRedibujar();
 }
 function diagAmpPunteroMueve(e){
   var en = DIAG_AMP && DIAG_AMP.enCurso;
@@ -12918,7 +13470,23 @@ function diagAmpPunteroMueve(e){
     if(en.puntos.length >= 3000) return;
     en.puntos.push(pt);
     d = pizarraTrazoApendice(en.d, en.puntos);
-    if(d.length > DIAG_AMP_D_MAX){ en.puntos.pop(); en.tope = true; return; }
+    if(d.length > DIAG_AMP_D_MAX){
+      /* mismo arreglo que notasPointerMove: en vez de congelar el trazo al
+         llegar al presupuesto de un solo "d", se cierra este tramo y se abre
+         uno nuevo desde el ultimo punto -- sin costura visible. */
+      en.puntos.pop();
+      if(DIAG_AMP.trazos.length < DIAG_AMP_MAX){
+        DIAG_AMP.trazos.push({ d: en.d, color: DIAG_AMP.color, grosor: DIAG_AMP.grosor });
+        var ultimo = en.puntos[en.puntos.length - 1];
+        en.puntos = [ultimo, pt];
+        en.d = pizarraTrazoAPath(en.puntos);
+        en.path.setAttribute("d", en.d);
+        diagAmpAnotarGuardar();
+      }else{
+        en.tope = true;
+      }
+      return;
+    }
   }else{
     var destino = pt;
     if(e.shiftKey){
@@ -12931,6 +13499,13 @@ function diagAmpPunteroMueve(e){
   en.path.setAttribute("d", d);
 }
 function diagAmpSoltarPuntero(e){
+  if(DIAG_AMP && DIAG_AMP.textoDown && e && e.pointerId === DIAG_AMP.textoDown.pointerId){
+    var tdD = DIAG_AMP.textoDown; DIAG_AMP.textoDown = null;
+    var dxD = e.clientX - tdD.clientX, dyD = e.clientY - tdD.clientY;
+    if(dxD * dxD + dyD * dyD > 100) return;   // arrastre real, no un tap: no se coloca texto
+    diagAmpColocarTexto(tdD.pt);
+    return;
+  }
   var en = DIAG_AMP && DIAG_AMP.enCurso;
   if(!en || (e && e.pointerId !== undefined && e.pointerId !== en.pointerId)) return;
   DIAG_AMP.enCurso = null;
@@ -14988,6 +15563,56 @@ function prepararGPX(){
   });
 }
 
+/* dueño de un <figure> ```unifilar de principio a fin: alternar "Simular" y
+   clicar un interruptor/fusible/contactor manual, todo por delegacion de
+   click en el propio `fig` (asi sobrevive a que se reemplace su innerHTML).
+   Estado 100% transitorio -- ver el comentario grande junto a dibujarUnifilar:
+   nunca se escribe de vuelta al Markdown, se pierde al recargar la pagina,
+   igual que estadoSim en GPX. */
+function unifilarActivarFigura(fig){
+  var datos;
+  try{ datos = unifilarParsear(fig.dataset.unifilar || ""); }catch(e){ return; }
+  var grafo = unifilarConstruirGrafo(datos);
+  var niveles = unifilarNiveles(grafo);
+  var estado = { simulando: false, cerrados: {} };
+  function redibujar(){
+    var caja = fig.querySelector(".unifilar-svg-caja");
+    if(caja) caja.innerHTML = unifilarRenderSVG(datos, grafo, niveles, estado);
+    var boton = fig.querySelector(".unifilar-boton-simular");
+    if(boton){
+      boton.innerHTML = estado.simulando ? "&#9632; Ocultar simulación" : "&#9654; Simular";
+      boton.setAttribute("aria-pressed", String(estado.simulando));
+    }
+  }
+  fig.addEventListener("click", function(e){
+    var boton = e.target.closest && e.target.closest(".unifilar-boton-simular");
+    if(boton){ estado.simulando = !estado.simulando; redibujar(); return; }
+    if(!estado.simulando) return;
+    var caja = e.target.closest && e.target.closest("[data-unifilar-tag]");
+    if(!caja || !fig.contains(caja)) return;
+    var tag = caja.getAttribute("data-unifilar-tag");
+    estado.cerrados[tag] = !estado.cerrados[tag];
+    redibujar();
+  });
+  fig.addEventListener("keydown", function(e){
+    if(e.key !== "Enter" && e.key !== " ") return;
+    if(!estado.simulando) return;
+    var caja = e.target.closest && e.target.closest("[data-unifilar-tag]");
+    if(!caja || !fig.contains(caja)) return;
+    e.preventDefault();
+    var tag = caja.getAttribute("data-unifilar-tag");
+    estado.cerrados[tag] = !estado.cerrados[tag];
+    redibujar();
+  });
+}
+function prepararUnifilar(){
+  Array.prototype.forEach.call(elDoc.querySelectorAll(".unifilar-viewer"), function(fig){
+    if(fig.dataset.unifilarListo) return;
+    fig.dataset.unifilarListo = "1";
+    unifilarActivarFigura(fig);
+  });
+}
+
 /* ubica el n-esimo bloque ```pizarra dentro de `src` (mismo criterio de
    vallas y misma logica que gpxLocalizarBloque, pero sin companero: todo
    vive en el propio bloque). Devuelve offsets de caracter para escribir sin
@@ -15650,6 +16275,7 @@ function pintar(md){
   prepararDiagramas();
   prepararGPX();
   prepararPizarra();
+  prepararUnifilar();
   prepararTresD();
   prepararPlegado();
   prepararAnotaciones();
@@ -16299,14 +16925,20 @@ function barraDeLectura(){
    sin resolver todavia (ver mdx-bloques-spec-v2.md); esto es solo trazo
    libre, anclado a bloque completo. */
 var NOTAS_D_MAX = 4000, NOTAS_MAX = 300;
-var NOTAS = { docId: undefined, trazos: [], activo: false, color: "#e11d48", grosor: 4, borrador: false, herramienta: "lapiz", enCurso: null };
+var NOTAS = { docId: undefined, trazos: [], activo: false, color: "#e11d48", grosor: 4, borrador: false, herramienta: "lapiz", enCurso: null, textoDown: null };
 function notasClaveDoc(){ return (HAY_ALMACEN && docActual) ? docActual.id : null; }
 var NOTAS_FIRMA_LARGO = 40;
 function notaValida(t){
-  return t && typeof t === "object" &&
-    typeof t.linea === "number" && isFinite(t.linea) && t.linea >= 0 && t.linea % 1 === 0 &&
-    (t.firma === undefined || (typeof t.firma === "string" && t.firma.length <= NOTAS_FIRMA_LARGO)) &&
-    typeof t.d === "string" && t.d.length <= NOTAS_D_MAX && PIZARRA_RE_PATH.test(t.d) &&
+  if(!t || typeof t !== "object") return false;
+  if(typeof t.linea !== "number" || !isFinite(t.linea) || t.linea < 0 || t.linea % 1 !== 0) return false;
+  if(t.firma !== undefined && (typeof t.firma !== "string" || t.firma.length > NOTAS_FIRMA_LARGO)) return false;
+  if(t.tipo === "texto"){
+    return typeof t.texto === "string" && t.texto.length > 0 && t.texto.length <= PIZARRA_TEXTO_MAX &&
+      typeof t.d === "string" && t.d.length <= 200 && PIZARRA_RE_PATH.test(t.d) &&
+      typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
+      typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 40;
+  }
+  return typeof t.d === "string" && t.d.length <= NOTAS_D_MAX && PIZARRA_RE_PATH.test(t.d) &&
     typeof t.color === "string" && PIZARRA_RE_COLOR.test(t.color) &&
     typeof t.grosor === "number" && isFinite(t.grosor) && t.grosor > 0 && t.grosor <= 40;
 }
@@ -16368,6 +17000,7 @@ function notasMostrarActivo(){
 function notasRedibujar(){
   var capa = document.getElementById("docNotasCapa");
   if(!capa) return;
+  NOTAS.enCurso = null;
   var rDoc = elDoc.getBoundingClientRect(), i, t, el, r, dx, dy, dAbs, partes = [];
   for(i = 0; i < NOTAS.trazos.length; i++){
     t = NOTAS.trazos[i];
@@ -16377,6 +17010,7 @@ function notasRedibujar(){
     r = el.getBoundingClientRect();
     dx = r.left - rDoc.left; dy = r.top - rDoc.top;
     dAbs = pizarraTransformarD(t.d, function(x){ return x + dx; }, function(y){ return y + dy; });
+    if(t.tipo === "texto"){ partes.push(pizarraTextoHTML({ color: t.color, texto: t.texto, d: dAbs }, i, "doc-nota-trazo")); continue; }
     partes.push('<path class="doc-nota-trazo" data-i="' + i + '" d="' + escUI(dAbs) + '" stroke="' +
       escUI(t.color) + '" stroke-width="' + t.grosor + '"></path>');
   }
@@ -16410,14 +17044,26 @@ function notasPointerDown(e){
   var rAncla = ancla ? ancla.el.getBoundingClientRect() : rCapa;
   var dx = rAncla.left - rCapa.left, dy = rAncla.top - rCapa.top;
   var pt = { x: Math.round((ptAbs.x - dx) * 10) / 10, y: Math.round((ptAbs.y - dy) * 10) / 10 };
-  try{ capa.setPointerCapture(e.pointerId); }catch(err){}
   /* misma herramienta y el mismo pizarraFormaAPath del pizarrón (13.x): lo
      que cambia entre anotar sobre el documento y dibujar en la pizarra no es
      el motor de figuras, es solo el anclaje (aqui, a una linea del texto). */
   var herramienta = NOTAS.herramienta || "lapiz";
+  if(herramienta === "texto"){
+    try{ capa.setPointerCapture(e.pointerId); }catch(errT){}
+    NOTAS.textoDown = { pointerId: e.pointerId, pt: pt, linea: ancla ? ancla.linea : 0, firma: notaFirmaDe(ancla ? ancla.el : null), clientX: e.clientX, clientY: e.clientY };
+    return;
+  }
+  try{ capa.setPointerCapture(e.pointerId); }catch(err){}
   var d0 = herramienta === "lapiz" ? pizarraTrazoAPath([pt]) : pizarraFormaAPath(herramienta, pt.x, pt.y, pt.x, pt.y);
+  /* d0/en.d quedan en coordenadas RELATIVAS AL ANCLA (igual que el trazo ya
+     guardado: por eso sobrevive a scroll/repintado, ver el comentario de mas
+     arriba) -- pero este <path> temporal es hijo directo de "capa", que ocupa
+     TODO #doc, asi que sin este transform quedaria dibujado a (dx,dy) de
+     donde esta el cursor de verdad (arriba/izquierda del ancla) mientras se
+     dibuja, y recien saltaria a su lugar correcto al soltar y pasar por
+     notasRedibujar() (que si hace esta misma cuenta antes de pintar). */
   capa.insertAdjacentHTML("beforeend",
-    '<path class="doc-nota-trazo-actual" d="' + escUI(d0) + '" stroke="' + escUI(NOTAS.color) + '" stroke-width="' + NOTAS.grosor + '"></path>');
+    '<path class="doc-nota-trazo-actual" transform="translate(' + dx + ',' + dy + ')" d="' + escUI(d0) + '" stroke="' + escUI(NOTAS.color) + '" stroke-width="' + NOTAS.grosor + '"></path>');
   NOTAS.enCurso = {
     pointerId: e.pointerId, herramienta: herramienta, linea: ancla ? ancla.linea : 0, firma: notaFirmaDe(ancla ? ancla.el : null),
     dx: dx, dy: dy, x0: pt.x, y0: pt.y, puntos: [pt], d: d0, tope: false, path: capa.lastElementChild, capa: capa
@@ -16433,7 +17079,26 @@ function notasPointerMove(e){
     if(en.puntos.length >= 3000) return;
     en.puntos.push(pt);
     d = pizarraTrazoApendice(en.d, en.puntos);
-    if(d.length > NOTAS_D_MAX){ en.puntos.pop(); en.tope = true; return; }
+    if(d.length > NOTAS_D_MAX){
+      /* un trazo a mano alzada muy largo puede superar el presupuesto de un
+         solo "d" -- en vez de congelarlo (el punto dejaba de seguir al
+         cursor hasta soltar, y el siguiente click empezaba OTRO trazo: el
+         dibujo quedaba partido en segmentos cortos), se cierra este tramo
+         como trazo propio y se abre uno nuevo desde el ultimo punto. No se
+         nota la costura: el tramo siguiente arranca justo donde termino este. */
+      en.puntos.pop();
+      if(NOTAS.trazos.length < NOTAS_MAX){
+        NOTAS.trazos.push({ linea: en.linea, firma: en.firma, d: en.d, color: NOTAS.color, grosor: NOTAS.grosor });
+        var ultimo = en.puntos[en.puntos.length - 1];
+        en.puntos = [ultimo, pt];
+        en.d = pizarraTrazoAPath(en.puntos);
+        en.path.setAttribute("d", en.d);
+        notasGuardar();
+      }else{
+        en.tope = true;
+      }
+      return;
+    }
   }else{
     /* Shift: igual que en el pizarrón -- ángulos de 45° para "／ Línea",
        caja 1:1 para el resto de sellos de figura (seccion 12.11/12.15). */
@@ -16448,12 +17113,36 @@ function notasPointerMove(e){
   en.path.setAttribute("d", d);
 }
 function notasPointerUp(e){
+  if(NOTAS.textoDown && e.pointerId === NOTAS.textoDown.pointerId){
+    var td = NOTAS.textoDown; NOTAS.textoDown = null;
+    var dxT = e.clientX - td.clientX, dyT = e.clientY - td.clientY;
+    if(dxT * dxT + dyT * dyT > 100) return;   // arrastre real, no un tap: no se coloca texto
+    notasColocarTexto(td.pt, td.linea, td.firma);
+    return;
+  }
   var en = NOTAS.enCurso;
   if(!en || e.pointerId !== en.pointerId) return;
   NOTAS.enCurso = null;
   if(en.path && en.path.parentNode) en.path.parentNode.removeChild(en.path);
   if(NOTAS.trazos.length >= NOTAS_MAX){ aviso("Este documento ya tiene el máximo de " + NOTAS_MAX + " anotaciones."); return; }
   NOTAS.trazos.push({ linea: en.linea, firma: en.firma, d: en.d, color: NOTAS.color, grosor: NOTAS.grosor });
+  notasGuardar(); notasRedibujar(); actualizarBotonesAnotar();
+}
+/* mismo patron que pizarronColocarTexto/diagAmpColocarTexto: un tap (no un
+   arrastre) con "texto" activa pide el texto por prompt() y lo guarda como
+   un trazo mas, anclado a la misma linea/firma que cualquier otro trazo de
+   NOTAS (12.14 + 12.7 del spec, combinados). */
+function notasColocarTexto(pt, linea, firma){
+  var fs = NOTAS.grosor || 16;
+  var texto = window.prompt("Escribe el texto:", "");
+  if(texto === null) return;
+  texto = texto.trim().slice(0, PIZARRA_TEXTO_MAX);
+  if(!texto) return;
+  if(NOTAS.trazos.length >= NOTAS_MAX){ aviso("Este documento ya tiene el máximo de " + NOTAS_MAX + " anotaciones."); return; }
+  var w = pizarraMedirAncho(texto, fs), lineas = texto.split("\n").length;
+  var x1 = Math.round((pt.x + w) * 10) / 10, y1 = Math.round((pt.y + fs * 1.2 * lineas) * 10) / 10;
+  var trazo = { linea: linea, firma: firma, color: NOTAS.color, grosor: fs, d: "M" + pt.x + " " + pt.y + " L" + x1 + " " + y1, tipo: "texto", texto: texto };
+  NOTAS.trazos.push(trazo);
   notasGuardar(); notasRedibujar(); actualizarBotonesAnotar();
 }
 function prepararAnotaciones(){
@@ -18190,6 +18879,8 @@ function moverDia(paso){
 function cerrarPresentacion(){
   if(!DIA) return;
   if(LEER) leerDetener();
+  clearTimeout(diaRelojGuardar);
+  diaAnotarGuardarInmediato();
   DIA = null;
   $("#diapositivas").hidden = true;
   $("#diapositivas").classList.remove("dia-lapiz-activo", "dia-lapiz-borrador");
@@ -18267,9 +18958,73 @@ function diaIndiceDesdeScroll(grupos){
 /* arranca de verdad la sesion de Presentar en la diapositiva i (extraido de
    abrirPresentacion() para poder llamarlo tanto directo como despues de que
    la persona responda al chico "Desde el principio / Desde donde estoy"). */
+/* ---------- persistencia de las anotaciones de Presentar (lapiz sobre
+   diapositiva, mdx-bloques-spec-v2.md seccion 12.3) ----------
+   A diferencia de DIAG_AMP (una sola clave, un diagrama "amplificado" a la
+   vez), aqui una sola sesion de Presentar puede tocar MUCHAS diapositivas
+   (DIA.capas crece por indice segun el usuario navega y dibuja), asi que se
+   vuelca el diccionario entero en cada guardado en vez de reemplazar una
+   sola entrada. Ancla por indice+firma (mismo truco que notaFirmaDe): si el
+   contenido de esa diapositiva cambio entre sesiones, esa entrada queda
+   "huerfana" (se preserva sin aplicar, nunca se descarta silenciosamente,
+   igual que NOTAS/DIAG_AMP) hasta que la firma vuelva a coincidir. */
+function diaClaveDoc(){ return notasClaveDoc(); }
+function diaFirmaSlide(grupo){
+  var t = "";
+  for(var i = 0; i < grupo.length && t.length < NOTAS_FIRMA_LARGO; i++) t += (grupo[i].textContent || "");
+  return t.slice(0, NOTAS_FIRMA_LARGO);
+}
+function diaAnotarCargarTodo(){
+  var id = diaClaveDoc();
+  var crudo = id ? leer(CLAVE_DIANOTAR + id) : null, arr;
+  if(!crudo) return [];
+  try{ arr = JSON.parse(crudo); }catch(e){ return []; }
+  return Array.isArray(arr) ? arr : [];
+}
+function diaAnotarGuardarInmediato(){
+  if(!DIA) return;
+  var id = diaClaveDoc();
+  if(!id) return;
+  var todo = [], k, i;
+  for(k in DIA.capas){
+    if(!DIA.capas.hasOwnProperty(k)) continue;
+    i = Number(k);
+    var c = DIA.capas[k];
+    if(!c.datos.trazos.length || !DIA.grupos[i]) continue;
+    todo.push({ indice: i, firma: diaFirmaSlide(DIA.grupos[i]), ancho: c.datos.ancho, alto: c.datos.alto, trazos: c.datos.trazos });
+  }
+  for(k = 0; k < DIA.huerfanas.length; k++) todo.push(DIA.huerfanas[k]);
+  if(todo.length) escribir(CLAVE_DIANOTAR + id, JSON.stringify(todo));
+  else borrar(CLAVE_DIANOTAR + id);
+}
+var diaRelojGuardar = null;
+function diaAnotarGuardar(){
+  clearTimeout(diaRelojGuardar);
+  diaRelojGuardar = setTimeout(diaAnotarGuardarInmediato, 300);
+}
+function diaAnotarBorrarTodo(){
+  if(!DIA) return;
+  clearTimeout(diaRelojGuardar);
+  DIA.huerfanas = [];
+  var id = diaClaveDoc();
+  if(id) borrar(CLAVE_DIANOTAR + id);
+}
 function diaIniciarSesion(grupos, i){
-  var sesion = { grupos: grupos, i: i || 0, lapiz: false, borrador: false, capas: {}, enCurso: null, enPantallaCompleta: false, vueltaPizarron: 0 };
+  var sesion = { grupos: grupos, i: i || 0, lapiz: false, herramienta: "lapiz", borrador: false, capas: {}, huerfanas: [], enCurso: null, textoDown: null, enPantallaCompleta: false, vueltaPizarron: 0 };
   DIA = sesion;
+  var guardadas = diaAnotarCargarTodo();
+  for(var gi = 0; gi < guardadas.length; gi++){
+    var g = guardadas[gi];
+    if(!g || !pizarraIndiceValido(g.indice, grupos.length) || typeof g.firma !== "string") continue;
+    if(diaFirmaSlide(grupos[g.indice]) !== g.firma){ sesion.huerfanas.push(g); continue; }
+    if(!Array.isArray(g.trazos)) continue;
+    var trazosOk = [];
+    for(var ti = 0; ti < g.trazos.length && trazosOk.length < PIZARRA_TRAZOS_MAX; ti++) if(pizarraTrazoValido(g.trazos[ti])) trazosOk.push(g.trazos[ti]);
+    if(!trazosOk.length) continue;
+    var anchoG = (typeof g.ancho === "number" && isFinite(g.ancho) && g.ancho > 0) ? g.ancho : PIZARRA_ANCHO_DEF;
+    var altoG = (typeof g.alto === "number" && isFinite(g.alto) && g.alto > 0) ? g.alto : PIZARRA_ALTO_DEF;
+    sesion.capas[g.indice] = { datos: { ancho: anchoG, alto: altoG, trazos: trazosOk } };
+  }
   $("#diapositivas").hidden = false;
   pintarDiapositiva();
   /* misma carrera que en abrirPizarron(): si se sale y se reabre Presentar muy
@@ -18414,18 +19169,14 @@ function diaActualizarBarra(){
   $("#diaBorrador").setAttribute("aria-pressed", String(DIA.borrador));
   $("#diaBorrador").classList.toggle("activo", DIA.borrador);
   $("#diaLimpiar").disabled = !hayTrazos;
+  $("#diaDeshacer").disabled = !hayTrazos;
   $("#diaGuardarAnotaciones").disabled = !hayTrazos;
-  var colores = document.querySelectorAll("#diaLapizColores .dia-color"), i, activo;
-  for(i = 0; i < colores.length; i++){
-    activo = colores[i].getAttribute("data-color") === DIA_LAPIZ_COLOR;
-    colores[i].classList.toggle("activo", activo);
-    colores[i].setAttribute("aria-pressed", String(activo));
+  var herrBtns = document.querySelectorAll("#diaLapizColores .notas-herr"), i;
+  for(i = 0; i < herrBtns.length; i++){
+    herrBtns[i].setAttribute("aria-pressed", String(!DIA.borrador && herrBtns[i].getAttribute("data-herr") === DIA.herramienta));
   }
-}
-function diaLapizColor(c){
-  if(!DIA) return;
-  DIA_LAPIZ_COLOR = c;
-  diaActualizarBarra();
+  $("#diaLapizColorInput").value = DIA_LAPIZ_COLOR;
+  $("#diaLapizGrosor").value = DIA_LAPIZ_GROSOR;
 }
 function diaLapizPoner(activo){
   if(!DIA) return;
@@ -18441,20 +19192,60 @@ function diaBorradorAlternar(){
   diaLapizRedibujar();
   diaActualizarBarra();
 }
+/* dos opciones (esta diapositiva / todas) en vez del aviso() de un solo boton:
+   igual que aviso(), se reparenta dentro de document.fullscreenElement -- si
+   no, en pantalla completa de verdad ningun z-index lo hace visible (mismo
+   problema ya documentado para #velo2 en el indice/miniaturas de Presentar). */
 function diaLapizLimpiar(){
   if(!DIA) return;
   var capa = diaCapa(DIA.i);
   if(!capa.datos.trazos.length) return;
-  aviso("¿Borrar el dibujo de esta diapositiva?", "Borrar", function(){
+  var sesion = DIA, iOrigen = DIA.i;
+  var caja = $("#diaAvisoLimpiar");
+  var destino = document.fullscreenElement || document.body;
+  if(caja.parentNode !== destino) destino.appendChild(caja);
+  caja.hidden = false;
+  $("#diaAvisoLimpiarEsta").onclick = function(){
+    caja.hidden = true;
     /* el aviso no bloquea: si mientras tanto se navego a otra diapositiva,
        confirmar no debe borrar la de origen a escondidas -- se cancela sola */
-    if(!DIA || DIA.capas[DIA.i] !== capa) return;
+    if(!DIA || DIA !== sesion || DIA.capas[iOrigen] !== capa) return;
     capa.datos.trazos = [];
     diaLapizRedibujar();
     diaActualizarBarra();
-    emitirTrazoLimpiar(DIA.i);
-  });
+    emitirTrazoLimpiar(iOrigen);
+    diaAnotarGuardar();
+  };
+  $("#diaAvisoLimpiarTodas").onclick = function(){
+    caja.hidden = true;
+    if(!DIA || DIA !== sesion) return;
+    var idxs = [], k;
+    for(k in DIA.capas){
+      if(!DIA.capas.hasOwnProperty(k)) continue;
+      if(DIA.capas[k].datos.trazos.length){ DIA.capas[k].datos.trazos = []; idxs.push(Number(k)); }
+    }
+    diaLapizRedibujar();
+    diaActualizarBarra();
+    for(var j = 0; j < idxs.length; j++) emitirTrazoLimpiar(idxs[j]);
+    diaAnotarBorrarTodo();
+  };
 }
+function diaDeshacer(){
+  if(!DIA) return;
+  var capa = diaCapa(DIA.i);
+  if(!capa.datos.trazos.length) return;
+  var idx = capa.datos.trazos.length - 1;
+  capa.datos.trazos.pop();
+  diaLapizRedibujar();
+  diaActualizarBarra();
+  emitirTrazoBorrar(idx);
+  diaAnotarGuardar();
+}
+/* mismo motor de figuras que diagAmpPunteroAbajo/Mueve y notasPointerDown/Move
+   (pizarraFormaAPath + snaps con Shift): lo unico propio de Presentar es que
+   el punto ya pasa por pizarraPuntoDesde (coordenadas normalizadas al
+   ancho/alto de la capa, no pixeles de pantalla), asi que tanto el ancla
+   (x0,y0) como el destino de cada figura tienen que venir de ahi tambien. */
 function diaLapizPunteroAbajo(e){
   if(!DIA || !DIA.lapiz) return;
   if(!e.isPrimary) return;   // un segundo dedo (palma, otro dedo) no dibuja ni borra
@@ -18468,6 +19259,7 @@ function diaLapizPunteroAbajo(e){
         diaLapizRedibujar();
         diaActualizarBarra();
         emitirTrazoBorrar(idx);
+        diaAnotarGuardar();
       }
     }
     return;
@@ -18476,10 +19268,14 @@ function diaLapizPunteroAbajo(e){
   if(!rect.width || !rect.height) return;
   try{ svg.setPointerCapture(e.pointerId); }catch(err){}
   var pt = pizarraPuntoDesde(e, rect, capa.datos);
-  var d0 = pizarraTrazoAPath([pt]);
+  var herramienta = DIA.herramienta || "lapiz";
+  var d0 = herramienta === "lapiz" ? pizarraTrazoAPath([pt]) : pizarraFormaAPath(herramienta, pt.x, pt.y, pt.x, pt.y);
   svg.insertAdjacentHTML("beforeend",
     '<path class="pizarra-trazo-actual" d="' + escUI(d0) + '" stroke="' + DIA_LAPIZ_COLOR + '" stroke-width="' + DIA_LAPIZ_GROSOR + '"></path>');
-  DIA.enCurso = { pointerId: e.pointerId, puntos: [pt], d: d0, tope: false, path: svg.lastElementChild, svg: svg, capa: capa };
+  DIA.enCurso = {
+    pointerId: e.pointerId, herramienta: herramienta, x0: pt.x, y0: pt.y,
+    puntos: [pt], d: d0, tope: false, path: svg.lastElementChild, svg: svg, capa: capa
+  };
 }
 function diaLapizPunteroMueve(e){
   var en = DIA && DIA.enCurso;
@@ -18487,9 +19283,20 @@ function diaLapizPunteroMueve(e){
   var rect = en.svg.getBoundingClientRect();
   if(!rect.width || !rect.height) return;
   var pt = pizarraPuntoDesde(e, rect, en.capa.datos);
-  if(en.puntos.length < 5000) en.puntos.push(pt); else return;
-  var d = pizarraTrazoApendice(en.d, en.puntos);
-  if(d.length > PIZARRA_D_MAX){ en.puntos.pop(); en.tope = true; return; }
+  var d;
+  if(en.herramienta === "lapiz"){
+    if(en.puntos.length >= 5000) return;
+    en.puntos.push(pt);
+    d = pizarraTrazoApendice(en.d, en.puntos);
+    if(d.length > PIZARRA_D_MAX){ en.puntos.pop(); en.tope = true; return; }
+  }else{
+    var destino = pt;
+    if(e.shiftKey){
+      destino = en.herramienta === "linea" ? pizarraSnapAngulo(en.x0, en.y0, pt.x, pt.y) : pizarraSnapCuadrado(en.x0, en.y0, pt.x, pt.y);
+    }
+    d = pizarraFormaAPath(en.herramienta, en.x0, en.y0, destino.x, destino.y);
+    if(d.length > PIZARRA_D_MAX) return;
+  }
   en.d = d;
   en.path.setAttribute("d", d);
   emitirTrazoVivo(en);
@@ -18513,6 +19320,7 @@ function diaLapizSoltarPuntero(e){
   diaActualizarBarra();
   emitirTrazoVivoFin();
   emitirTrazoFinal(en, trazo);
+  diaAnotarGuardar();
 }
 
 /* ---------- indice y miniaturas dentro de Presentar ----------
@@ -18758,10 +19566,18 @@ function prepararPresentacion(){
   $("#diaLeer").addEventListener("click", alternarLeerVoz);
   $("#diaPizarron").addEventListener("click", diaAbrirPizarron);
   $("#diaLapiz").addEventListener("click", function(){ diaLapizPoner(!DIA.lapiz); });
-  Array.prototype.forEach.call(document.querySelectorAll("#diaLapizColores .dia-color"), function(b){
-    b.addEventListener("click", function(){ diaLapizColor(b.getAttribute("data-color")); });
+  Array.prototype.forEach.call(document.querySelectorAll("#diaLapizColores .notas-herr"), function(b){
+    b.addEventListener("click", function(){
+      if(!DIA) return;
+      DIA.herramienta = b.getAttribute("data-herr");
+      DIA.borrador = false;
+      diaActualizarBarra();
+    });
   });
+  $("#diaLapizColorInput").addEventListener("input", function(){ DIA_LAPIZ_COLOR = $("#diaLapizColorInput").value; });
+  $("#diaLapizGrosor").addEventListener("input", function(){ DIA_LAPIZ_GROSOR = parseFloat($("#diaLapizGrosor").value) || 4; });
   $("#diaBorrador").addEventListener("click", diaBorradorAlternar);
+  $("#diaDeshacer").addEventListener("click", diaDeshacer);
   $("#diaLimpiar").addEventListener("click", diaLapizLimpiar);
   $("#diaGuardarAnotaciones").addEventListener("click", diaGuardarAnotaciones);
   $("#diaLapizSvg").addEventListener("pointerdown", diaLapizPunteroAbajo);
@@ -20881,9 +21697,9 @@ function zipTipoOoxml(indice){
    y resolver theme1.xml completo por muy poco beneficio real; si eso pasa, esa
    diapositiva simplemente no lleva !fondo: explícito (usa el tema de MDx). */
 var NS_R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-function pptxRid(el){ return (el.getAttributeNS && el.getAttributeNS(NS_R, "id")) || el.getAttribute("r:id"); }
-function pptxRembed(el){ return (el.getAttributeNS && el.getAttributeNS(NS_R, "embed")) || el.getAttribute("r:embed"); }
-function pptxAtributo(el, nombreLocal){
+function opcRid(el){ return (el.getAttributeNS && el.getAttributeNS(NS_R, "id")) || el.getAttribute("r:id"); }
+function opcRembed(el){ return (el.getAttributeNS && el.getAttributeNS(NS_R, "embed")) || el.getAttribute("r:embed"); }
+function xmlAtributo(el, nombreLocal){
   var ats = el.attributes, i, ln;
   for(i = 0; i < ats.length; i++){
     ln = ats[i].localName || ats[i].name.replace(/^.*:/, "");
@@ -20894,7 +21710,7 @@ function pptxAtributo(el, nombreLocal){
 /* por localName, no por nombre calificado: mismo motivo que parseGPX() con
    namespaces de extensiones -- tolera cualquier prefijo que use el productor
    del archivo, aunque en la práctica casi siempre es a:/p:/r:. */
-function pptxHijos(el, nombreLocal){
+function xmlHijos(el, nombreLocal){
   var out = [], hijos = el.childNodes, i, ln;
   for(i = 0; i < hijos.length; i++){
     if(hijos[i].nodeType !== 1) continue;
@@ -20908,7 +21724,7 @@ function bytesABase64(bytes){
   for(i = 0; i < bytes.length; i += CHUNK) binario += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
   return btoa(binario);
 }
-function pptxResolverRuta(parteOrigen, destino){
+function opcResolverRuta(parteOrigen, destino){
   var base = parteOrigen.split("/"); base.pop();
   var partes = base.concat(destino.split("/")), out = [], i, p;
   for(i = 0; i < partes.length; i++){
@@ -20930,7 +21746,7 @@ async function xmlDe(buf, indice, nombre){
    -- porTipo usa el ULTIMO segmento de la URI de tipo de relación (ver
    ECMA-376 parte 2), asi se encuentra "el layout de esta diapositiva" sin que
    la diapositiva lo referencie por r:id explicito en su propio XML. */
-async function pptxRels(buf, indice, parteOrigen){
+async function opcRelaciones(buf, indice, parteOrigen){
   var carpeta = parteOrigen.split("/"); var archivo = carpeta.pop();
   var relsPath = carpeta.concat(["_rels", archivo + ".rels"]).join("/");
   var porId = {}, porTipo = {};
@@ -20941,7 +21757,7 @@ async function pptxRels(buf, indice, parteOrigen){
     var id = rels[i].getAttribute("Id"), destino = rels[i].getAttribute("Target");
     var tipoUri = rels[i].getAttribute("Type") || "", modo = rels[i].getAttribute("TargetMode");
     if(!id || !destino) continue;
-    var rutaFinal = modo === "External" ? destino : pptxResolverRuta(parteOrigen, destino);
+    var rutaFinal = modo === "External" ? destino : opcResolverRuta(parteOrigen, destino);
     porId[id] = rutaFinal;
     var tipo = tipoUri.split("/").pop();
     if(!porTipo[tipo]) porTipo[tipo] = [];
@@ -20954,50 +21770,50 @@ async function pptxRels(buf, indice, parteOrigen){
    tienen un valor universal sin leer el tema -- ver nota al inicio del módulo. */
 var PPTX_ESQUEMA_FALLBACK = { bg1: "#FFFFFF", tx1: "#000000", bg2: "#E7E6E6", tx2: "#44546A", dk1: "#000000", lt1: "#FFFFFF", dk2: "#44546A", lt2: "#E7E6E6" };
 function pptxColorDe(el){
-  var srgb = pptxHijos(el, "srgbClr")[0];
-  if(srgb) return "#" + (pptxAtributo(srgb, "val") || "000000").toUpperCase();
-  var esquema = pptxHijos(el, "schemeClr")[0];
-  if(esquema) return PPTX_ESQUEMA_FALLBACK[(pptxAtributo(esquema, "val") || "").toLowerCase()] || null;
-  var sys = pptxHijos(el, "sysClr")[0];
-  if(sys) return "#" + (pptxAtributo(sys, "lastClr") || "000000").toUpperCase();
+  var srgb = xmlHijos(el, "srgbClr")[0];
+  if(srgb) return "#" + (xmlAtributo(srgb, "val") || "000000").toUpperCase();
+  var esquema = xmlHijos(el, "schemeClr")[0];
+  if(esquema) return PPTX_ESQUEMA_FALLBACK[(xmlAtributo(esquema, "val") || "").toLowerCase()] || null;
+  var sys = xmlHijos(el, "sysClr")[0];
+  if(sys) return "#" + (xmlAtributo(sys, "lastClr") || "000000").toUpperCase();
   return null;
 }
-var PPTX_MIME_POR_EXT = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff" };
-function pptxMimePorNombre(ruta){
-  return PPTX_MIME_POR_EXT[(ruta.split(".").pop() || "").toLowerCase()] || null;
+var MIME_POR_EXT = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff" };
+function mimePorNombre(ruta){
+  return MIME_POR_EXT[(ruta.split(".").pop() || "").toLowerCase()] || null;
 }
 /* bgPr = relleno explícito (lo único que se resuelve); bgRef = referencia
    indexada al tema (no se resuelve, ver nota al inicio del módulo) */
 async function pptxFondoDesdeBg(bgEl, buf, indice, relsPorId){
-  var bgPr = pptxHijos(bgEl, "bgPr")[0];
+  var bgPr = xmlHijos(bgEl, "bgPr")[0];
   if(!bgPr) return null;
-  var solido = pptxHijos(bgPr, "solidFill")[0];
+  var solido = xmlHijos(bgPr, "solidFill")[0];
   if(solido){
     var color = pptxColorDe(solido);
     return color ? "!fondo:" + color + "\n" : null;
   }
-  var grad = pptxHijos(bgPr, "gradFill")[0];
+  var grad = xmlHijos(bgPr, "gradFill")[0];
   if(grad){
-    var lst = pptxHijos(grad, "gsLst")[0];
-    var paradas = lst ? pptxHijos(lst, "gs") : [];
+    var lst = xmlHijos(grad, "gsLst")[0];
+    var paradas = lst ? xmlHijos(lst, "gs") : [];
     if(paradas.length < 2) return null;
     var c0 = pptxColorDe(paradas[0]), c1 = pptxColorDe(paradas[paradas.length - 1]);
     if(!c0 || !c1) return null;
-    var lin = pptxHijos(grad, "lin")[0];
-    var angOoxml = lin ? parseInt(pptxAtributo(lin, "ang") || "0", 10) : 0;
+    var lin = xmlHijos(grad, "lin")[0];
+    var angOoxml = lin ? parseInt(xmlAtributo(lin, "ang") || "0", 10) : 0;
     /* angulo OOXML: 0=este, sentido horario, en 60000-avos de grado. CSS
        linear-gradient: 0deg=norte, sentido horario. De ahi el +90. */
     var angCss = Math.round(((angOoxml / 60000) + 90) % 360);
     return "!fondo:degradado(" + c0 + ", " + c1 + ", " + angCss + "deg)\n";
   }
-  var blip = pptxHijos(bgPr, "blipFill")[0];
+  var blip = xmlHijos(bgPr, "blipFill")[0];
   if(blip){
-    var blipEl = pptxHijos(blip, "blip")[0];
-    var rId = blipEl && pptxRembed(blipEl);
+    var blipEl = xmlHijos(blip, "blip")[0];
+    var rId = blipEl && opcRembed(blipEl);
     var ruta = rId && relsPorId[rId];
     if(!ruta) return null;
     var entrada = indice.entradas.filter(function(e){ return e.nombre === ruta; })[0];
-    var mime = entrada && pptxMimePorNombre(ruta);
+    var mime = entrada && mimePorNombre(ruta);
     if(!entrada || !mime) return null; /* incluye .emf/.wmf: ningun navegador los decodifica en <img>/<image> */
     var bytes;
     try{ bytes = await zipLeerBytes(buf, entrada); }catch(e){ return null; }
@@ -21013,8 +21829,8 @@ async function pptxFondoDesdeBg(bgEl, buf, indice, relsPorId){
    puede resolver (bgRef, o un tipo de relleno no soportado), se sigue
    probando con la siguiente capa en vez de rendirse. */
 async function pptxFondoDeSlide(buf, indice, slideDoc, slideRels){
-  var cSld = pptxHijos(slideDoc.documentElement, "cSld")[0];
-  var bg = cSld && pptxHijos(cSld, "bg")[0];
+  var cSld = xmlHijos(slideDoc.documentElement, "cSld")[0];
+  var bg = cSld && xmlHijos(cSld, "bg")[0];
   if(bg){
     var r = await pptxFondoDesdeBg(bg, buf, indice, slideRels.porId);
     if(r) return r;
@@ -21023,9 +21839,9 @@ async function pptxFondoDeSlide(buf, indice, slideDoc, slideRels){
   if(!layoutRuta) return null;
   var layoutDoc = await xmlDe(buf, indice, layoutRuta);
   if(!layoutDoc) return null;
-  var layoutRels = await pptxRels(buf, indice, layoutRuta);
-  var cSldL = pptxHijos(layoutDoc.documentElement, "cSld")[0];
-  var bgL = cSldL && pptxHijos(cSldL, "bg")[0];
+  var layoutRels = await opcRelaciones(buf, indice, layoutRuta);
+  var cSldL = xmlHijos(layoutDoc.documentElement, "cSld")[0];
+  var bgL = cSldL && xmlHijos(cSldL, "bg")[0];
   if(bgL){
     var rl = await pptxFondoDesdeBg(bgL, buf, indice, layoutRels.porId);
     if(rl) return rl;
@@ -21034,42 +21850,42 @@ async function pptxFondoDeSlide(buf, indice, slideDoc, slideRels){
   if(!masterRuta) return null;
   var masterDoc = await xmlDe(buf, indice, masterRuta);
   if(!masterDoc) return null;
-  var masterRels = await pptxRels(buf, indice, masterRuta);
-  var cSldM = pptxHijos(masterDoc.documentElement, "cSld")[0];
-  var bgM = cSldM && pptxHijos(cSldM, "bg")[0];
+  var masterRels = await opcRelaciones(buf, indice, masterRuta);
+  var cSldM = xmlHijos(masterDoc.documentElement, "cSld")[0];
+  var bgM = cSldM && xmlHijos(cSldM, "bg")[0];
   return bgM ? await pptxFondoDesdeBg(bgM, buf, indice, masterRels.porId) : null;
 }
 function pptxEsTitulo(spEl){
-  var nvSpPr = pptxHijos(spEl, "nvSpPr")[0];
-  var nvPr = nvSpPr && pptxHijos(nvSpPr, "nvPr")[0];
-  var ph = nvPr && pptxHijos(nvPr, "ph")[0];
+  var nvSpPr = xmlHijos(spEl, "nvSpPr")[0];
+  var nvPr = nvSpPr && xmlHijos(nvSpPr, "nvPr")[0];
+  var ph = nvPr && xmlHijos(nvPr, "ph")[0];
   if(!ph) return false;
-  var tipo = pptxAtributo(ph, "type") || "";
+  var tipo = xmlAtributo(ph, "type") || "";
   return tipo === "title" || tipo === "ctrTitle";
 }
 function pptxEsBullet(pEl){
-  var pPr = pptxHijos(pEl, "pPr")[0];
+  var pPr = xmlHijos(pEl, "pPr")[0];
   if(!pPr) return false;
-  if(pptxHijos(pPr, "buNone").length) return false;
-  return pptxHijos(pPr, "buChar").length > 0 || pptxHijos(pPr, "buAutoNum").length > 0;
+  if(xmlHijos(pPr, "buNone").length) return false;
+  return xmlHijos(pPr, "buChar").length > 0 || xmlHijos(pPr, "buAutoNum").length > 0;
 }
 function pptxParrafoTexto(pEl){
-  var runs = pptxHijos(pEl, "r"), texto = "", i;
+  var runs = xmlHijos(pEl, "r"), texto = "", i;
   for(i = 0; i < runs.length; i++){
-    var rPr = pptxHijos(runs[i], "rPr")[0];
-    var tEl = pptxHijos(runs[i], "t")[0];
+    var rPr = xmlHijos(runs[i], "rPr")[0];
+    var tEl = xmlHijos(runs[i], "t")[0];
     var t = tEl ? tEl.textContent : "";
     if(!t) continue;
-    if(rPr && pptxAtributo(rPr, "b") === "1") t = "**" + t + "**";
-    if(rPr && pptxAtributo(rPr, "i") === "1") t = "*" + t + "*";
+    if(rPr && xmlAtributo(rPr, "b") === "1") t = "**" + t + "**";
+    if(rPr && xmlAtributo(rPr, "i") === "1") t = "*" + t + "*";
     texto += t;
   }
   return texto;
 }
 function pptxFormaAMarkdown(spEl){
-  var txBody = pptxHijos(spEl, "txBody")[0];
+  var txBody = xmlHijos(spEl, "txBody")[0];
   if(!txBody) return "";
-  var parrafos = pptxHijos(txBody, "p"), out = [], i, prevBullet = false, esTitulo = pptxEsTitulo(spEl);
+  var parrafos = xmlHijos(txBody, "p"), out = [], i, prevBullet = false, esTitulo = pptxEsTitulo(spEl);
   for(i = 0; i < parrafos.length; i++){
     var texto = pptxParrafoTexto(parrafos[i]);
     if(!texto.trim()) continue;
@@ -21085,14 +21901,14 @@ function pptxFormaAMarkdown(spEl){
    imagen pero no se pudo incluir (formato no soportado o >8MB: SI cuenta como
    omitida, para poder avisarle al usuario cuantas faltaron) */
 async function pptxImagenAMarkdown(buf, indice, picEl, relsPorId){
-  var blipFill = pptxHijos(picEl, "blipFill")[0];
-  var blip = blipFill && pptxHijos(blipFill, "blip")[0];
-  var rId = blip && pptxRembed(blip);
+  var blipFill = xmlHijos(picEl, "blipFill")[0];
+  var blip = blipFill && xmlHijos(blipFill, "blip")[0];
+  var rId = blip && opcRembed(blip);
   var ruta = rId && relsPorId[rId];
   if(!ruta) return "";
   var entrada = indice.entradas.filter(function(e){ return e.nombre === ruta; })[0];
   if(!entrada) return "";
-  var mime = pptxMimePorNombre(ruta);
+  var mime = mimePorNombre(ruta);
   if(!mime) return null;
   var bytes;
   try{ bytes = await zipLeerBytes(buf, entrada); }catch(e){ return null; }
@@ -21102,10 +21918,10 @@ async function pptxImagenAMarkdown(buf, indice, picEl, relsPorId){
 async function pptxDiapositivaAMarkdown(buf, indice, slideParte){
   var slideDoc = await xmlDe(buf, indice, slideParte);
   if(!slideDoc) return { markdown: "", imagenesOmitidas: 0 };
-  var slideRels = await pptxRels(buf, indice, slideParte);
+  var slideRels = await opcRelaciones(buf, indice, slideParte);
   var fondo = await pptxFondoDeSlide(buf, indice, slideDoc, slideRels);
-  var cSld = pptxHijos(slideDoc.documentElement, "cSld")[0];
-  var spTree = cSld && pptxHijos(cSld, "spTree")[0];
+  var cSld = xmlHijos(slideDoc.documentElement, "cSld")[0];
+  var spTree = cSld && xmlHijos(cSld, "spTree")[0];
   var partes = [], imagenesOmitidas = 0;
   if(spTree){
     var hijos = spTree.childNodes, i;
@@ -21133,13 +21949,13 @@ async function pptxAMarkdown(buf, indicePrevio){
   if(!indice.ok) return { ok: false, motivo: indice.motivo };
   var presDoc = await xmlDe(buf, indice, "ppt/presentation.xml");
   if(!presDoc) return { ok: false, motivo: "no se pudo leer ppt/presentation.xml" };
-  var presRels = await pptxRels(buf, indice, "ppt/presentation.xml");
-  var sldIdLst = pptxHijos(presDoc.documentElement, "sldIdLst")[0];
-  var sldIds = sldIdLst ? pptxHijos(sldIdLst, "sldId") : [];
+  var presRels = await opcRelaciones(buf, indice, "ppt/presentation.xml");
+  var sldIdLst = xmlHijos(presDoc.documentElement, "sldIdLst")[0];
+  var sldIds = sldIdLst ? xmlHijos(sldIdLst, "sldId") : [];
   if(!sldIds.length) return { ok: false, motivo: "el .pptx no tiene diapositivas" };
   var diapositivas = [], imagenesOmitidasTotal = 0, i;
   for(i = 0; i < sldIds.length; i++){
-    var rId = pptxRid(sldIds[i]);
+    var rId = opcRid(sldIds[i]);
     var ruta = rId && presRels.porId[rId];
     if(!ruta) continue;
     var r = await pptxDiapositivaAMarkdown(buf, indice, ruta);
@@ -21148,6 +21964,442 @@ async function pptxAMarkdown(buf, indicePrevio){
   }
   if(!diapositivas.length) return { ok: false, motivo: "no se pudo leer ninguna diapositiva" };
   return { ok: true, markdown: diapositivas.join("\n\n---\n\n"), imagenesOmitidas: imagenesOmitidasTotal, totalDiapositivas: diapositivas.length };
+}
+
+/* --- importador .xlsx (SpreadsheetML): cada hoja visible se vuelca a una
+   tabla Markdown (GFM), con la primera fila como encabezado. NO recalcula
+   fórmulas (usa el último valor guardado en <v>, igual que Excel/LibreOffice
+   muestran al abrir sin recalcular), NO conserva combinaciones de celdas
+   (Markdown no tiene colspan/rowspan: el valor queda solo en la celda
+   superior-izquierda de la combinación, tal como ya está en el XML fuente,
+   así que no hace falta código extra para eso) y NO trae imágenes flotantes
+   ni gráficos de la hoja (misma familia de objetos que <p:graphicFrame> en
+   pptx: demasiado propios de cada caso para valer la pena). Hojas ocultas
+   (state="hidden"/"veryHidden") se omiten a propósito -- suelen ser hojas
+   auxiliares de cálculo, no contenido para leer. */
+var XLSX_TOPE_FILAS = 2000, XLSX_TOPE_COLUMNAS = 200;
+var XLSX_FORMATOS_FECHA_BUILTIN = { 14: "fecha", 15: "fecha", 16: "fecha", 17: "fecha", 18: "hora", 19: "hora", 20: "hora", 21: "hora", 22: "fechahora" };
+
+function opcColumnaAIndice(letras){
+  var n = 0, i;
+  for(i = 0; i < letras.length; i++) n = n * 26 + (letras.charCodeAt(i) - 64);
+  return n - 1;
+}
+function xlsxRefACelda(ref){
+  var m = /^([A-Za-z]+)(\d+)$/.exec(ref || "");
+  if(!m) return null;
+  return { col: opcColumnaAIndice(m[1].toUpperCase()), fila: parseInt(m[2], 10) - 1 };
+}
+/* heurística, no un parser completo de formatCode (ECMA-376 §18.8.31: hasta
+   4 secciones positivo/negativo/cero/texto, colores condicionales, etc. --
+   eso sí sería una carga real para lo que aporta). Solo distingue "¿esto
+   representa una fecha/hora?" mirando si quedan letras y/d/h/s FUERA de
+   literales entre comillas o escapados con backslash -- en la práctica esas
+   letras son casi exclusivas de formatos de fecha/hora. "m" queda aparte a
+   propósito: es AMBIGUA entre mes y minutos (ej. "hh:mm:ss" no tiene fecha
+   ninguna, la "m" ahí es minutos) -- solo cuenta como mes si además hay una
+   "y" o "d" en el mismo formatCode, que es como se distinguen en la práctica
+   los formatos de fecha reales de los de hora pura. Un formato de solo mes
+   sin día ni año (ej. "mmm" para "Ene") es el único caso real que esta regla
+   deja sin detectar -- muy poco común, se documenta como límite conocido. */
+function xlsxTipoFecha(formatCode){
+  if(!formatCode) return null;
+  var limpio = formatCode.replace(/"[^"]*"/g, "").replace(/\\./g, "");
+  var tieneAnioODia = /[yd]/i.test(limpio);
+  var tieneHora = /[hs]/i.test(limpio);
+  var tieneFecha = tieneAnioODia || (/m/i.test(limpio) && tieneAnioODia);
+  if(!tieneFecha && !tieneHora) return null;
+  if(tieneFecha && tieneHora) return "fechahora";
+  return tieneFecha ? "fecha" : "hora";
+}
+function xlsxTipoFechaDeEstilo(sIdx, estilos){
+  if(sIdx === null || sIdx === undefined) return null;
+  var xf = estilos.cellXfs[sIdx];
+  if(!xf) return null;
+  var idNum = Number(xf.numFmtId);
+  if(XLSX_FORMATOS_FECHA_BUILTIN[idNum]) return XLSX_FORMATOS_FECHA_BUILTIN[idNum];
+  var custom = estilos.numFmts[xf.numFmtId];
+  return custom ? xlsxTipoFecha(custom) : null;
+}
+/* época 1899-12-30: reproduce el bug histórico de Excel (trata 1900 como
+   bisiesto) sin necesidad de un caso especial -- es la fórmula estándar que
+   usan la mayoría de los lectores de xlsx. */
+function excelSerialAFecha(serial){
+  return new Date(Date.UTC(1899, 11, 30) + Math.round(serial * 86400000));
+}
+function xlsxFormatearFecha(d, tipo){
+  var pad = function(n){ return String(n).length < 2 ? "0" + n : String(n); };
+  var fecha = d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate());
+  var hora = pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes());
+  if(tipo === "fecha") return fecha;
+  if(tipo === "hora") return hora;
+  return fecha + " " + hora;
+}
+async function xlsxCadenasCompartidas(buf, indice){
+  var doc = await xmlDe(buf, indice, "xl/sharedStrings.xml");
+  if(!doc) return [];
+  return xmlHijos(doc.documentElement, "si").map(function(si){ return si.textContent; });
+}
+async function xlsxEstilos(buf, indice){
+  var doc = await xmlDe(buf, indice, "xl/styles.xml");
+  var numFmts = {}, cellXfs = [];
+  if(doc){
+    var numFmtsEl = xmlHijos(doc.documentElement, "numFmts")[0];
+    if(numFmtsEl){
+      xmlHijos(numFmtsEl, "numFmt").forEach(function(nf){
+        numFmts[xmlAtributo(nf, "numFmtId")] = xmlAtributo(nf, "formatCode");
+      });
+    }
+    var cellXfsEl = xmlHijos(doc.documentElement, "cellXfs")[0];
+    if(cellXfsEl){
+      cellXfs = xmlHijos(cellXfsEl, "xf").map(function(xf){ return { numFmtId: xmlAtributo(xf, "numFmtId") }; });
+    }
+  }
+  return { cellXfs: cellXfs, numFmts: numFmts };
+}
+function xlsxCeldaValor(cEl, cadenas, estilos){
+  var tipo = xmlAtributo(cEl, "t");
+  var sAttr = xmlAtributo(cEl, "s");
+  var sIdx = sAttr !== null ? Number(sAttr) : null;
+  if(tipo === "inlineStr"){
+    var isEl = xmlHijos(cEl, "is")[0];
+    return isEl ? isEl.textContent : "";
+  }
+  if(tipo === "s"){
+    var vElS = xmlHijos(cEl, "v")[0];
+    var idx = vElS ? parseInt(vElS.textContent, 10) : -1;
+    return cadenas[idx] !== undefined ? cadenas[idx] : "";
+  }
+  var vEl = xmlHijos(cEl, "v")[0];
+  if(!vEl) return "";
+  var v = vEl.textContent;
+  if(tipo === "b") return v === "1" ? "VERDADERO" : "FALSO";
+  if(tipo === "e") return v;
+  if(tipo === "str") return v;
+  var tipoFecha = xlsxTipoFechaDeEstilo(sIdx, estilos);
+  if(tipoFecha){
+    var serial = parseFloat(v);
+    if(!isNaN(serial)) return xlsxFormatearFecha(excelSerialAFecha(serial), tipoFecha);
+  }
+  return v;
+}
+function xlsxCeldaMd(v){
+  if(v === undefined || v === null) return "";
+  return String(v).replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+}
+async function xlsxHojaAMarkdown(buf, indice, sheetParte, cadenas, estilos){
+  var doc = await xmlDe(buf, indice, sheetParte);
+  if(!doc) return { markdown: "*(no se pudo leer esta hoja)*", truncado: false };
+  var sheetData = xmlHijos(doc.documentElement, "sheetData")[0];
+  var filasEl = sheetData ? xmlHijos(sheetData, "row") : [];
+  var truncadoFilas = filasEl.length > XLSX_TOPE_FILAS;
+  var truncadoColumnas = false;
+  var grid = [], maxCol = -1;
+  filasEl.slice(0, XLSX_TOPE_FILAS).forEach(function(rowEl){
+    var fila = [];
+    xmlHijos(rowEl, "c").forEach(function(cEl){
+      var pos = xlsxRefACelda(xmlAtributo(cEl, "r"));
+      var col = pos ? pos.col : fila.length;
+      if(col >= XLSX_TOPE_COLUMNAS){ truncadoColumnas = true; return; }
+      fila[col] = xlsxCeldaValor(cEl, cadenas, estilos);
+      if(col > maxCol) maxCol = col;
+    });
+    grid.push(fila);
+  });
+  if(!grid.length) return { markdown: "*(hoja vacía)*", truncado: false };
+  var numCols = maxCol + 1;
+  var lineas = [];
+  lineas.push("| " + grid[0].slice(0, numCols).concat(new Array(Math.max(0, numCols - grid[0].length))).map(xlsxCeldaMd).join(" | ") + " |");
+  lineas.push("| " + new Array(numCols).fill("---").join(" | ") + " |");
+  for(var i = 1; i < grid.length; i++){
+    var fila = grid[i];
+    var celdas = [];
+    for(var c = 0; c < numCols; c++) celdas.push(xlsxCeldaMd(fila[c]));
+    lineas.push("| " + celdas.join(" | ") + " |");
+  }
+  return { markdown: lineas.join("\n"), truncado: truncadoFilas || truncadoColumnas };
+}
+async function xlsxAMarkdown(buf, indicePrevio){
+  var indice = indicePrevio || zipIndice(buf);
+  if(!indice.ok) return { ok: false, motivo: indice.motivo };
+  var wbDoc = await xmlDe(buf, indice, "xl/workbook.xml");
+  if(!wbDoc) return { ok: false, motivo: "no se pudo leer xl/workbook.xml" };
+  var wbRels = await opcRelaciones(buf, indice, "xl/workbook.xml");
+  var sheetsEl = xmlHijos(wbDoc.documentElement, "sheets")[0];
+  var sheetEls = sheetsEl ? xmlHijos(sheetsEl, "sheet") : [];
+  if(!sheetEls.length) return { ok: false, motivo: "el .xlsx no tiene hojas" };
+  var cadenas = await xlsxCadenasCompartidas(buf, indice);
+  var estilos = await xlsxEstilos(buf, indice);
+  var partes = [], hojasIncluidas = 0, hojasOcultas = 0, truncoAlguna = false, i;
+  for(i = 0; i < sheetEls.length; i++){
+    var s = sheetEls[i];
+    var estado = xmlAtributo(s, "state");
+    if(estado === "hidden" || estado === "veryHidden"){ hojasOcultas++; continue; }
+    var rId = opcRid(s);
+    var ruta = rId && wbRels.porId[rId];
+    if(!ruta) continue;
+    var nombreHoja = xmlAtributo(s, "name") || ("Hoja" + (i + 1));
+    var r = await xlsxHojaAMarkdown(buf, indice, ruta, cadenas, estilos);
+    if(r.truncado) truncoAlguna = true;
+    partes.push("## " + nombreHoja + "\n\n" + r.markdown);
+    hojasIncluidas++;
+  }
+  if(!hojasIncluidas){
+    if(hojasOcultas > 0 && hojasOcultas === sheetEls.length) return { ok: false, motivo: "todas las hojas están ocultas" };
+    return { ok: false, motivo: "no se pudo leer ninguna hoja" };
+  }
+  return { ok: true, markdown: partes.join("\n\n"), totalHojas: hojasIncluidas, hojasOcultas: hojasOcultas, truncado: truncoAlguna };
+}
+
+/* --- importador .docx (WordprocessingML): párrafos, encabezados, negrita/
+   cursiva/tachado, listas (viñeta o numerada), tablas GFM, hipervínculos e
+   imágenes. El nivel de encabezado se decide por el NOMBRE del estilo de
+   párrafo (w:pStyle/@w:val: Heading1..6, Titulo1..6/Título1..6, o Title/
+   Titulo/Título sin número para nivel 1) -- es una heurística por nombre, NO
+   una resolución completa de la cadena w:basedOn de styles.xml (un estilo
+   personalizado que hereda de "Heading 1" sin llamarse "Heading1" no se
+   detecta). w:u (subrayado) no tiene equivalente nativo en Markdown: se
+   omite en silencio, igual de intencional que el resto de estos límites.
+   Las celdas de tabla se vuelcan como texto plano (sin negrita/cursiva/
+   hipervínculos/imágenes ni distinguir encabezado) para no complicar el
+   render de la tabla -- ver xlsxCeldaMd, que se reusa para el escapado.
+   NO soporta gridSpan/vMerge (celdas combinadas): igual que xlsx con sus
+   combinaciones, el valor queda solo en la celda donde ya está en el XML
+   fuente. Listas numeradas no llevan contador real por nivel: siempre se
+   emite "1. " y es Markdown/GFM el que renumera al mostrar -- una lista
+   reordena si el next importa el numFmt real). NO convierte: notas al pie/
+   finales, encabezados/pies de página, comentarios, objetos OLE, SmartArt,
+   gráficos, cuadros de texto (w:txbxContent), columnas múltiples ni campos
+   de Word (TOC y similares). w:ins/w:del (control de cambios) se leen como
+   si el texto ya estuviera aceptado, sin marcar la revisión. */
+var DOCX_TOPE_PARRAFOS = 5000;
+function docxNivelEncabezado(nombreEstilo){
+  if(!nombreEstilo) return null;
+  var m = /^(heading|titulo|título)\s*([1-6])$/i.exec(nombreEstilo);
+  if(m) return parseInt(m[2], 10);
+  if(/^(title|titulo|título)$/i.test(nombreEstilo)) return 1;
+  return null;
+}
+/* ausencia de w:val (o w:val="1"/"true"/"on") = activo; w:val="0"/"false"/
+   "off" = desactivado explícitamente (ECMA-376 §17.17.4: el atributo es un
+   ST_OnOff, no siempre un booleano literal). */
+function docxPropActiva(rPr, nombreLocal){
+  var el = rPr && xmlHijos(rPr, nombreLocal)[0];
+  if(!el) return false;
+  var val = xmlAtributo(el, "val");
+  if(val === null) return true;
+  val = val.toLowerCase();
+  return val === "1" || val === "true" || val === "on";
+}
+/* wp:inline/wp:anchor > a:graphic > a:graphicData > pic:pic > pic:blipFill >
+   a:blip -- más anidado que <p:pic> de pptx (que es hijo directo de spTree),
+   de ahí la cadena de xmlHijos en vez de un solo paso. */
+function docxBlipDeDrawing(drawingEl){
+  var contenedor = xmlHijos(drawingEl, "inline")[0] || xmlHijos(drawingEl, "anchor")[0];
+  var graphic = contenedor && xmlHijos(contenedor, "graphic")[0];
+  var graphicData = graphic && xmlHijos(graphic, "graphicData")[0];
+  var pic = graphicData && xmlHijos(graphicData, "pic")[0];
+  var blipFill = pic && xmlHijos(pic, "blipFill")[0];
+  return blipFill && xmlHijos(blipFill, "blip")[0];
+}
+/* "" = no había imagen (drawing sin blip/r:embed resoluble a nivel de XML,
+   no cuenta como omitida); null = había r:embed pero no se pudo incluir (rId
+   sin relación, relación sin entrada de zip, extensión no soportada o >8MB
+   -- mismo tope que pptxImagenAMarkdown -- SÍ cuenta como omitida). */
+async function docxImagenAMarkdown(buf, indice, drawingEl, relsPorId){
+  var blip = docxBlipDeDrawing(drawingEl);
+  var rId = blip && opcRembed(blip);
+  if(!rId) return "";
+  var ruta = relsPorId[rId];
+  var entrada = ruta && indice.entradas.filter(function(e){ return e.nombre === ruta; })[0];
+  if(!entrada) return null;
+  var mime = mimePorNombre(ruta);
+  if(!mime) return null;
+  var bytes;
+  try{ bytes = await zipLeerBytes(buf, entrada); }catch(e){ return null; }
+  if(bytes.length > 8 * 1024 * 1024) return null;
+  return "![Imagen](data:" + mime + ";base64," + bytesABase64(bytes) + ")";
+}
+/* recorre un w:r y concatena su texto (w:t), tabs (como espacio simple: un
+   tab literal al inicio de línea podría leerse como bloque de código
+   indentado en Markdown) y saltos (w:br); un w:drawing con imagen se agrega
+   aparte, sin envolver en negrita/cursiva/tachado. */
+async function docxRunAMarkdown(rEl, buf, indice, relsPorId, contador){
+  var rPr = xmlHijos(rEl, "rPr")[0];
+  var hijos = rEl.childNodes, texto = "", extra = "", i;
+  for(i = 0; i < hijos.length; i++){
+    var n = hijos[i];
+    if(n.nodeType !== 1) continue;
+    var ln = (n.localName || n.tagName || "").replace(/^.*:/, "");
+    if(ln === "t") texto += n.textContent;
+    else if(ln === "tab") texto += " ";
+    else if(ln === "br") texto += "\n";
+    else if(ln === "drawing"){
+      var img = await docxImagenAMarkdown(buf, indice, n, relsPorId);
+      if(img === null) contador.omitidas++;
+      else if(img) extra += img;
+    }
+  }
+  if(texto){
+    if(docxPropActiva(rPr, "strike")) texto = "~~" + texto + "~~";
+    if(docxPropActiva(rPr, "i")) texto = "_" + texto + "_";
+    if(docxPropActiva(rPr, "b")) texto = "**" + texto + "**";
+  }
+  return texto + extra;
+}
+/* contenido "rico" (con formato/imágenes/links) de un párrafo o de un
+   w:hyperlink/w:ins/w:del: recorre los hijos directos, no todos los
+   descendientes -- así w:hyperlink resuelve su propio r:id antes de bajar a
+   sus w:r, en vez de perder el link al aplanar todo. */
+async function docxContenidoAMarkdown(el, buf, indice, relsPorId, contador){
+  var hijos = el.childNodes, out = "", i;
+  for(i = 0; i < hijos.length; i++){
+    var n = hijos[i];
+    if(n.nodeType !== 1) continue;
+    var ln = (n.localName || n.tagName || "").replace(/^.*:/, "");
+    if(ln === "r") out += await docxRunAMarkdown(n, buf, indice, relsPorId, contador);
+    else if(ln === "hyperlink") out += await docxHyperlinkAMarkdown(n, buf, indice, relsPorId, contador);
+    else if(ln === "ins" || ln === "del" || ln === "moveTo" || ln === "smartTag") out += await docxContenidoAMarkdown(n, buf, indice, relsPorId, contador);
+    else if(ln === "sdt"){
+      var sdtContent = xmlHijos(n, "sdtContent")[0];
+      if(sdtContent) out += await docxContenidoAMarkdown(sdtContent, buf, indice, relsPorId, contador);
+    }
+    /* moveFrom se ignora a propósito: el mismo texto reaparece en moveTo (destino);
+       incluir ambos duplicaría el contenido. bookmarkStart/End, proofErr, etc.:
+       no aportan texto, se ignoran. */
+  }
+  return out;
+}
+/* w:anchor (link interno, sin r:id) emite solo el texto, sin envoltorio.
+   No se valida el Type de la relación resuelta por r:id (limitación conocida:
+   un .docx corrupto/armado a mano con un r:id de hyperlink apuntando a una
+   relación de otro tipo, ej. una imagen, generaría un enlace hacia una ruta
+   interna del paquete en vez de texto plano -- Word real nunca produce esto). */
+async function docxHyperlinkAMarkdown(hEl, buf, indice, relsPorId, contador){
+  var texto = await docxContenidoAMarkdown(hEl, buf, indice, relsPorId, contador);
+  if(!texto) return "";
+  var rId = opcRid(hEl);
+  var url = rId && relsPorId[rId];
+  return url ? "[" + texto + "](" + url + ")" : texto;
+}
+/* texto plano de un elemento (para celdas de tabla): recorre TODOS los
+   descendientes sin importar el tipo de envoltorio (w:r, w:hyperlink, w:ins,
+   w:del...) y concatena w:t/w:tab/w:br -- ni rPr ni pPr traen w:t, así que
+   bajar a ciegas es seguro y evita repetir la lógica de docxContenidoAMarkdown
+   sin formato. */
+function docxTextoPlano(el){
+  var hijos = el.childNodes, out = "", i;
+  for(i = 0; i < hijos.length; i++){
+    var n = hijos[i];
+    if(n.nodeType !== 1) continue;
+    var ln = (n.localName || n.tagName || "").replace(/^.*:/, "");
+    if(ln === "t") out += n.textContent;
+    else if(ln === "tab") out += " ";
+    else if(ln === "br") out += "\n";
+    else out += docxTextoPlano(n);
+  }
+  return out;
+}
+/* numId=0 es un valor especial de Word ("sin numeración heredada"), no una
+   lista real -- se filtra antes de llegar acá. Si numberingDoc falta o la
+   cadena numId->abstractNum->lvl no resuelve, null hace que el llamador use
+   viñeta por defecto en vez de tirar excepción. */
+function docxResolverNumFmt(numberingDoc, numId, ilvl){
+  if(!numberingDoc) return null;
+  var numEl = xmlHijos(numberingDoc.documentElement, "num").filter(function(n){ return xmlAtributo(n, "numId") === String(numId); })[0];
+  var absRef = numEl && xmlHijos(numEl, "abstractNumId")[0];
+  var absId = absRef && xmlAtributo(absRef, "val");
+  if(absId === null || absId === undefined) return null;
+  var absEl = xmlHijos(numberingDoc.documentElement, "abstractNum").filter(function(a){ return xmlAtributo(a, "abstractNumId") === String(absId); })[0];
+  var lvlEl = absEl && xmlHijos(absEl, "lvl").filter(function(l){ return xmlAtributo(l, "ilvl") === String(ilvl); })[0];
+  var numFmtEl = lvlEl && xmlHijos(lvlEl, "numFmt")[0];
+  return numFmtEl ? xmlAtributo(numFmtEl, "val") : null;
+}
+async function docxParrafoAMarkdown(pEl, buf, indice, relsPorId, numberingDoc, contador){
+  var pPr = xmlHijos(pEl, "pPr")[0];
+  var pStyleEl = pPr && xmlHijos(pPr, "pStyle")[0];
+  var nivel = docxNivelEncabezado(pStyleEl && xmlAtributo(pStyleEl, "val"));
+  var texto = await docxContenidoAMarkdown(pEl, buf, indice, relsPorId, contador);
+  if(!texto.trim()) return "";
+  if(nivel) return new Array(nivel + 1).join("#") + " " + texto;
+  var numPr = pPr && xmlHijos(pPr, "numPr")[0];
+  if(numPr){
+    var numIdEl = xmlHijos(numPr, "numId")[0];
+    var numId = numIdEl && xmlAtributo(numIdEl, "val");
+    if(numId && numId !== "0"){
+      var ilvlEl = xmlHijos(numPr, "ilvl")[0];
+      var ilvl = ilvlEl ? (parseInt(xmlAtributo(ilvlEl, "val"), 10) || 0) : 0;
+      var fmt = docxResolverNumFmt(numberingDoc, numId, ilvl);
+      var marcador = (!fmt || fmt === "bullet") ? "- " : "1. ";
+      return new Array(ilvl + 1).join("  ") + marcador + texto;
+    }
+  }
+  return texto;
+}
+/* celda de tabla: texto plano de todos sus párrafos, unidos con un espacio
+   -- sin negrita/cursiva/links/imágenes ni distinguir encabezado, a
+   propósito (ver nota al inicio del módulo). */
+function docxCeldaTexto(tcEl){
+  return xmlHijos(tcEl, "p").map(docxTextoPlano).map(function(t){ return t.trim(); }).filter(function(t){ return t !== ""; }).join(" ");
+}
+/* primera fila = encabezado GFM; sin manejo de gridSpan/vMerge (ver nota al
+   inicio del módulo). Reusa xlsxCeldaMd para el mismo escapado de | y \n. */
+function docxTablaAMarkdown(tblEl){
+  var grid = xmlHijos(tblEl, "tr").map(function(tr){
+    return xmlHijos(tr, "tc").map(function(tc){ return xlsxCeldaMd(docxCeldaTexto(tc)); });
+  });
+  var numCols = grid.reduce(function(m, fila){ return Math.max(m, fila.length); }, 0);
+  if(!numCols) return "";
+  var lineas = [];
+  var rellenar = function(fila){ return fila.concat(new Array(Math.max(0, numCols - fila.length)).fill("")); };
+  lineas.push("| " + rellenar(grid[0]).join(" | ") + " |");
+  lineas.push("| " + new Array(numCols).fill("---").join(" | ") + " |");
+  for(var i = 1; i < grid.length; i++) lineas.push("| " + rellenar(grid[i]).join(" | ") + " |");
+  return lineas.join("\n");
+}
+/* w:sdt (control de contenido: portadas, selectores de fecha, campos de
+   plantilla) puede envolver un w:p/w:tbl completo a nivel de body -- muy común
+   en documentos armados desde una plantilla de Word. Se "aplana" recursivamente
+   (un w:sdt puede anidar otro) para no perder esos bloques en silencio. */
+function docxAplanarBloques(contenedor){
+  var hijos = contenedor.childNodes, out = [], i;
+  for(i = 0; i < hijos.length; i++){
+    var n = hijos[i];
+    if(n.nodeType !== 1) continue;
+    var ln = (n.localName || n.tagName || "").replace(/^.*:/, "");
+    if(ln === "p" || ln === "tbl") out.push(n);
+    else if(ln === "sdt"){
+      var sdtContent = xmlHijos(n, "sdtContent")[0];
+      if(sdtContent) out = out.concat(docxAplanarBloques(sdtContent));
+    }
+    /* sectPr y el resto no aportan bloques convertibles */
+  }
+  return out;
+}
+async function docxAMarkdown(buf, indicePrevio){
+  var indice = indicePrevio || zipIndice(buf);
+  if(!indice.ok) return { ok: false, motivo: indice.motivo };
+  var doc = await xmlDe(buf, indice, "word/document.xml");
+  if(!doc) return { ok: false, motivo: "no se pudo leer word/document.xml" };
+  var relsPorId = (await opcRelaciones(buf, indice, "word/document.xml")).porId;
+  var numberingDoc = await xmlDe(buf, indice, "word/numbering.xml"); /* null si no existe: las listas caen a viñeta por defecto */
+  var body = xmlHijos(doc.documentElement, "body")[0];
+  if(!body) return { ok: false, motivo: "el .docx no tiene cuerpo de documento" };
+  var bloquesXml = docxAplanarBloques(body), bloques = [], contador = { omitidas: 0 }, truncado = false, i;
+  for(i = 0; i < bloquesXml.length; i++){
+    if(i >= DOCX_TOPE_PARRAFOS){ truncado = true; break; }
+    var n = bloquesXml[i];
+    var ln = (n.localName || n.tagName || "").replace(/^.*:/, "");
+    if(ln === "p"){
+      var md = await docxParrafoAMarkdown(n, buf, indice, relsPorId, numberingDoc, contador);
+      if(md) bloques.push(md);
+    } else {
+      var tabla = docxTablaAMarkdown(n);
+      if(tabla) bloques.push(tabla);
+    }
+  }
+  if(!bloques.length) return { ok: true, markdown: "*(documento vacío)*", imagenesOmitidas: 0, truncado: false };
+  return { ok: true, markdown: bloques.join("\n\n"), imagenesOmitidas: contador.omitidas, truncado: truncado };
 }
 
 /* se asume que la extensión ya se validó antes de llamar a esto (el input
@@ -21188,8 +22440,8 @@ async function detectarTipoArchivo(f){
     var indice = zipIndice(buf);
     var subtipo = indice.ok ? zipTipoOoxml(indice) : null;
     if(subtipo === "pptx") return { tipo: "pptx", buf: buf, indice: indice };
-    if(subtipo === "xlsx") return { tipo: "xlsx" };
-    if(subtipo === "docx") return { tipo: "docx" };
+    if(subtipo === "xlsx") return { tipo: "xlsx", buf: buf, indice: indice };
+    if(subtipo === "docx") return { tipo: "docx", buf: buf, indice: indice };
     return { tipo: "zipDesconocido" };
   }
   return { tipo: "texto" };
@@ -21229,9 +22481,25 @@ async function abrirArchivoValidado(f){
     aviso("Eso es un documento antiguo de Office (.doc/.xls/.ppt). Guardalo como .docx/.xlsx/.pptx desde Word/LibreOffice y volvé a intentarlo.");
     return;
   }
-  if(d.tipo === "xlsx" || d.tipo === "docx" || d.tipo === "zipDesconocido"){
-    var nombreFormato = d.tipo === "xlsx" ? ".xlsx" : d.tipo === "docx" ? ".docx" : ".docx/.xlsx/.pptx";
-    aviso("Eso es un documento de Office moderno (" + nombreFormato + "): MDx todavía no puede convertirlo.");
+  if(d.tipo === "zipDesconocido"){
+    aviso("Eso es un documento de Office moderno (.docx/.xlsx/.pptx): MDx todavía no puede convertirlo.");
+    return;
+  }
+  if(d.tipo === "docx"){
+    if(!confirmarReemplazo()) return;
+    var r3;
+    try{ r3 = await docxAMarkdown(d.buf, d.indice); }
+    catch(e){ aviso("No se pudo convertir ese documento"); return; }
+    if(!r3.ok){ aviso("No se pudo convertir ese documento: " + r3.motivo); return; }
+    var nombreMd3 = f.name.replace(/\.docx$/i, "") + ".md";
+    fijarTexto(r3.markdown, nombreMd3, {
+      origen: "local", version: 1, descargado: f.lastModified || Date.now(),
+      nombreDescarga: nombreMd3, firmaDescarga: firma(r3.markdown)
+    });
+    aviso("Convertido de .docx a Markdown" +
+      (r3.imagenesOmitidas ? ", " + r3.imagenesOmitidas + " imagen" + (r3.imagenesOmitidas === 1 ? "" : "es") + " sin poder incluir" : "") +
+      (r3.truncado ? ". El documento es muy grande y se truncó a " + DOCX_TOPE_PARRAFOS + " párrafos/tablas" : "") +
+      ". No se convierten notas al pie/finales, encabezados/pies de página, comentarios, objetos OLE, SmartArt, gráficos, cuadros de texto ni columnas múltiples; el nivel de encabezado se detecta por el nombre del estilo, no por herencia completa: revisá el resultado.");
     return;
   }
   if(d.tipo === "pptx"){
@@ -21248,6 +22516,23 @@ async function abrirArchivoValidado(f){
     aviso("Convertido de .pptx a Markdown: " + r.totalDiapositivas + " diapositiva" + (r.totalDiapositivas === 1 ? "" : "s") +
       (r.imagenesOmitidas ? ", " + r.imagenesOmitidas + " imagen" + (r.imagenesOmitidas === 1 ? "" : "es") + " sin poder incluir" : "") +
       ". No se convierten tablas, gráficos, SmartArt ni fondos de tema: revisá el resultado.");
+    return;
+  }
+  if(d.tipo === "xlsx"){
+    if(!confirmarReemplazo()) return;
+    var r2;
+    try{ r2 = await xlsxAMarkdown(d.buf, d.indice); }
+    catch(e){ aviso("No se pudo convertir esa planilla"); return; }
+    if(!r2.ok){ aviso("No se pudo convertir esa planilla: " + r2.motivo); return; }
+    var nombreMd2 = f.name.replace(/\.xlsx$/i, "") + ".md";
+    fijarTexto(r2.markdown, nombreMd2, {
+      origen: "local", version: 1, descargado: f.lastModified || Date.now(),
+      nombreDescarga: nombreMd2, firmaDescarga: firma(r2.markdown)
+    });
+    aviso("Convertido de .xlsx a Markdown: " + r2.totalHojas + " hoja" + (r2.totalHojas === 1 ? "" : "s") +
+      (r2.hojasOcultas ? " (" + r2.hojasOcultas + " oculta" + (r2.hojasOcultas === 1 ? "" : "s") + " sin incluir)" : "") +
+      (r2.truncado ? ". Alguna hoja es muy grande y se truncó a " + XLSX_TOPE_FILAS + " filas/" + XLSX_TOPE_COLUMNAS + " columnas" : "") +
+      ". No se recalculan fórmulas (queda el último valor guardado) ni combinaciones de celdas: revisá el resultado.");
     return;
   }
   leerArchivoComoTexto(f);
